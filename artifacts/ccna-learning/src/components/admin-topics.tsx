@@ -1,14 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { refreshCatalog } from '../lib/catalog-cache';
 import { useAdminSession } from './admin-session-boundary';
-import { adminQueryOptions, adminMutationOptions, invalidateAdminQueries } from '../lib/admin-session';
+import { adminQueryOptions, adminMutationOptions } from '../lib/admin-session';
 import {
   useAdminListTopics,
   useAdminCreateTopic,
   useAdminUpdateTopic,
   useAdminDisableTopic,
   getAdminListTopicsQueryKey,
-  getListTopicsQueryKey,
 } from '@workspace/api-client-react';
 import type { AdminTopic, AdminTopicStatus } from '@workspace/api-client-react';
 import {
@@ -70,11 +70,8 @@ export function AdminTopicManager() {
   const [notice, setNotice] = useState<string | null>(null);
   const [toDisable, setToDisable] = useState<AdminTopic | null>(null);
 
-  const refresh = () => {
-    if (!session.isCurrent()) return;
-    void invalidateAdminQueries(qc, getAdminListTopicsQueryKey(), session.identity);
-    void qc.invalidateQueries({ queryKey: getListTopicsQueryKey() });
-  };
+  const refresh = (isCurrent: () => boolean) =>
+    refreshCatalog(qc, session.identity, isCurrent);
 
   const startEdit = (t: AdminTopic) => {
     if (!session.isCurrent()) return;
@@ -104,7 +101,7 @@ export function AdminTopicManager() {
         setNotice(`Topic "${data.name}" created.`);
       }
       reset();
-      refresh();
+      await refresh(isCurrent);
     } catch (err) {
       if (isCurrent()) setFormError(apiErrorMessage(err));
     } finally {
@@ -122,7 +119,7 @@ export function AdminTopicManager() {
       if (!isCurrent()) return;
       setNotice(`Topic "${t.name}" disabled. It is now hidden from learners.`);
       if (editing?.id === t.id) reset();
-      refresh();
+      await refresh(isCurrent);
     } catch (err) {
       if (isCurrent()) setFormError(apiErrorMessage(err));
     } finally {

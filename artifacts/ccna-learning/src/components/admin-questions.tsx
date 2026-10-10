@@ -1,12 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { refreshCatalog } from '../lib/catalog-cache';
 import { useAdminSession } from './admin-session-boundary';
-import { adminQueryOptions, adminMutationOptions, invalidateAdminQueries } from '../lib/admin-session';
+import { adminQueryOptions, adminMutationOptions } from '../lib/admin-session';
 import {
   getAdminListQuestionsQueryKey,
   getAdminListTopicsQueryKey,
-  getGetDashboardSummaryQueryKey,
-  getListTopicsQueryKey,
   useAdminCreateQuestion,
   useAdminDisableQuestion,
   useAdminListQuestions,
@@ -157,14 +156,8 @@ export function AdminQuestionManager() {
     }
   }, [listQuery.data, page]);
 
-  const refreshAffectedViews = async () => {
-    if (!session.isCurrent()) return;
-    await Promise.all([
-      invalidateAdminQueries(queryClient, getAdminListQuestionsQueryKey(), session.identity),
-      queryClient.invalidateQueries({ queryKey: getListTopicsQueryKey() }),
-      queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }),
-    ]);
-  };
+  const refreshAffectedViews = (isCurrent: () => boolean) =>
+    refreshCatalog(queryClient, session.identity, isCurrent);
 
   const resetForm = () => {
     if (!session.isCurrent()) return;
@@ -231,7 +224,7 @@ export function AdminQuestionManager() {
         setNotice('Question created.');
       }
       resetForm();
-      await refreshAffectedViews();
+      await refreshAffectedViews(isCurrent);
     } catch (error) {
       if (isCurrent()) setFormError(apiErrorMessage(error));
     } finally {
@@ -251,7 +244,7 @@ export function AdminQuestionManager() {
       if (!isCurrent()) return;
       if (editing?.id === question.id) resetForm();
       setNotice(`Question ${question.questionCode} disabled. It has not been deleted.`);
-      await refreshAffectedViews();
+      await refreshAffectedViews(isCurrent);
     } catch (error) {
       if (isCurrent()) setFormError(apiErrorMessage(error));
     } finally {

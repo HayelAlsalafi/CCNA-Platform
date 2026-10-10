@@ -47,8 +47,8 @@ function PracticeSession({ isAuthLoaded, isSignedIn, identity, activeIdentity }:
   const topics = [...(topicsQuery.data ?? [])].sort((a, b) => a.displayOrder - b.displayOrder);
   const initialTopicId = new URLSearchParams(window.location.search).get('topicId') ?? '';
   const [topicId, setTopicId] = useState(initialTopicId);
-  const [selectedOption, setSelectedOption] = useState('');
-  const [result, setResult] = useState<PracticeAnswerResult | null>(null);
+  const [selection, setSelection] = useState<{ delivery: string; value: string } | null>(null);
+  const [answer, setAnswer] = useState<{ delivery: string; value: PracticeAnswerResult } | null>(null);
   const [questionRefresh, setQuestionRefresh] = useState(0);
   const [loadingNextQuestion, setLoadingNextQuestion] = useState(false);
   const topic = topics.find((item) => item.id === topicId);
@@ -65,7 +65,21 @@ function PracticeSession({ isAuthLoaded, isSignedIn, identity, activeIdentity }:
   const submitAnswer = useSubmitPracticeAnswer<unknown, ReturnType<typeof progressIdentity>>({
     mutation: practiceProgressMutationOptions(queryClient, identity),
   });
-  const question = questionQuery.data;
+  // A disabled/missing topic or failed refresh must not expose retained query data.
+  const question = topic && !questionQuery.isError ? questionQuery.data : undefined;
+  const signature = JSON.stringify([topicId, questionRefresh, question ?? null]);
+  // An A -> B -> A delivery still has a new lifetime; old callbacks stay stale.
+  const lifetime = useRef({ signature, generation: 0 });
+  if (lifetime.current.signature !== signature) {
+    lifetime.current = { signature, generation: lifetime.current.generation + 1 };
+  }
+  const delivery = JSON.stringify([signature, lifetime.current.generation]);
+  const activeDelivery = useRef(delivery);
+  activeDelivery.current = delivery;
+  const selectedOption = selection?.delivery === delivery ? selection.value : '';
+  const result = answer?.delivery === delivery ? answer.value : null;
+  const resetMutation = submitAnswer.reset;
+  useEffect(() => { resetMutation(); }, [delivery, resetMutation]);
   const questionErrorStatus = statusCode(questionQuery.error);
   const submitErrorStatus = statusCode(submitAnswer.error);
   const isAccessError = questionErrorStatus === 401 || questionErrorStatus === 403 || submitErrorStatus === 401 || submitErrorStatus === 403;
@@ -73,15 +87,15 @@ function PracticeSession({ isAuthLoaded, isSignedIn, identity, activeIdentity }:
 
   const chooseTopic = (nextTopicId: string) => {
     setTopicId(nextTopicId);
-    setSelectedOption('');
-    setResult(null);
+    setSelection(null);
+    setAnswer(null);
     submitAnswer.reset();
     setQuestionRefresh(0);
   };
 
   const nextQuestion = async () => {
-    setSelectedOption('');
-    setResult(null);
+    setSelection(null);
+    setAnswer(null);
     submitAnswer.reset();
     setQuestionRefresh((value) => value + 1);
     setLoadingNextQuestion(true);
@@ -93,10 +107,12 @@ function PracticeSession({ isAuthLoaded, isSignedIn, identity, activeIdentity }:
   };
 
   const submit = () => {
-    if (!identity || !question || !selectedOption || result || submitAnswer.isPending) return;
+    if (!identity || !question || !selectedOption || questionQuery.isFetching || result || submitAnswer.isPending) return;
     submitAnswer.mutate(
       { questionId: question.id, data: { optionKey: selectedOption } },
-      { onSuccess: practiceResultHandler(identity, activeIdentity, mounted, setResult) },
+      { onSuccess: practiceResultHandler(identity, activeIdentity, mounted, value => {
+        if (activeDelivery.current === delivery) setAnswer({ delivery, value });
+      }) },
     );
   };
 
@@ -189,7 +205,7 @@ function PracticeSession({ isAuthLoaded, isSignedIn, identity, activeIdentity }:
               <h2>That topic is no longer active.</h2>
               <p>Choose a topic from the current active catalog to continue.</p>
             </div>
-          ) : questionQuery.isLoading || loadingNextQuestion || (questionQuery.isFetching && !question) ? (
+          ) : questionQuery.isLoading || loadingNextQuestion || questionQuery.isFetching ? (
             <div className="practice-state-card" aria-label="Loading practice question" data-testid="loading-practice-question">
               <div className="skeleton" style={{ height: 11, width: 125 }} />
               <div className="skeleton" style={{ height: 26, width: '86%', marginTop: 22 }} />
@@ -247,7 +263,7 @@ function PracticeSession({ isAuthLoaded, isSignedIn, identity, activeIdentity }:
                         name="practice-answer"
                         value={option.optionKey}
                         checked={selected}
-                        onChange={() => setSelectedOption(option.optionKey)}
+                        onChange={() => setSelection({ delivery, value: option.optionKey })}
                         data-testid={`radio-practice-${option.optionKey}`}
                       />
                       <OptionKey>{String.fromCharCode(65 + index)}</OptionKey>

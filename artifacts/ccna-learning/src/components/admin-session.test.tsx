@@ -339,3 +339,62 @@ it.each(['questions', 'topics'] as const)('keeps the current %s draft on session
   expect(writes()).toHaveLength(1);
   expect(document.querySelector('[data-testid="admin-' + (view === 'questions' ? 'question' : 'topic') + '-notice"]')).toBeNull();
 });
+
+describe('catalog refresh wired through all six real manager mutation handlers', () => {
+  it.each([
+    ['questions', 'create'], ['questions', 'update'], ['questions', 'disable'],
+    ['topics', 'create'], ['topics', 'update'], ['topics', 'disable'],
+  ] as const)('%s %s refreshes learner/catalog projections after success', async (view, operation) => {
+    const keys = [
+      ['/api/topics'], ['/api/dashboard/summary'],
+      ['/api/learning/progress', a],
+      ['/api/practice/history', { offset: 0 }, a],
+      ['/api/practice/topics/' + topicId + '/question', a],
+    ];
+    for (const key of keys) client.setQueryData(key, { before: true });
+    const other = ['/api/learning/progress', b];
+    client.setQueryData(other, { private: true });
+    await render(view);
+    const readsBefore = calls.filter(c => c.options.method === 'GET' && c.url.startsWith('/api/admin/')).length;
+    if (operation === 'disable') {
+      await button('Disable');
+      await click(view === 'questions' ? '[data-testid="button-confirm-disable-question"]' : '[data-testid="button-confirm-disable"]');
+    } else {
+      if (operation === 'update') await button('Edit');
+      if (view === 'questions') {
+        await input('#question-topic', topicId); await input('#question-text', 'Catalog regression demo');
+        if (operation === 'create') {
+          for (const key of ['A', 'B', 'C', 'D']) await input('[aria-label="Option ' + key + ' text"]', 'Demo ' + key);
+          await click('[aria-label="Mark option A as correct"]');
+        }
+      } else {
+        await input('#topic-name', 'Catalog regression demo');
+        await input('#topic-slug', 'catalog-demo');
+      }
+      await click('[data-testid="button-save-' + (view === 'questions' ? 'question' : 'topic') + '"]');
+    }
+    expect(writes()).toHaveLength(1);
+    expect(writes()[0].options.method).toBe(operation === 'update' ? 'PATCH' : 'POST');
+    expect(writes()[0].url).toBe('/api/admin/' + view +
+      (operation === 'create' ? '' : '/' + (view === 'questions' ? question(a.userId).id : topicId)) +
+      (operation === 'disable' ? '/disable' : ''));
+    expect(new Headers(writes()[0].options.headers).get('X-Admin-Session')).toBe(a.sessionId);
+    for (const key of keys) expect(client.getQueryState(key)?.isInvalidated).toBe(true);
+    expect(client.getQueryState(other)?.isInvalidated).toBe(false);
+    expect(calls.filter(c => c.options.method === 'GET' && c.url.startsWith('/api/admin/')).length).toBeGreaterThan(readsBefore);
+  });
+
+  it.each(['questions', 'topics'] as const)('failed %s write retains draft and does not invalidate catalog', async view => {
+    client.setQueryData(['/api/topics'], ['old catalog']);
+    await render(view); await button('Edit');
+    const pending = deferred<Response>(); nextWrite = pending;
+    const field = view === 'questions' ? '#question-text' : '#topic-name';
+    await input(field, 'Unsaved draft');
+    await click('[data-testid="button-save-' + (view === 'questions' ? 'question' : 'topic') + '"]');
+    await act(async () => pending.resolve(json({ error: { message: 'Write rejected' } }, 403)));
+    expect(find<HTMLInputElement | HTMLTextAreaElement>(field).value).toBe('Unsaved draft');
+    expect(container.textContent).toContain('server denied');
+    expect(client.getQueryState(['/api/topics'])?.isInvalidated).toBe(false);
+    expect(writes()).toHaveLength(1);
+  });
+});
