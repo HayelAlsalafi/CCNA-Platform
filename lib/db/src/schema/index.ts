@@ -21,3 +21,5 @@ export * from "./topics";
 export * from "./users";
 export * from "./questions";
 export * from "./practice-attempts";
+
+export * from "./question-revisions";

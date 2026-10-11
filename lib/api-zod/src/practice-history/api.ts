@@ -19,7 +19,7 @@ export const getPracticeHistoryQueryIncludeDetailsDefault = false;
 export const GetPracticeHistoryQueryParams = zod.object({
   "limit": zod.number().int().min(1).max(getPracticeHistoryQueryLimitMax).default(getPracticeHistoryQueryLimitDefault),
   "cursor": zod.string().optional().describe('Opaque pagination cursor returned by a previous response.'),
-  "includeDetails": zod.boolean().default(getPracticeHistoryQueryIncludeDetailsDefault).describe('Include nullable questionCode and topicName display fields. Omitted or false preserves the original response.')
+  "includeDetails": zod.boolean().default(getPracticeHistoryQueryIncludeDetailsDefault).describe('Include revision review and historical-content availability plus question/topic labels. Omitted or false preserves the original response.')
 })
 
 export const GetPracticeHistoryResponse = zod.object({
@@ -30,8 +30,26 @@ export const GetPracticeHistoryResponse = zod.object({
   "selectedOptionKey": zod.string(),
   "isCorrect": zod.boolean(),
   "submittedAt": zod.string().datetime({"offset":true}),
-  "questionCode": zod.string().nullish().describe('Present only with includeDetails=true. Current question code; null if unavailable.'),
-  "topicName": zod.string().nullish().describe('Present only with includeDetails=true. Current name of the topic recorded in the attempt, not the question\'s current topic; null if unavailable.')
+  "questionCode": zod.string().nullish().describe('Present only with includeDetails=true. Snapshot question code for revised attempts; current display label only for legacy attempts.'),
+  "topicName": zod.string().nullish().describe('Present only with includeDetails=true. Snapshot topic name for revised attempts; current display label only for legacy attempts.'),
+  "revisionId": zod.string().uuid().nullish().describe('Present only with includeDetails=true; null for legacy records without captured content.'),
+  "historicalContentStatus": zod.enum(['VERIFIED_SNAPSHOT', 'LEGACY_UNAVAILABLE']).optional().describe('Present only with includeDetails=true. Legacy scores are preserved; original content is unknown.'),
+  "review": zod.object({
+  "text": zod.string(),
+  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE']),
+  "difficulty": zod.enum(['EASY', 'MEDIUM', 'HARD']),
+  "imageKey": zod.string().nullable(),
+  "referenceNotes": zod.string().nullable(),
+  "options": zod.array(zod.object({
+  "optionKey": zod.string(),
+  "text": zod.string()
+})),
+  "correctOption": zod.object({
+  "optionKey": zod.string(),
+  "text": zod.string()
+}),
+  "explanation": zod.string()
+}).nullish().describe('Immutable submission content and answer key, available only in the authenticated owner\'s history.')
 })),
   "nextCursor": zod.string().nullable()
 })

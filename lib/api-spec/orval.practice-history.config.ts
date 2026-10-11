@@ -6,7 +6,7 @@ const historyOnly: InputTransformerFn = (document) => {
   const operation = document.paths?.['/practice/history'];
   if (!operation) throw new Error('Required OpenAPI path is missing: /practice/history');
   const schemas = Object.fromEntries(
-    ['PracticeHistoryResponse', 'PracticeHistoryItem', 'ErrorResponse'].map((name) => {
+    ['PracticeHistoryResponse', 'PracticeHistoryItem', 'PracticeRevisionReview', 'PracticeQuestionOption', 'PracticeCorrectOption', 'ErrorResponse'].map((name) => {
       const schema = document.components?.schemas?.[name];
       if (!schema) throw new Error('Required OpenAPI schema is missing: ' + name);
       return [name, schema] as const;

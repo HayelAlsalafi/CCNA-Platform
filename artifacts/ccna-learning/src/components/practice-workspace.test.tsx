@@ -11,7 +11,7 @@ vi.mock('@clerk/react', () => ({ useAuth: () => ({
 }) }));
 const topic = { id: 'topic-a', slug: 'demo', name: 'Demo', description: '', displayOrder: 0, questionCount: 1 };
 const original = {
-  id: 'question-a', questionCode: 'CCNA-Q-000001', topicId: 'topic-a',
+  id: 'question-a', deliveryId: 'delivery-a', revisionId: 'revision-a', expiresAt: '2026-10-12T10:00:00Z', questionCode: 'CCNA-Q-000001', topicId: 'topic-a',
   text: 'Interface demo', difficulty: 'EASY', type: 'MULTIPLE_CHOICE_SINGLE',
   options: [{ optionKey: 'A', text: 'Demo A' }, { optionKey: 'B', text: 'Demo B' }],
 };
@@ -111,4 +111,27 @@ it('does not resurrect an old result if content changes and later returns to its
   question = structuredClone(original); await refresh();
   await act(async () => { pending.resolve(json(grade)); });
   expect(container.querySelector('[data-testid="result-practice-answer"]')).toBeNull();
+});
+
+
+it('submits the exact server-issued delivery and excludes client grading/identity', async () => {
+  await selectAnswer(); await act(async () => element<HTMLButtonElement>('button-submit-answer').click());
+  const call = vi.mocked(fetch).mock.calls.find(([url]) => url === '/api/practice/questions/question-a/answer');
+  expect(JSON.parse(String(call?.[1]?.body))).toEqual({ optionKey: 'A', deliveryId: 'delivery-a' });
+});
+it('clears a selection when a new delivery has identical question content', async () => {
+  await selectAnswer(); question = { ...question, deliveryId: 'delivery-new' }; await refresh();
+  expect(container.querySelector<HTMLInputElement>('input[value="A"]')!.checked).toBe(false);
+  expect(element<HTMLButtonElement>('button-submit-answer').disabled).toBe(true);
+});
+it('offers a fresh delivery after a 409 without silently resubmitting', async () => {
+  const pending = deferred<Response>(); pendingAnswer = pending;
+  await selectAnswer(); await act(async () => element<HTMLButtonElement>('button-submit-answer').click());
+  await act(async () => { pending.resolve(new Response(JSON.stringify({ error: { code: 'DELIVERY_EXPIRED', message: 'Expired' } }), { status: 409, headers: { 'content-type': 'application/json' } })); });
+  expect(element('error-practice-submit').textContent).toContain('Load a fresh question');
+  expect(element('button-retry-submit-answer').textContent).toContain('Load fresh question');
+  question = { ...question, deliveryId: 'replacement' };
+  await act(async () => element<HTMLButtonElement>('button-retry-submit-answer').click());
+  expect(element<HTMLButtonElement>('button-submit-answer').disabled).toBe(true);
+  expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === '/api/practice/questions/question-a/answer')).toHaveLength(1);
 });

@@ -12,6 +12,9 @@ import type { PracticeTopic } from './practiceTopic';
 
 export interface PracticeQuestion {
   id: string;
+  deliveryId: string;
+  revisionId: string;
+  expiresAt: Date;
   questionCode: string;
   topic: PracticeTopic;
   text: string;

@@ -161,17 +161,18 @@ export const GetQuestionResponse = zod.object({
 
 
 /**
- * Returns only the authenticated user's attempts, newest first, using cursor-based pagination.
+ * Returns only the authenticated user's attempts, newest first, using cursor-based pagination. Display details are opt-in and use the topic recorded at submission, even when the question moves or either record is disabled.
  * @summary List authenticated user's practice attempts
  */
 export const getPracticeHistoryQueryLimitDefault = 20;
 export const getPracticeHistoryQueryLimitMax = 100;
 
-
+export const getPracticeHistoryQueryIncludeDetailsDefault = false;
 
 export const GetPracticeHistoryQueryParams = zod.object({
   "limit": zod.coerce.number().int().min(1).max(getPracticeHistoryQueryLimitMax).default(getPracticeHistoryQueryLimitDefault),
-  "cursor": zod.coerce.string().optional().describe('Opaque pagination cursor returned by a previous response.')
+  "cursor": zod.coerce.string().optional().describe('Opaque pagination cursor returned by a previous response.'),
+  "includeDetails": zod.coerce.boolean().default(getPracticeHistoryQueryIncludeDetailsDefault).describe('Include revision review and historical-content availability plus question/topic labels. Omitted or false preserves the original response.')
 })
 
 export const GetPracticeHistoryResponse = zod.object({
@@ -188,7 +189,7 @@ export const GetPracticeHistoryResponse = zod.object({
 
 
 /**
- * Returns one random ACTIVE question from an ACTIVE topic. Answer keys, explanations, and author-only fields are excluded.
+ * Captures immutable content and issues one user/session-bound delivery, expiring after 24 hours. Returns one random ACTIVE question from an ACTIVE topic without answer keys or explanations. Each read issues a new delivery; responses must not be shared or cached across actors.
  * @summary Fetch a practice question for an active topic
  */
 export const GetPracticeQuestionParams = zod.object({
@@ -197,6 +198,9 @@ export const GetPracticeQuestionParams = zod.object({
 
 export const GetPracticeQuestionResponse = zod.object({
   "id": zod.string().uuid(),
+  "deliveryId": zod.string().uuid(),
+  "revisionId": zod.string().uuid(),
+  "expiresAt": zod.coerce.date(),
   "questionCode": zod.string(),
   "topic": zod.object({
   "id": zod.string().uuid(),
@@ -214,7 +218,7 @@ export const GetPracticeQuestionResponse = zod.object({
 
 
 /**
- * Validates that the selected option belongs to the ACTIVE question in an ACTIVE topic, then returns correctness and the answer explanation. Successful submissions are persisted as practice attempts for the authenticated user.
+ * Grades only the immutable revision bound to the delivery issued to the verified user/session. Requires deliveryId; older clients must reload and upgrade. Same-answer retries return the original result without another attempt; changed-answer retries, missing deliveries and expired unsubmitted deliveries return 409. Active availability is rechecked before the first write. Already accepted requests may finish after browser switching.
  * @summary Submit and grade an answer to an active practice question
  */
 export const SubmitPracticeAnswerParams = zod.object({
@@ -226,6 +230,7 @@ export const submitPracticeAnswerBodyOptionKeyMax = 8;
 
 
 export const SubmitPracticeAnswerBody = zod.object({
+  "deliveryId": zod.string().uuid().describe('Delivery received from getPracticeQuestion; bound to the verified user and session.'),
   "optionKey": zod.string().min(1).max(submitPracticeAnswerBodyOptionKeyMax)
 })
 
@@ -271,6 +276,16 @@ export const AdminListTopicsResponse = zod.array(AdminListTopicsResponseItem)
 /**
  * @summary Create a topic (ADMIN)
  */
+export const adminCreateTopicHeaderXAdminSessionMax = 256;
+
+
+export const adminCreateTopicHeaderXAdminSessionRegExp = new RegExp('^[A-Za-z0-9_-]+$');
+
+
+export const AdminCreateTopicHeader = zod.object({
+  "X-Admin-Session": zod.string().min(1).max(adminCreateTopicHeaderXAdminSessionMax).regex(adminCreateTopicHeaderXAdminSessionRegExp).optional().describe('Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.')
+})
+
 export const adminCreateTopicBodySlugMin = 2;
 export const adminCreateTopicBodySlugMax = 120;
 
@@ -324,6 +339,16 @@ export const AdminUpdateTopicParams = zod.object({
   "id": zod.coerce.string().uuid()
 })
 
+export const adminUpdateTopicHeaderXAdminSessionMax = 256;
+
+
+export const adminUpdateTopicHeaderXAdminSessionRegExp = new RegExp('^[A-Za-z0-9_-]+$');
+
+
+export const AdminUpdateTopicHeader = zod.object({
+  "X-Admin-Session": zod.string().min(1).max(adminUpdateTopicHeaderXAdminSessionMax).regex(adminUpdateTopicHeaderXAdminSessionRegExp).optional().describe('Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.')
+})
+
 export const adminUpdateTopicBodySlugMin = 2;
 export const adminUpdateTopicBodySlugMax = 120;
 
@@ -375,6 +400,16 @@ export const AdminUpdateTopicResponse = zod.object({
  */
 export const AdminDisableTopicParams = zod.object({
   "id": zod.coerce.string().uuid()
+})
+
+export const adminDisableTopicHeaderXAdminSessionMax = 256;
+
+
+export const adminDisableTopicHeaderXAdminSessionRegExp = new RegExp('^[A-Za-z0-9_-]+$');
+
+
+export const AdminDisableTopicHeader = zod.object({
+  "X-Admin-Session": zod.string().min(1).max(adminDisableTopicHeaderXAdminSessionMax).regex(adminDisableTopicHeaderXAdminSessionRegExp).optional().describe('Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.')
 })
 
 export const adminDisableTopicResponseSlugMin = 2;
@@ -475,6 +510,16 @@ export const AdminListQuestionsResponse = zod.object({
 /**
  * @summary Create a single-correct multiple-choice question (ADMIN)
  */
+export const adminCreateQuestionHeaderXAdminSessionMax = 256;
+
+
+export const adminCreateQuestionHeaderXAdminSessionRegExp = new RegExp('^[A-Za-z0-9_-]+$');
+
+
+export const AdminCreateQuestionHeader = zod.object({
+  "X-Admin-Session": zod.string().min(1).max(adminCreateQuestionHeaderXAdminSessionMax).regex(adminCreateQuestionHeaderXAdminSessionRegExp).optional().describe('Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.')
+})
+
 export const adminCreateQuestionBodyTextMax = 10000;
 
 export const adminCreateQuestionBodyExplanationMax = 10000;
@@ -552,6 +597,16 @@ export const AdminCreateQuestionResponse = zod.object({
  */
 export const AdminUpdateQuestionParams = zod.object({
   "id": zod.coerce.string().uuid()
+})
+
+export const adminUpdateQuestionHeaderXAdminSessionMax = 256;
+
+
+export const adminUpdateQuestionHeaderXAdminSessionRegExp = new RegExp('^[A-Za-z0-9_-]+$');
+
+
+export const AdminUpdateQuestionHeader = zod.object({
+  "X-Admin-Session": zod.string().min(1).max(adminUpdateQuestionHeaderXAdminSessionMax).regex(adminUpdateQuestionHeaderXAdminSessionRegExp).optional().describe('Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.')
 })
 
 export const adminUpdateQuestionBodyTextMax = 10000;
@@ -633,6 +688,16 @@ export const AdminDisableQuestionParams = zod.object({
   "id": zod.coerce.string().uuid()
 })
 
+export const adminDisableQuestionHeaderXAdminSessionMax = 256;
+
+
+export const adminDisableQuestionHeaderXAdminSessionRegExp = new RegExp('^[A-Za-z0-9_-]+$');
+
+
+export const AdminDisableQuestionHeader = zod.object({
+  "X-Admin-Session": zod.string().min(1).max(adminDisableQuestionHeaderXAdminSessionMax).regex(adminDisableQuestionHeaderXAdminSessionRegExp).optional().describe('Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.')
+})
+
 export const adminDisableQuestionResponseQuestionCodeRegExp = new RegExp('^CCNA-Q-[0-9]{6,}$');
 export const adminDisableQuestionResponseTextMax = 10000;
 
@@ -670,106 +735,3 @@ export const AdminDisableQuestionResponse = zod.object({
   "isCorrect": zod.boolean()
 }))
 })
-
-
-/**
- * @summary Create a topic (ADMIN)
- */
-export const adminCreateTopicHeaderXAdminSessionMax = 256;
-
-export const adminCreateTopicHeaderXAdminSessionRegExp = new RegExp("^[A-Za-z0-9_-]+$");
-
-export const AdminCreateTopicHeader = zod.object({
-  "X-Admin-Session": zod
-    .string()
-    .min(1)
-    .max(adminCreateTopicHeaderXAdminSessionMax)
-    .regex(adminCreateTopicHeaderXAdminSessionRegExp)
-    .optional()
-    .describe(
-      "Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.",
-    ),
-});
-
-export const adminUpdateTopicHeaderXAdminSessionMax = 256;
-
-export const adminUpdateTopicHeaderXAdminSessionRegExp = new RegExp("^[A-Za-z0-9_-]+$");
-
-export const AdminUpdateTopicHeader = zod.object({
-  "X-Admin-Session": zod
-    .string()
-    .min(1)
-    .max(adminUpdateTopicHeaderXAdminSessionMax)
-    .regex(adminUpdateTopicHeaderXAdminSessionRegExp)
-    .optional()
-    .describe(
-      "Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.",
-    ),
-});
-
-export const adminDisableTopicHeaderXAdminSessionMax = 256;
-
-export const adminDisableTopicHeaderXAdminSessionRegExp = new RegExp("^[A-Za-z0-9_-]+$");
-
-export const AdminDisableTopicHeader = zod.object({
-  "X-Admin-Session": zod
-    .string()
-    .min(1)
-    .max(adminDisableTopicHeaderXAdminSessionMax)
-    .regex(adminDisableTopicHeaderXAdminSessionRegExp)
-    .optional()
-    .describe(
-      "Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.",
-    ),
-});
-
-/**
- * @summary Create a single-correct multiple-choice question (ADMIN)
- */
-export const adminCreateQuestionHeaderXAdminSessionMax = 256;
-
-export const adminCreateQuestionHeaderXAdminSessionRegExp = new RegExp("^[A-Za-z0-9_-]+$");
-
-export const AdminCreateQuestionHeader = zod.object({
-  "X-Admin-Session": zod
-    .string()
-    .min(1)
-    .max(adminCreateQuestionHeaderXAdminSessionMax)
-    .regex(adminCreateQuestionHeaderXAdminSessionRegExp)
-    .optional()
-    .describe(
-      "Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.",
-    ),
-});
-
-export const adminUpdateQuestionHeaderXAdminSessionMax = 256;
-
-export const adminUpdateQuestionHeaderXAdminSessionRegExp = new RegExp("^[A-Za-z0-9_-]+$");
-
-export const AdminUpdateQuestionHeader = zod.object({
-  "X-Admin-Session": zod
-    .string()
-    .min(1)
-    .max(adminUpdateQuestionHeaderXAdminSessionMax)
-    .regex(adminUpdateQuestionHeaderXAdminSessionRegExp)
-    .optional()
-    .describe(
-      "Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.",
-    ),
-});
-
-export const adminDisableQuestionHeaderXAdminSessionMax = 256;
-
-export const adminDisableQuestionHeaderXAdminSessionRegExp = new RegExp("^[A-Za-z0-9_-]+$");
-
-export const AdminDisableQuestionHeader = zod.object({
-  "X-Admin-Session": zod
-    .string()
-    .min(1)
-    .max(adminDisableQuestionHeaderXAdminSessionMax)
-    .regex(adminDisableQuestionHeaderXAdminSessionRegExp)
-    .optional()
-    .describe(
-      "Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.",
-    ),
-});

@@ -51,10 +51,11 @@ describe.skipIf(!testUrl)('practice history details isolated PostgreSQL', () => 
       CREATE TEMP TABLE users (id uuid PRIMARY KEY);
       CREATE TEMP TABLE topics (id uuid PRIMARY KEY, name text NOT NULL, status text NOT NULL);
       CREATE TEMP TABLE questions (id uuid PRIMARY KEY, topic_id uuid NOT NULL REFERENCES topics(id), question_code text NOT NULL, status text NOT NULL);
+      CREATE TEMP TABLE question_revisions (id uuid PRIMARY KEY, snapshot jsonb);
       CREATE TEMP TABLE practice_attempts (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL REFERENCES users(id),
         question_id uuid NOT NULL REFERENCES questions(id), topic_id uuid NOT NULL REFERENCES topics(id),
-        selected_option_key varchar(8) NOT NULL, is_correct boolean NOT NULL, submitted_at timestamptz NOT NULL
+        selected_option_key varchar(8) NOT NULL, is_correct boolean NOT NULL, submitted_at timestamptz NOT NULL, revision_id uuid, delivery_id uuid
       );
     `);
   });

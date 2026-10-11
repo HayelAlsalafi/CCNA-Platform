@@ -22,6 +22,8 @@ describe("Practice history PostgreSQL integration", () => {
 
     try {
       await client.query("BEGIN");
+      // Legacy pagination fixtures stay transaction-local; never write unbound public attempts.
+      await client.query("CREATE TEMP TABLE practice_attempts (LIKE public.practice_attempts INCLUDING DEFAULTS) ON COMMIT DROP");
 
       const users = await client.query(
         "SELECT id FROM users ORDER BY id LIMIT 2",

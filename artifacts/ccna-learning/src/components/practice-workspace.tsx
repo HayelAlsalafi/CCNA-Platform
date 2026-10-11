@@ -57,6 +57,8 @@ function PracticeSession({ isAuthLoaded, isSignedIn, identity, activeIdentity }:
       enabled: Boolean(topicId && topic && isAuthLoaded && isSignedIn && identity),
       queryKey: sessionQueryKey(getGetPracticeQuestionQueryKey(topicId), identity),
       gcTime: 0,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
       placeholderData: () => undefined,
       retry: false,
     },
@@ -83,6 +85,7 @@ function PracticeSession({ isAuthLoaded, isSignedIn, identity, activeIdentity }:
   const questionErrorStatus = statusCode(questionQuery.error);
   const submitErrorStatus = statusCode(submitAnswer.error);
   const isAccessError = questionErrorStatus === 401 || questionErrorStatus === 403 || submitErrorStatus === 401 || submitErrorStatus === 403;
+  const isDeliveryConflict = submitErrorStatus === 409;
   const isNotFound = questionErrorStatus === 404 || submitErrorStatus === 404;
 
   const chooseTopic = (nextTopicId: string) => {
@@ -109,7 +112,7 @@ function PracticeSession({ isAuthLoaded, isSignedIn, identity, activeIdentity }:
   const submit = () => {
     if (!identity || !question || !selectedOption || questionQuery.isFetching || result || submitAnswer.isPending) return;
     submitAnswer.mutate(
-      { questionId: question.id, data: { optionKey: selectedOption } },
+      { questionId: question.id, data: { optionKey: selectedOption, deliveryId: question.deliveryId } },
       { onSuccess: practiceResultHandler(identity, activeIdentity, mounted, value => {
         if (activeDelivery.current === delivery) setAnswer({ delivery, value });
       }) },
@@ -287,8 +290,8 @@ function PracticeSession({ isAuthLoaded, isSignedIn, identity, activeIdentity }:
 
               {submitAnswer.isError && !isAccessError ? (
                 <div className="practice-submit-error" role="alert" data-testid="error-practice-submit">
-                  <span>We could not check that answer. Your selection is still here.</span>
-                  <button type="button" onClick={submit} disabled={!selectedOption || submitAnswer.isPending} data-testid="button-retry-submit-answer">Try again</button>
+                  <span>{isDeliveryConflict ? 'This delivery cannot accept that answer. Load a fresh question; accepted attempts remain in your history.' : 'We could not check that answer. Your selection is still here.'}</span>
+                  <button type="button" onClick={isDeliveryConflict ? () => void nextQuestion() : submit} disabled={submitAnswer.isPending || (!isDeliveryConflict && !selectedOption)} data-testid="button-retry-submit-answer">{isDeliveryConflict ? 'Load fresh question' : 'Try again'}</button>
                 </div>
               ) : null}
 

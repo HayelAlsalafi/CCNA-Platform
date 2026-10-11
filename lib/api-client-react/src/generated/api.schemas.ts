@@ -350,6 +350,9 @@ export const PracticeQuestionDifficulty = {
 
 export interface PracticeQuestion {
   id: string;
+  deliveryId: string;
+  revisionId: string;
+  expiresAt: string;
   questionCode: string;
   topic: PracticeTopic;
   text: string;
@@ -373,6 +376,8 @@ export interface PracticeHistoryResponse {
 }
 
 export interface PracticeAnswerInput {
+  /** Delivery received from getPracticeQuestion; bound to the verified user and session. */
+  deliveryId: string;
   /**
      * @minLength 1
      * @maxLength 8
@@ -492,6 +497,11 @@ export interface ErrorResponse {
   error: ErrorResponseError;
 }
 
+/**
+ * Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.
+ */
+export type AdminSessionPreconditionParameter = string;
+
 export type GetPracticeHistoryParams = {
 /**
  * @minimum 1
@@ -502,6 +512,10 @@ limit?: number;
  * Opaque pagination cursor returned by a previous response.
  */
 cursor?: string;
+/**
+ * Include revision review and historical-content availability plus question/topic labels. Omitted or false preserves the original response.
+ */
+includeDetails?: boolean;
 };
 
 export type AdminListQuestionsParams = {
@@ -536,9 +550,3 @@ export const AdminListQuestionsDifficulty = {
   MEDIUM: 'MEDIUM',
   HARD: 'HARD',
 } as const;
-
-
-/**
- * Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.
- */
-export type AdminSessionPreconditionParameter = string;

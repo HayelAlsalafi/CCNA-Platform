@@ -15,7 +15,7 @@ const historicalTopicId = '22222222-2222-4222-8222-222222222222';
 const date = new Date('2026-10-08T10:00:00.000Z');
 const ids = ['ffffffff-ffff-4fff-8fff-ffffffffffff', 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'];
 
-function testDb(details: boolean, unavailable = false) {
+function testDb(details: boolean, unavailable = false, snapshot: unknown = null) {
   const execute = vi.fn(async (_sql: string, _params: unknown[]) => ({
     rows: ids.map((id) => [
       id,
@@ -26,7 +26,7 @@ function testDb(details: boolean, unavailable = false) {
       date.toISOString(),
       date.toISOString().replace(".000Z", ".000000Z"),
       ...(details
-        ? [unavailable ? null : 'CCNA-Q-000001', unavailable ? null : 'Original topic']
+        ? [unavailable ? null : 'CCNA-Q-000001', unavailable ? null : 'Original topic', snapshot ? '77777777-7777-4777-8777-777777777777' : null, snapshot]
         : []),
     ]),
   }));
@@ -111,4 +111,17 @@ describe('practice history optional details SQL and DTO', () => {
     expect(execute.mock.calls[0][1][0]).toBe(userA);
     expect(execute.mock.calls[1][1][0]).toBe(userB);
   });
+});
+
+
+it('includes exact submitted revision content and its answer context in owner history', async () => {
+  const snapshot = { questionCode: 'CCNA-Q-000001', topic: { id: historicalTopicId, slug: 'old', name: 'Original topic' }, text: 'Captured old question', type: 'MULTIPLE_CHOICE_SINGLE', difficulty: 'EASY', explanation: 'Captured rationale', imageKey: null, referenceNotes: 'Captured reference', options: [{ optionKey: 'A', text: 'Old A', isCorrect: false }, { optionKey: 'B', text: 'Old B', isCorrect: true }] };
+  const { db, execute }=testDb(true,false,snapshot);
+  const page=await getPracticeHistory(userA,1,undefined,db,true);
+  expect(page.items[0]).toMatchObject({ historicalContentStatus:'VERIFIED_SNAPSHOT',review:{text:'Captured old question',correctOption:{optionKey:'B',text:'Old B'},explanation:'Captured rationale',referenceNotes:'Captured reference'} });
+  expect(execute.mock.calls[0][0]).toContain('left join "question_revisions"');
+});
+it('does not invent revision content for legacy records', async () => {
+  const { db }=testDb(true);const page=await getPracticeHistory(userA,1,undefined,db,true);
+  expect(page.items[0]).toMatchObject({revisionId:null,historicalContentStatus:'LEGACY_UNAVAILABLE',review:null});
 });

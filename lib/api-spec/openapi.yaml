@@ -439,7 +439,7 @@ paths:
           schema:
             type: boolean
             default: false
-          description: Include nullable questionCode and topicName display fields. Omitted or false preserves the original response.
+          description: Include revision review and historical-content availability plus question/topic labels. Omitted or false preserves the original response.
       responses:
         "200":
           description: Paginated practice attempt history
@@ -476,7 +476,7 @@ paths:
       operationId: getPracticeQuestion
       tags: [practice]
       summary: Fetch a practice question for an active topic
-      description: Returns one random ACTIVE question from an ACTIVE topic. Answer keys, explanations, and author-only fields are excluded.
+      description: Captures immutable content and issues one user/session-bound delivery, expiring after 24 hours. Returns one random ACTIVE question from an ACTIVE topic without answer keys or explanations. Each read issues a new delivery; responses must not be shared or cached across actors.
       security:
         - clerkSession: []
       parameters:
@@ -522,7 +522,7 @@ paths:
       operationId: submitPracticeAnswer
       tags: [practice]
       summary: Submit and grade an answer to an active practice question
-      description: Validates that the selected option belongs to the ACTIVE question in an ACTIVE topic, then returns correctness and the answer explanation. Successful submissions are persisted as practice attempts for the authenticated user.
+      description: Grades only the immutable revision bound to the delivery issued to the verified user/session. Requires deliveryId; older clients must reload and upgrade. Same-answer retries return the original result without another attempt; changed-answer retries, missing deliveries and expired unsubmitted deliveries return 409. Active availability is rechecked before the first write. Already accepted requests may finish after browser switching.
       security:
         - clerkSession: []
       parameters:
@@ -565,6 +565,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Question is not active or its topic is not active
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Delivery required or expired, or retry conflicts with its accepted answer
           content:
             application/json:
               schema:
@@ -1323,11 +1329,20 @@ components:
     PracticeQuestion:
       type: object
       additionalProperties: false
-      required: [id, questionCode, topic, text, type, difficulty, options]
+      required: [id, deliveryId, revisionId, expiresAt, questionCode, topic, text, type, difficulty, options]
       properties:
         id:
           type: string
           format: uuid
+        deliveryId:
+          type: string
+          format: uuid
+        revisionId:
+          type: string
+          format: uuid
+        expiresAt:
+          type: string
+          format: date-time
         questionCode:
           type: string
         topic:
@@ -1368,11 +1383,52 @@ components:
         questionCode:
           type: string
           nullable: true
-          description: Present only with includeDetails=true. Current question code; null if unavailable.
+          description: Present only with includeDetails=true. Snapshot question code for revised attempts; current display label only for legacy attempts.
         topicName:
           type: string
           nullable: true
-          description: Present only with includeDetails=true. Current name of the topic recorded in the attempt, not the question's current topic; null if unavailable.
+          description: Present only with includeDetails=true. Snapshot topic name for revised attempts; current display label only for legacy attempts.
+        revisionId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Present only with includeDetails=true; null for legacy records without captured content.
+        historicalContentStatus:
+          type: string
+          enum: [VERIFIED_SNAPSHOT, LEGACY_UNAVAILABLE]
+          description: Present only with includeDetails=true. Legacy scores are preserved; original content is unknown.
+        review:
+          allOf:
+            - $ref: "#/components/schemas/PracticeRevisionReview"
+          nullable: true
+          description: Immutable submission content and answer key, available only in the authenticated owner's history.
+    PracticeRevisionReview:
+      type: object
+      additionalProperties: false
+      required: [text, type, difficulty, imageKey, referenceNotes, options, correctOption, explanation]
+      properties:
+        text:
+          type: string
+        type:
+          type: string
+          enum: [MULTIPLE_CHOICE_SINGLE]
+        difficulty:
+          type: string
+          enum: [EASY, MEDIUM, HARD]
+        imageKey:
+          type: string
+          nullable: true
+        referenceNotes:
+          type: string
+          nullable: true
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/PracticeQuestionOption"
+        correctOption:
+          $ref: "#/components/schemas/PracticeCorrectOption"
+        explanation:
+          type: string
     PracticeHistoryResponse:
       type: object
       additionalProperties: false
@@ -1388,8 +1444,12 @@ components:
     PracticeAnswerInput:
       type: object
       additionalProperties: false
-      required: [optionKey]
+      required: [optionKey, deliveryId]
       properties:
+        deliveryId:
+          type: string
+          format: uuid
+          description: Delivery received from getPracticeQuestion; bound to the verified user and session.
         optionKey:
           type: string
           minLength: 1

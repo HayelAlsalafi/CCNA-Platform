@@ -103,7 +103,8 @@ router.get(
     }
 
     try {
-      const question = await getPracticeQuestionForTopic(topicId);
+      if (!req.dbUser) { res.status(401).json({ error: { code: "UNAUTHENTICATED", message: "Authentication is required." } }); return; }
+      const question = await getPracticeQuestionForTopic(topicId, undefined, req.dbUser.id, req.verifiedAuth?.sessionId ?? null);
       if (!question) {
         notFound(res);
         return;
@@ -114,6 +115,9 @@ router.get(
       res.json(
         GetPracticeQuestionResponse.parse({
           id: question.id,
+          deliveryId: question.deliveryId,
+          revisionId: question.revisionId,
+          expiresAt: question.expiresAt,
           questionCode: question.questionCode,
           topic: {
             id: question.topic.id,
@@ -152,6 +156,9 @@ router.post(
       return;
     }
 
+    if (req.body && typeof req.body === "object" && "optionKey" in req.body && !("deliveryId" in req.body)) {
+      res.status(409).json({ error: { code: "DELIVERY_REQUIRED", message: "Load a fresh question before submitting an answer." } }); return;
+    }
     const parsedBody = SubmitPracticeAnswerBody.strict().safeParse(req.body);
     if (!parsedBody.success) {
       res.status(400).json({
@@ -161,7 +168,7 @@ router.post(
     }
 
     try {
-      const result = await submitPracticeAnswer(questionId, parsedBody.data.optionKey, req.dbUser.id);
+      const result = await submitPracticeAnswer(questionId, parsedBody.data.optionKey, req.dbUser.id, undefined, parsedBody.data.deliveryId, req.verifiedAuth?.sessionId ?? null);
       if (!result) {
         notFound(res);
         return;
