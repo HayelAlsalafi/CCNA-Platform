@@ -10,6 +10,7 @@ import { Link, Redirect, Route, Switch, Router as WouterRouter, useLocation } fr
 import { ErrorBoundary } from '@/components/error-boundary';
 import { AdminTopicManager } from '@/components/admin-topics';
 import { AdminQuestionManager } from '@/components/admin-questions';
+import { ClerkRequestAuth } from '@/components/clerk-request-auth';
 import { AdminCacheGuard, AdminSessionBoundary } from '@/components/admin-session-boundary';
 import { adminAuthState } from '@/lib/admin-session';
 import { PracticeWorkspace } from '@/components/practice-workspace';
@@ -416,6 +417,7 @@ function Router() {
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
+    <ClerkRequestAuth>
     <LearningProgressCacheGuard />
     <AdminCacheGuard />
     <ErrorBoundary resetKey={location}>
@@ -431,6 +433,7 @@ function Router() {
         <Route><NotFound /></Route>
       </Switch>
     </ErrorBoundary>
+    </ClerkRequestAuth>
     </ClerkProvider>
   );
 }
