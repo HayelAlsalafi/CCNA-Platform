@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ClerkProvider, SignIn, SignUp, useAuth, useClerk, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
-import { ArrowRight, CircleAlert, CircleGauge, History, Layers3, LockKeyhole, LogIn, LogOut, Network, Radar, ShieldCheck, Target, UserRound } from 'lucide-react';
+import { ArrowRight, CircleAlert, CircleGauge, ClipboardCheck, History, Layers3, LockKeyhole, LogIn, LogOut, Network, Radar, ShieldCheck, Target, UserRound } from 'lucide-react';
 import { useGetAdminAccess, useGetCurrentUser, useHealthCheck, getGetCurrentUserQueryKey, getGetAdminAccessQueryKey } from '@workspace/api-client-react';
 import type { CurrentUser } from '@workspace/api-client-react';
 import { Link, Redirect, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
@@ -16,6 +16,7 @@ import { adminAuthState } from '@/lib/admin-session';
 import { PracticeWorkspace } from '@/components/practice-workspace';
 import { PracticeHistoryPage } from '@/pages/practice-history';
 import { Dashboard, TopicsPage } from '@/pages/learning-progress';
+import { ExamSimulatorPage } from '@/pages/exam-simulator';
 import { LearningProgressCacheGuard } from '@/components/learning-progress-cache-guard';
 import { progressIdentity, sessionQueryKey } from '@/lib/learning-progress-cache';
 import { Toaster } from '@/components/ui/toaster';
@@ -72,6 +73,7 @@ const navItems = [
   { href: '/', label: 'Overview', icon: CircleGauge, exact: true },
   { href: '/topics', label: 'Topic map', icon: Layers3 },
   { href: '/practice', label: 'Practice', icon: Target, exact: true },
+  { href: '/exam', label: 'Exam simulator', icon: ClipboardCheck, exact: true },
   { href: '/practice/history', label: 'Practice History', icon: History },
   { href: '/admin', label: 'Admin access', icon: ShieldCheck },
 ];
@@ -427,6 +429,7 @@ function Router() {
         <Route path="/"><SharedShell><Dashboard /></SharedShell></Route>
         <Route path="/topics"><SharedShell><TopicsPage /></SharedShell></Route>
         <Route path="/practice/history"><SharedShell><PracticeHistoryPage /></SharedShell></Route>
+        <Route path="/exam"><SharedShell><ExamSimulatorPage /></SharedShell></Route>
         <Route path="/practice"><SharedShell><PracticePage /></SharedShell></Route>
         <Route path="/admin/questions"><SharedShell><AdminPage /></SharedShell></Route>
         <Route path="/admin"><SharedShell><AdminPage /></SharedShell></Route>
