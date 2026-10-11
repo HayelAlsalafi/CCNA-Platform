@@ -553,7 +553,7 @@ export const getGetPracticeHistoryUrl = (params?: GetPracticeHistoryParams,) => 
 }
 
 /**
- * Returns only the authenticated user's attempts, newest first, using cursor-based pagination.
+ * Returns only the authenticated user's attempts, newest first, using cursor-based pagination. Display details are opt-in and use the topic recorded at submission, even when the question moves or either record is disabled.
  * @summary List authenticated user's practice attempts
  */
 export const getPracticeHistory = async (params?: GetPracticeHistoryParams, options?: Parameters<typeof customFetch>[1]): Promise<PracticeHistoryResponse> => {
@@ -631,7 +631,7 @@ export const getGetPracticeQuestionUrl = (topicId: string,) => {
 }
 
 /**
- * Returns one random ACTIVE question from an ACTIVE topic. Answer keys, explanations, and author-only fields are excluded.
+ * Captures immutable content and issues one user/session-bound delivery, expiring after 24 hours. Returns one random ACTIVE question from an ACTIVE topic without answer keys or explanations. Each read issues a new delivery; responses must not be shared or cached across actors.
  * @summary Fetch a practice question for an active topic
  */
 export const getPracticeQuestion = async (topicId: string, options?: Parameters<typeof customFetch>[1]): Promise<PracticeQuestion> => {
@@ -709,7 +709,7 @@ export const getSubmitPracticeAnswerUrl = (questionId: string,) => {
 }
 
 /**
- * Validates that the selected option belongs to the ACTIVE question in an ACTIVE topic, then returns correctness and the answer explanation. Successful submissions are persisted as practice attempts for the authenticated user.
+ * Grades only the immutable revision bound to the delivery issued to the verified user/session. Requires deliveryId; older clients must reload and upgrade. Same-answer retries return the original result without another attempt; changed-answer retries, missing deliveries and expired unsubmitted deliveries return 409. Active availability is rechecked before the first write. Already accepted requests may finish after browser switching.
  * @summary Submit and grade an answer to an active practice question
  */
 export const submitPracticeAnswer = async (questionId: string,
@@ -1452,4 +1452,3 @@ export const useAdminDisableQuestion = <TError = ErrorType<ErrorResponse>,
       > => {
       return useMutation(getAdminDisableQuestionMutationOptions(options));
     }
-

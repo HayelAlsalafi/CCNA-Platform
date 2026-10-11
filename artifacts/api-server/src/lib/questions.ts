@@ -7,6 +7,8 @@ import {
   topicsTable,
 } from "@workspace/db";
 
+import { captureQuestionRevision } from "./question-revisions";
+
 type Db = typeof defaultDb;
 
 export class QuestionValidationError extends Error {
@@ -65,6 +67,7 @@ export async function createQuestion(input: unknown, db: Db = defaultDb) {
       )
       .returning();
 
+    await captureQuestionRevision(tx, question);
     return { question, options };
   });
 }

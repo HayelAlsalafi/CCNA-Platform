@@ -16,6 +16,8 @@ import {
 import { z } from "zod";
 import { createQuestion, QuestionValidationError } from "./questions";
 
+import { captureQuestionRevision } from "./question-revisions";
+
 type Db = typeof defaultDb;
 
 export class AdminQuestionError extends Error {
@@ -162,7 +164,7 @@ export async function updateAdminQuestion(id: string, input: unknown, db: Db = d
   const data = parseUpdate(input);
 
   return db.transaction(async (tx) => {
-    const [existing] = await tx.select({ id: questionsTable.id }).from(questionsTable).where(eq(questionsTable.id, id)).limit(1);
+    const [existing] = await tx.select({ id: questionsTable.id }).from(questionsTable).where(eq(questionsTable.id, id)).limit(1).for("update");
     if (!existing) throw notFound();
 
     if (data.topicId) {
@@ -201,6 +203,7 @@ export async function updateAdminQuestion(id: string, input: unknown, db: Db = d
         .orderBy(asc(questionOptionsTable.displayOrder));
     }
 
+    await captureQuestionRevision(tx, question);
     return toAdminQuestion(question, options);
   });
 }
@@ -219,6 +222,7 @@ export async function disableAdminQuestion(id: string, db: Db = defaultDb) {
       .from(questionOptionsTable)
       .where(eq(questionOptionsTable.questionId, id))
       .orderBy(asc(questionOptionsTable.displayOrder));
+    await captureQuestionRevision(tx, question);
     return toAdminQuestion(question, options);
   });
 }

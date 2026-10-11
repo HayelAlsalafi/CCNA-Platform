@@ -5,6 +5,54 @@
  * CCNA Learning SaaS API foundation
  * OpenAPI spec version: 0.2.0
  */
+/**
+ * Present only with includeDetails=true. Legacy scores are preserved; original content is unknown.
+ */
+export type PracticeHistoryItemHistoricalContentStatus = typeof PracticeHistoryItemHistoricalContentStatus[keyof typeof PracticeHistoryItemHistoricalContentStatus];
+
+
+export const PracticeHistoryItemHistoricalContentStatus = {
+  VERIFIED_SNAPSHOT: 'VERIFIED_SNAPSHOT',
+  LEGACY_UNAVAILABLE: 'LEGACY_UNAVAILABLE',
+} as const;
+
+export type PracticeRevisionReviewType = typeof PracticeRevisionReviewType[keyof typeof PracticeRevisionReviewType];
+
+
+export const PracticeRevisionReviewType = {
+  MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+} as const;
+
+export type PracticeRevisionReviewDifficulty = typeof PracticeRevisionReviewDifficulty[keyof typeof PracticeRevisionReviewDifficulty];
+
+
+export const PracticeRevisionReviewDifficulty = {
+  EASY: 'EASY',
+  MEDIUM: 'MEDIUM',
+  HARD: 'HARD',
+} as const;
+
+export interface PracticeQuestionOption {
+  optionKey: string;
+  text: string;
+}
+
+export interface PracticeCorrectOption {
+  optionKey: string;
+  text: string;
+}
+
+export interface PracticeRevisionReview {
+  text: string;
+  type: PracticeRevisionReviewType;
+  difficulty: PracticeRevisionReviewDifficulty;
+  imageKey: string | null;
+  referenceNotes: string | null;
+  options: PracticeQuestionOption[];
+  correctOption: PracticeCorrectOption;
+  explanation: string;
+}
+
 export interface PracticeHistoryItem {
   id: string;
   questionId: string;
@@ -12,10 +60,16 @@ export interface PracticeHistoryItem {
   selectedOptionKey: string;
   isCorrect: boolean;
   submittedAt: string;
-  /** Present only with includeDetails=true. Current question code; null if unavailable. */
+  /** Present only with includeDetails=true. Snapshot question code for revised attempts; current display label only for legacy attempts. */
   questionCode?: string | null;
-  /** Present only with includeDetails=true. Current name of the topic recorded in the attempt, not the question's current topic; null if unavailable. */
+  /** Present only with includeDetails=true. Snapshot topic name for revised attempts; current display label only for legacy attempts. */
   topicName?: string | null;
+  /** Present only with includeDetails=true; null for legacy records without captured content. */
+  revisionId?: string | null;
+  /** Present only with includeDetails=true. Legacy scores are preserved; original content is unknown. */
+  historicalContentStatus?: PracticeHistoryItemHistoricalContentStatus;
+  /** Immutable submission content and answer key, available only in the authenticated owner's history. */
+  review?: PracticeRevisionReview | null;
 }
 
 export interface PracticeHistoryResponse {
@@ -32,6 +86,11 @@ export interface ErrorResponse {
   error: ErrorResponseError;
 }
 
+/**
+ * Optional initiating Clerk session ID, compared with server-verified Clerk authentication before admin writes. Not authorization evidence. The admin UI sends it on every write. Omission retains existing ADMIN authorization but provides no cross-session intent check. Malformed values return 400; a mismatch returns 409 ADMIN_SESSION_CHANGED, with no domain write. A request already authorized may finish after a browser session switch.
+ */
+export type AdminSessionPreconditionParameter = string;
+
 export type GetPracticeHistoryParams = {
 /**
  * @minimum 1
@@ -43,7 +102,7 @@ limit?: number;
  */
 cursor?: string;
 /**
- * Include nullable questionCode and topicName display fields. Omitted or false preserves the original response.
+ * Include revision review and historical-content availability plus question/topic labels. Omitted or false preserves the original response.
  */
 includeDetails?: boolean;
 };

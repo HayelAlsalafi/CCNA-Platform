@@ -1,147 +1,69 @@
-import { and, asc, desc, eq, lt, or, sql } from "drizzle-orm";
-import {
-  db as defaultDb,
-  practiceAttemptsTable,
-  questionOptionsTable,
-  questionsTable,
-  topicsTable,
-} from "@workspace/db";
+import { and, desc, eq, lt, or, sql } from "drizzle-orm";
+import { db as defaultDb, practiceAttemptsTable, questionRevisionsTable, practiceDeliveriesTable, questionsTable, topicsTable } from "@workspace/db";
+import { captureQuestionRevision, revisionFeedback, revisionReview } from "./question-revisions";
 
 type Db = typeof defaultDb;
-
 export class PracticeApiError extends Error {
-  constructor(
-    public readonly status: 400 | 500,
-    public readonly code: "INVALID_OPTION" | "INTERNAL_ERROR",
-    message: string,
-  ) {
-    super(message);
-  }
+  constructor(public readonly status: 400 | 409 | 500,
+    public readonly code: "INVALID_OPTION" | "INTERNAL_ERROR" | "DELIVERY_REQUIRED" | "DELIVERY_EXPIRED" | "SUBMISSION_CONFLICT", message: string) { super(message); }
 }
 
-function activePracticeQuestionFilter(questionId: string) {
-  return and(
-    eq(questionsTable.id, questionId),
-    eq(questionsTable.status, "ACTIVE"),
-    eq(topicsTable.status, "ACTIVE"),
-  );
-}
-
-/**
- * Selects one random active question in an active topic. The returned DTO is
- * deliberately allow-listed and never contains answer or explanation fields.
- */
-export async function getPracticeQuestionForTopic(topicId: string, db: Db = defaultDb) {
-  const [row] = await db
-    .select({
-      question: questionsTable,
-      topic: {
-        id: topicsTable.id,
-        slug: topicsTable.slug,
-        name: topicsTable.name,
-      },
-    })
-    .from(questionsTable)
-    .innerJoin(topicsTable, eq(topicsTable.id, questionsTable.topicId))
-    .where(
-      and(
-        eq(topicsTable.id, topicId),
-        eq(topicsTable.status, "ACTIVE"),
-        eq(questionsTable.status, "ACTIVE"),
-      ),
-    )
-    .orderBy(sql`random()`)
-    .limit(1);
-
-  if (!row) return null;
-
-  const options = await db
-    .select({
-      optionKey: questionOptionsTable.optionKey,
-      text: questionOptionsTable.text,
-    })
-    .from(questionOptionsTable)
-    .where(eq(questionOptionsTable.questionId, row.question.id))
-    .orderBy(asc(questionOptionsTable.displayOrder));
-
-  return {
-    id: row.question.id,
-    questionCode: row.question.questionCode,
-    topic: row.topic,
-    text: row.question.text,
-    type: row.question.type,
-    difficulty: row.question.difficulty,
-    options,
-  };
-}
-
-/**
- * Grades and persists one submission atomically. The caller supplies the
- * internal user ID from authenticated server context, never from client input.
- * Disabled questions/topics remain indistinguishable from missing questions.
- */
-export async function submitPracticeAnswer(
-  questionId: string,
-  selectedOptionKey: string,
-  userId: string,
-  db: Db = defaultDb,
-) {
-  return db.transaction(async (tx) => {
-    // SHARE locks allow concurrent submissions, but prevent question/topic
-    // edits or disables until this attempt commits. Admin option replacement
-    // updates the parent question first and therefore waits on this lock too.
-    const [row] = await tx
-      .select({ question: questionsTable })
-      .from(questionsTable)
+/** Each authenticated read atomically captures content and issues a user/session
+ * delivery. Correctness and author fields never enter the delivery DTO. */
+export async function getPracticeQuestionForTopic(topicId: string, db: Db = defaultDb, userId?: string, sessionId: string | null = null) {
+  if (!userId) throw new Error("Verified practice actor is required.");
+  return db.transaction(async tx => {
+    const [row] = await tx.select({ question: questionsTable }).from(questionsTable)
       .innerJoin(topicsTable, eq(topicsTable.id, questionsTable.topicId))
-      .where(activePracticeQuestionFilter(questionId))
-      .limit(1)
-      .for("share");
-
+      .where(and(eq(topicsTable.id, topicId), eq(topicsTable.status, "ACTIVE"), eq(questionsTable.status, "ACTIVE")))
+      .orderBy(sql`random()`).limit(1).for("share");
     if (!row) return null;
-
-    const options = await tx
-      .select({
-        optionKey: questionOptionsTable.optionKey,
-        text: questionOptionsTable.text,
-        isCorrect: questionOptionsTable.isCorrect,
-      })
-      .from(questionOptionsTable)
-      .where(eq(questionOptionsTable.questionId, questionId))
-      .orderBy(asc(questionOptionsTable.displayOrder))
-      .for("share");
-
-    const normalizedKey = selectedOptionKey.trim().toUpperCase();
-    const selectedOption = options.find((option) => option.optionKey === normalizedKey);
-    if (!selectedOption) {
-      throw new PracticeApiError(400, "INVALID_OPTION", "Selected option is not part of this question.");
-    }
-
-    const correctOptions = options.filter((option) => option.isCorrect);
-    const correctOption = correctOptions[0];
-    if (correctOptions.length !== 1 || !correctOption) {
-      throw new PracticeApiError(500, "INTERNAL_ERROR", "Question answer data is unavailable.");
-    }
-
-    await tx.insert(practiceAttemptsTable).values({
-      userId,
-      questionId: row.question.id,
-      topicId: row.question.topicId,
-      selectedOptionKey: normalizedKey,
-      isCorrect: selectedOption.isCorrect,
-    });
-
-    return {
-      isCorrect: selectedOption.isCorrect,
-      correctOption: {
-        optionKey: correctOption.optionKey,
-        text: correctOption.text,
-      },
-      explanation: row.question.explanation,
-    };
+    const revision = await captureQuestionRevision(tx, row.question);
+    const [delivery] = await tx.insert(practiceDeliveriesTable).values({ userId, sessionId, questionId: row.question.id, revisionId: revision.id }).returning();
+    if (!delivery) throw new Error("Practice delivery unavailable.");
+    const s = revision.snapshot;
+    return { id: row.question.id, deliveryId: delivery.id, revisionId: revision.id, expiresAt: delivery.expiresAt.toISOString(),
+      questionCode: s.questionCode, topic: s.topic, text: s.text, type: s.type, difficulty: s.difficulty,
+      options: s.options.map(({ optionKey, text }) => ({ optionKey, text })) };
   });
 }
 
+/** Delivery ownership derives from verified request context. A later edit does
+ * not change this answer key. One successful submission per delivery; retries
+ * with the same answer replay feedback, different answers return 409. */
+export async function submitPracticeAnswer(questionId: string, selectedOptionKey: string, userId: string,
+  db: Db = defaultDb, deliveryId?: string, sessionId: string | null = null) {
+  if (!deliveryId) throw new PracticeApiError(409, "DELIVERY_REQUIRED", "Load a fresh question before submitting an answer.");
+  const key = selectedOptionKey.trim().toUpperCase();
+  return db.transaction(async tx => {
+    // Serialize retries without granting the application UPDATE on immutable rows.
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${deliveryId}::text, 0))`);
+    const [row] = await tx.select({ delivery: practiceDeliveriesTable, revision: questionRevisionsTable })
+      .from(practiceDeliveriesTable).innerJoin(questionRevisionsTable, eq(questionRevisionsTable.id, practiceDeliveriesTable.revisionId))
+      .where(and(eq(practiceDeliveriesTable.id, deliveryId), eq(practiceDeliveriesTable.userId, userId), eq(practiceDeliveriesTable.questionId, questionId))).limit(1);
+    // A token from another verified user/session is not usable, even for replay.
+    if (!row || row.delivery.sessionId !== sessionId) return null;
+    const [prior] = await tx.select().from(practiceAttemptsTable).where(eq(practiceAttemptsTable.deliveryId, deliveryId)).limit(1);
+    if (prior && prior.selectedOptionKey !== key) throw new PracticeApiError(409, "SUBMISSION_CONFLICT", "This delivery already has a submitted answer.");
+    const feedback = revisionFeedback(row.revision.snapshot, key);
+    if (!feedback) throw new PracticeApiError(400, "INVALID_OPTION", "Selected option is not part of this delivery.");
+    // An accepted answer can be replayed after expiry/disable, never reinserted/regraded.
+    if (prior) return { ...feedback, isCorrect: prior.isCorrect };
+    const expiry = await tx.execute<{ expired: boolean }>(sql`select ${row.delivery.expiresAt.toISOString()}::timestamptz <= clock_timestamp() as expired`);
+    const expired = expiry.rows[0]?.expired ?? true;
+    if (expired) throw new PracticeApiError(409, "DELIVERY_EXPIRED", "This delivery expired. Load a fresh question.");
+    const [active] = await tx.select({ id: questionsTable.id }).from(questionsTable)
+      .innerJoin(topicsTable, eq(topicsTable.id, questionsTable.topicId))
+      .where(and(eq(questionsTable.id, questionId), eq(questionsTable.status, "ACTIVE"), eq(topicsTable.status, "ACTIVE"))).limit(1).for("share");
+    if (!active) return null;
+    const [originalTopic] = await tx.select({ id: topicsTable.id }).from(topicsTable)
+      .where(and(eq(topicsTable.id, row.revision.snapshot.topic.id), eq(topicsTable.status, "ACTIVE"))).limit(1).for("share");
+    if (!originalTopic) return null;
+    await tx.insert(practiceAttemptsTable).values({ userId, questionId, topicId: row.revision.snapshot.topic.id,
+      revisionId: row.revision.id, deliveryId, selectedOptionKey: key, isCorrect: feedback.isCorrect });
+    return feedback;
+  });
+}
 
 const HISTORY_LIMIT_DEFAULT = 20;
 const HISTORY_LIMIT_MAX = 100;
@@ -229,8 +151,10 @@ export async function getPracticeHistory(
       // Preserve PostgreSQL microseconds for the opaque cursor, not the DTO.
       submittedAtExact: sql<string>`to_char(${practiceAttemptsTable.submittedAt} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
       ...(includeDetails ? {
-        questionCode: sql<string | null>`${questionsTable.questionCode}`,
-        topicName: sql<string | null>`${topicsTable.name}`,
+        questionCode: sql<string | null>`coalesce(${questionRevisionsTable.snapshot}->>'questionCode', ${questionsTable.questionCode})`,
+        topicName: sql<string | null>`coalesce(${questionRevisionsTable.snapshot}->'topic'->>'name', ${topicsTable.name})`,
+        revisionId: practiceAttemptsTable.revisionId,
+        snapshot: sql<import("@workspace/db").QuestionSnapshot | null>`${questionRevisionsTable.snapshot}`,
       } : {}),
     })
     .from(practiceAttemptsTable)
@@ -240,7 +164,8 @@ export async function getPracticeHistory(
     // Preserve missing/disabled references and the submission-time topic.
     historyQuery = historyQuery
       .leftJoin(questionsTable, eq(questionsTable.id, practiceAttemptsTable.questionId))
-      .leftJoin(topicsTable, eq(topicsTable.id, practiceAttemptsTable.topicId));
+      .leftJoin(topicsTable, eq(topicsTable.id, practiceAttemptsTable.topicId))
+      .leftJoin(questionRevisionsTable, eq(questionRevisionsTable.id, practiceAttemptsTable.revisionId));
   }
 
   const rows = await historyQuery
@@ -266,10 +191,13 @@ export async function getPracticeHistory(
       : null;
 
   return {
-    items: page.map(({ submittedAtExact: _exact, ...row }) => ({
-      ...row,
-      submittedAt: row.submittedAt.toISOString(),
-    })),
+    items: page.map(({ submittedAtExact: _exact, ...row }) => {
+      const { snapshot, ...item } = row as typeof row & { snapshot?: import("@workspace/db").QuestionSnapshot | null };
+      return { ...item, submittedAt: row.submittedAt.toISOString(), ...(includeDetails ? {
+        historicalContentStatus: snapshot ? "VERIFIED_SNAPSHOT" as const : "LEGACY_UNAVAILABLE" as const,
+        review: snapshot ? revisionReview(snapshot) : null,
+      } : {}) };
+    }),
     nextCursor,
   };
 }

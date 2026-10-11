@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Router } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PracticeHistoryPage } from './practice-history';
+import { HistoricalReview, PracticeHistoryPage } from './practice-history';
 import { historyPaginationReducer, initialHistoryPagination } from '../lib/history-pagination';
 
 const { auth, historyQuery, refetch } = vi.hoisted(() => ({
@@ -307,4 +307,18 @@ describe('History cursor pagination', () => {
       undefined,
     ]);
   });
+});
+
+
+it('reviews only captured question/options/answer context, not current catalog content', () => {
+  const item = { ...attempts[0]!, revisionId: 'revision-original', historicalContentStatus: 'VERIFIED_SNAPSHOT' as const,
+    review: { text: 'Original delivery text', type: 'MULTIPLE_CHOICE_SINGLE' as const, difficulty: 'EASY' as const, imageKey: null, referenceNotes: 'Original reference', explanation: 'Original rationale',
+      options: [{ optionKey: 'A', text: 'Old A' }, { optionKey: 'B', text: 'Old B' }], correctOption: { optionKey: 'B', text: 'Old B' } } };
+  const html = renderToStaticMarkup(createElement(HistoricalReview, { item }));
+  expect(html).toContain('Original delivery text'); expect(html).toContain('Old B');expect(html).toContain('Your answer');expect(html).toContain('Correct answer');expect(html).toContain('Original rationale');expect(html).toContain('Original reference');
+  expect(html).not.toContain('unavailable');
+});
+it('labels missing legacy content honestly while preserving recorded scores', () => {
+  const html = renderToStaticMarkup(createElement(HistoricalReview, { item: { ...attempts[0]!, revisionId: null, historicalContentStatus: 'LEGACY_UNAVAILABLE', review: null } }));
+  expect(html).toContain('Original question content is unavailable');expect(html).toContain('recorded score is preserved');expect(html).not.toContain('Review submitted question');
 });

@@ -88,11 +88,14 @@ function signIn(signedIn: boolean) {
 
 const topicId = "22222222-2222-4222-8222-222222222222";
 const questionId = "11111111-1111-4111-8111-111111111111";
+const deliveryId = "66666666-6666-4666-8666-666666666666";
+const revisionId = "77777777-7777-4777-8777-777777777777";
+const expiresAt = "2026-10-12T10:00:00.000Z";
 const request = (method: string, path: string, body?: unknown) =>
   fetch(base + path, {
     method,
     headers: { "content-type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : JSON.stringify(typeof body === "object" && body && "optionKey" in body ? { deliveryId, ...body } : body),
   });
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const json = async (response: Response): Promise<any> => response.json();
@@ -117,7 +120,7 @@ describe("practice question API", () => {
 
   it("returns only the safe question DTO before submission", async () => {
     practiceService.getPracticeQuestionForTopic.mockResolvedValue({
-      id: questionId,
+      id: questionId, deliveryId, revisionId, expiresAt,
       questionCode: "CCNA-Q-000123",
       topic: { id: topicId, slug: "routing", name: "Routing", status: "ACTIVE" },
       text: "Which layer does a router operate at?",
@@ -138,7 +141,7 @@ describe("practice question API", () => {
       /isCorrect|explanation|correctOption|referenceNotes|Layer 3 is correct/i,
     );
     expect(JSON.parse(payload)).toEqual({
-      id: questionId,
+      id: questionId, deliveryId, revisionId, expiresAt,
       questionCode: "CCNA-Q-000123",
       topic: { id: topicId, slug: "routing", name: "Routing" },
       text: "Which layer does a router operate at?",
@@ -149,7 +152,7 @@ describe("practice question API", () => {
         { optionKey: "B", text: "Layer 3" },
       ],
     });
-    expect(practiceService.getPracticeQuestionForTopic).toHaveBeenCalledWith(topicId);
+    expect(practiceService.getPracticeQuestionForTopic).toHaveBeenCalledWith(topicId, undefined, currentUser!.id, null);
   });
 
   it("returns 404 when the topic has no practice-eligible question", async () => {
@@ -178,7 +181,7 @@ describe("practice question API", () => {
     expect(practiceService.submitPracticeAnswer).toHaveBeenCalledWith(
       questionId,
       "A",
-      currentUser!.id,
+      currentUser!.id, undefined, deliveryId, null,
     );
   });
 
@@ -236,13 +239,13 @@ describe("practice question API", () => {
       1,
       questionId,
       "B",
-      firstId,
+      firstId, undefined, deliveryId, null,
     );
     expect(practiceService.submitPracticeAnswer).toHaveBeenNthCalledWith(
       2,
       questionId,
       "B",
-      currentUser.id,
+      currentUser.id, undefined, deliveryId, null,
     );
   });
 
@@ -409,5 +412,39 @@ describe("practice history display details", () => {
     expect(response.status).toBe(status);
     expect(await response.text()).not.toContain("PRIVATE");
     if (status !== 500) expect(practiceService.getPracticeHistory).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("immutable delivery request contract", () => {
+  beforeEach(() => signIn(true));
+  it("fails closed for an old client without a delivery", async () => {
+    const response = await fetch(base + `/practice/questions/${questionId}/answer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ optionKey: "A" }) });
+    expect(response.status).toBe(409);
+    expect((await json(response)).error.code).toBe("DELIVERY_REQUIRED");
+    expect(practiceService.submitPracticeAnswer).not.toHaveBeenCalled();
+  });
+  it("rejects malformed delivery UUIDs before grading", async () => {
+    const response = await request("POST", `/practice/questions/${questionId}/answer`, { optionKey: "A", deliveryId: "bad" });
+    expect(response.status).toBe(400);
+    expect(practiceService.submitPracticeAnswer).not.toHaveBeenCalled();
+  });
+  it("binds delivery and submit to the server verified session, not client metadata", async () => {
+    getAuthMock.mockReturnValue({ userId: "learner_x", sessionId: "sess_verified", sessionClaims: { email: "learner@example.com" } });
+    practiceService.getPracticeQuestionForTopic.mockResolvedValue(null);
+    await request("GET", `/practice/topics/${topicId}/question`);
+    expect(practiceService.getPracticeQuestionForTopic).toHaveBeenCalledWith(topicId, undefined, currentUser!.id, "sess_verified");
+    practiceService.submitPracticeAnswer.mockResolvedValue(null);
+    await request("POST", `/practice/questions/${questionId}/answer`, { optionKey: "A" });
+    expect(practiceService.submitPracticeAnswer).toHaveBeenCalledWith(questionId, "A", currentUser!.id, undefined, deliveryId, "sess_verified");
+    const spoof = await request("POST", `/practice/questions/${questionId}/answer`, { optionKey: "A", sessionId: "sess_other" });
+    expect(spoof.status).toBe(400);
+    expect(practiceService.submitPracticeAnswer).toHaveBeenCalledTimes(1);
+  });
+  it.each(["DELIVERY_EXPIRED", "SUBMISSION_CONFLICT"])("returns a clear 409 for %s", async code => {
+    practiceService.submitPracticeAnswer.mockRejectedValue(new PracticeApiError(409, code, "Load a fresh question."));
+    const response = await request("POST", `/practice/questions/${questionId}/answer`, { optionKey: "A" });
+    expect(response.status).toBe(409);
+    expect((await json(response)).error.code).toBe(code);
   });
 });

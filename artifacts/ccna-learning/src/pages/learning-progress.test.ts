@@ -23,7 +23,7 @@ const documented = [
   ...readFileSync(
     new URL('../../../../docs/api/learning-progress.md', import.meta.url),
     'utf8',
-  ).matchAll(/```json\n([\s\S]*?)\n```/g),
+  ).matchAll(/```json\r?\n([\s\S]*?)\r?\n```/g),
 ].map((match) => JSON.parse(match[1]) as LearningProgressResponse);
 const repeated: LearningProgressResponse = {
   summary: {

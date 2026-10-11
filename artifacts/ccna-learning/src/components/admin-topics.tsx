@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { refreshCatalog } from '../lib/catalog-cache';
+import { useAdminSession } from './admin-session-boundary';
+import { adminQueryOptions, adminMutationOptions } from '../lib/admin-session';
 import {
   useAdminListTopics,
   useAdminCreateTopic,
   useAdminUpdateTopic,
   useAdminDisableTopic,
   getAdminListTopicsQueryKey,
-  getListTopicsQueryKey,
 } from '@workspace/api-client-react';
 import type { AdminTopic, AdminTopicStatus } from '@workspace/api-client-react';
 import {
@@ -54,11 +56,12 @@ const labelStyle = { display: 'block', fontSize: 12, fontWeight: 700, marginBott
 const errStyle = { color: '#b84d35', fontSize: 12, marginTop: 4 } as const;
 
 export function AdminTopicManager() {
+  const session = useAdminSession();
   const qc = useQueryClient();
-  const listQuery = useAdminListTopics({ query: { queryKey: getAdminListTopicsQueryKey(), retry: false } });
-  const createM = useAdminCreateTopic();
-  const updateM = useAdminUpdateTopic();
-  const disableM = useAdminDisableTopic();
+  const listQuery = useAdminListTopics(adminQueryOptions(getAdminListTopicsQueryKey(), session.identity));
+  const createM = useAdminCreateTopic(adminMutationOptions('adminCreateTopic', session.identity));
+  const updateM = useAdminUpdateTopic(adminMutationOptions('adminUpdateTopic', session.identity));
+  const disableM = useAdminDisableTopic(adminMutationOptions('adminDisableTopic', session.identity));
 
   const [editing, setEditing] = useState<AdminTopic | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -67,20 +70,21 @@ export function AdminTopicManager() {
   const [notice, setNotice] = useState<string | null>(null);
   const [toDisable, setToDisable] = useState<AdminTopic | null>(null);
 
-  const refresh = () => {
-    void qc.invalidateQueries({ queryKey: getAdminListTopicsQueryKey() });
-    void qc.invalidateQueries({ queryKey: getListTopicsQueryKey() });
-  };
+  const refresh = (isCurrent: () => boolean) =>
+    refreshCatalog(qc, session.identity, isCurrent);
 
   const startEdit = (t: AdminTopic) => {
+    if (!session.isCurrent()) return;
     setEditing(t);
     setForm({ slug: t.slug, name: t.name, description: t.description, displayOrder: String(t.displayOrder), status: t.status });
     setErrors({}); setFormError(null); setNotice(null);
   };
-  const reset = () => { setEditing(null); setForm(emptyForm); setErrors({}); setFormError(null); };
+  const reset = () => { if (!session.isCurrent()) return; setEditing(null); setForm(emptyForm); setErrors({}); setFormError(null); };
 
   const submit = async (ev: FormEvent) => {
     ev.preventDefault();
+    if (!session.isCurrent()) return;
+    const isCurrent = session.capture();
     setNotice(null); setFormError(null);
     const e = validate(form);
     setErrors(e);
@@ -89,29 +93,37 @@ export function AdminTopicManager() {
     try {
       if (editing) {
         await updateM.mutateAsync({ id: editing.id, data });
+        if (!isCurrent()) return;
         setNotice(`Topic "${data.name}" updated.`);
       } else {
         await createM.mutateAsync({ data });
+        if (!isCurrent()) return;
         setNotice(`Topic "${data.name}" created.`);
       }
       reset();
-      refresh();
+      await refresh(isCurrent);
     } catch (err) {
-      setFormError(apiErrorMessage(err));
+      if (isCurrent()) setFormError(apiErrorMessage(err));
+    } finally {
+      if (isCurrent()) { createM.reset(); updateM.reset(); }
     }
   };
 
   const confirmDisable = async () => {
-    if (!toDisable) return;
+    if (!session.isCurrent() || !toDisable) return;
+    const isCurrent = session.capture();
     const t = toDisable;
     setToDisable(null); setNotice(null); setFormError(null);
     try {
       await disableM.mutateAsync({ id: t.id });
+      if (!isCurrent()) return;
       setNotice(`Topic "${t.name}" disabled. It is now hidden from learners.`);
       if (editing?.id === t.id) reset();
-      refresh();
+      await refresh(isCurrent);
     } catch (err) {
-      setFormError(apiErrorMessage(err));
+      if (isCurrent()) setFormError(apiErrorMessage(err));
+    } finally {
+      if (isCurrent()) disableM.reset();
     }
   };
 
@@ -169,7 +181,7 @@ export function AdminTopicManager() {
         ) : listQuery.isError ? (
           <div className="error-card" role="alert" data-testid="error-admin-topics">
             <p>{apiErrorMessage(listQuery.error)}</p>
-            <button type="button" className="button-quiet" onClick={() => listQuery.refetch()}>Retry</button>
+            <button type="button" className="button-quiet" onClick={() => { if (session.isCurrent()) void listQuery.refetch(); }}>Retry</button>
           </div>
         ) : topics.length === 0 ? (
           <div className="empty-card">No topics yet. Create the first one above.</div>
@@ -191,7 +203,7 @@ export function AdminTopicManager() {
                     <td style={{ padding: 8, display: 'flex', gap: 8 }}>
                       <button type="button" className="button-quiet" onClick={() => startEdit(t)}>Edit</button>
                       {t.status === 'ACTIVE' && (
-                        <button type="button" className="button-quiet" onClick={() => setToDisable(t)} disabled={disableM.isPending}>Disable</button>
+                        <button type="button" className="button-quiet" onClick={() => { if (session.isCurrent()) setToDisable(t); }} disabled={disableM.isPending}>Disable</button>
                       )}
                     </td>
                   </tr>

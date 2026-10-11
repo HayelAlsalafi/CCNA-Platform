@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { Link } from 'wouter';
-import { useGetPracticeHistoryWithDetails } from '@workspace/api-client-react';
+import { useGetPracticeHistoryWithDetails, type PracticeHistoryDetailsResponse } from '@workspace/api-client-react';
 import { progressIdentity, type ProgressIdentity } from '../lib/learning-progress-cache';
 import { clearHistoryCache, historyQueryOptions } from '../lib/practice-history-cache';
 import { historyPaginationReducer, initialHistoryPagination } from '../lib/history-pagination';
@@ -48,6 +48,27 @@ function SignInRequired() {
       </div>
     </div>
   );
+}
+
+type HistoryItem = PracticeHistoryDetailsResponse['items'][number];
+export function HistoricalReview({ item }: { item: HistoryItem }) {
+  if (!item.review || item.historicalContentStatus !== 'VERIFIED_SNAPSHOT') return (
+    <p data-testid="history-legacy-unavailable">Original question content is unavailable for this legacy attempt. Its recorded score is preserved; the labels shown are current catalog labels.</p>
+  );
+  const review = item.review;
+  return <details data-testid="history-revision-review">
+    <summary>Review submitted question</summary>
+    <p>{review.text}</p>
+    <p>{review.difficulty.toLowerCase()}: single answer</p>
+    <ul>{review.options.map(option => <li key={option.optionKey}>
+      <strong>{option.optionKey}</strong> {option.text}
+      {item.selectedOptionKey === option.optionKey ? ' - Your answer' : ''}
+      {review.correctOption.optionKey === option.optionKey ? ' - Correct answer' : ''}
+    </li>)}</ul>
+    <p>{review.explanation}</p>
+    {review.referenceNotes ? <p>Reference: {review.referenceNotes}</p> : null}
+    {review.imageKey ? <p>Image reference: {review.imageKey}</p> : null}
+  </details>;
 }
 
 function HistoryEntries({ identity }: { identity: ProgressIdentity }) {
@@ -200,6 +221,7 @@ function HistoryEntries({ identity }: { identity: ProgressIdentity }) {
                 </td>
                 <td data-label="Selected answer">
                   <span className="history-answer">{item.selectedOptionKey}</span>
+                  <HistoricalReview item={item} />
                 </td>
                 <td data-label="Result">
                   <span
