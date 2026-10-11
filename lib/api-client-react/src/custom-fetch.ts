@@ -17,6 +17,7 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
+let _authCredentials: RequestCredentials | undefined;
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -37,11 +38,15 @@ export function setBaseUrl(url: string | null): void {
  * Useful for Expo bundles making token-gated API calls.
  * Pass `null` to clear the getter.
  *
- * NOTE: This function should never be used in web applications where session
- * token cookies are automatically associated with API calls by the browser.
+ * Browser multi-session clients may explicitly omit cookies so a stale shared
+ * cookie cannot override the token for their active verified Clerk session.
  */
-export function setAuthTokenGetter(getter: AuthTokenGetter | null): void {
+export function setAuthTokenGetter(
+  getter: AuthTokenGetter | null,
+  options: { credentials?: RequestCredentials } = {},
+): void {
   _authTokenGetter = getter;
+  _authCredentials = getter ? options.credentials : undefined;
 }
 
 function isRequest(input: RequestInfo | URL): input is Request {
@@ -326,6 +331,8 @@ export async function customFetch<T = unknown>(
   input: RequestInfo | URL,
   options: CustomFetchOptions = {},
 ): Promise<T> {
+  const tokenGetter = _authTokenGetter;
+  const authCredentials = _authCredentials;
   input = applyBaseUrl(input);
   const { responseType = "auto", headers: headersInit, ...init } = options;
 
@@ -351,8 +358,8 @@ export async function customFetch<T = unknown>(
 
   // Attach bearer token when an auth getter is configured and no
   // Authorization header has been explicitly provided.
-  if (_authTokenGetter && !headers.has("authorization")) {
-    const token = await _authTokenGetter();
+  if (tokenGetter && !headers.has("authorization")) {
+    const token = await tokenGetter();
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
     }
@@ -360,7 +367,10 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  const response = await fetch(input, {
+    ...init, method, headers,
+    ...(tokenGetter && authCredentials ? { credentials: authCredentials } : {}),
+  });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

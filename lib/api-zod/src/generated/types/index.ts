@@ -27,6 +27,7 @@ export * from './adminQuestionUpdateDifficulty';
 export * from './adminQuestionUpdateOptionsItem';
 export * from './adminQuestionUpdateStatus';
 export * from './adminQuestionUpdateType';
+export * from './adminSessionPreconditionParameter';
 export * from './adminTopic';
 export * from './adminTopicCreate';
 export * from './adminTopicCreateStatus';

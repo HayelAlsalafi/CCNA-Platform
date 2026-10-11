@@ -1,21 +1,24 @@
 import { getAuth } from "@clerk/express";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { NextFunction, Request, Response } from "express";
 import { db, type User, usersTable } from "@workspace/db";
+
+export type VerifiedRequestAuth = Readonly<{
+  userId: string;
+  clerkUserId: string;
+  sessionId: string | null;
+}>;
 
 declare global {
   namespace Express {
     interface Request {
       dbUser?: User;
+      verifiedAuth?: VerifiedRequestAuth;
     }
   }
 }
 
 type SessionClaims = Record<string, unknown>;
-
-function getClaims(request: Request): SessionClaims {
-  return (getAuth(request).sessionClaims ?? {}) as SessionClaims;
-}
 
 function getClaimString(claims: SessionClaims, key: string): string | null {
   const value = claims[key];
@@ -49,13 +52,16 @@ function sendAuthError(res: Response, error: AuthError): void {
 }
 
 export async function resolveLocalUser(request: Request): Promise<User> {
-  const auth = getAuth(request);
+  return resolveVerifiedUser(getAuth(request));
+}
+
+async function resolveVerifiedUser(auth: ReturnType<typeof getAuth>): Promise<User> {
   const clerkUserId = auth.userId;
   if (!clerkUserId) {
     throw new AuthError(401, "UNAUTHENTICATED", "Authentication is required.");
   }
 
-  const claims = getClaims(request);
+  const claims = (auth.sessionClaims ?? {}) as SessionClaims;
   const email = getClaimString(claims, "email");
   if (!email) {
     throw new AuthError(
@@ -121,7 +127,11 @@ export async function requireAuthenticatedUser(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const user = await resolveLocalUser(request);
+    // Capture Clerk's verified identity once, before any asynchronous DB work.
+    const auth = getAuth(request);
+    const clerkUserId = auth.userId;
+    const sessionId = auth.sessionId ?? null;
+    const user = await resolveVerifiedUser(auth);
     if (user.status !== "ACTIVE") {
       sendAuthError(
         response,
@@ -130,6 +140,11 @@ export async function requireAuthenticatedUser(
       return;
     }
     request.dbUser = user;
+    request.verifiedAuth = Object.freeze({
+      userId: user.id,
+      clerkUserId: clerkUserId!,
+      sessionId,
+    });
     next();
   } catch (error) {
     if (error instanceof AuthError) {

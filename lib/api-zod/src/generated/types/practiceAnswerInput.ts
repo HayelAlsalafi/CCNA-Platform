@@ -7,6 +7,8 @@
  */
 
 export interface PracticeAnswerInput {
+  /** Delivery received from getPracticeQuestion; bound to the verified user and session. */
+  deliveryId: string;
   /**
      * @minLength 1
      * @maxLength 8

@@ -1,5 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { requireAdmin, requireAuthenticatedUser } from "../middlewares/auth";
+import { requireAdminMutationSession } from "../middlewares/admin-mutation";
 import {
   AdminQuestionError,
   createAdminQuestion,
@@ -12,7 +13,7 @@ import {
 const router: IRouter = Router();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-router.use("/admin/questions", requireAuthenticatedUser, requireAdmin);
+router.use("/admin/questions", requireAuthenticatedUser, requireAdmin, requireAdminMutationSession);
 
 function handle(fn: (req: Request) => Promise<{ status?: number; body: unknown }>) {
   return async (req: Request, res: Response): Promise<void> => {

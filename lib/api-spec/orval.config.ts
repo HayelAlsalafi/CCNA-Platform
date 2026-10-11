@@ -10,7 +10,20 @@ const titleTransformer: InputTransformerFn = (config) => {
   config.info ??= {};
   config.info.title = "Api";
 
-  return config;
+  // Dedicated Progress and detailed History clients own their additive exports.
+  // Keep the original plain-history response allow-list and avoid duplicate exports.
+  const paths = { ...config.paths };
+  delete paths["/learning/progress"];
+  const schemas = { ...config.components?.schemas };
+  for (const name of ["LearningProgressResponse", "LearningProgressSummary", "LearningTopicProgress"]) delete schemas[name];
+  delete schemas["PracticeRevisionReview"];
+  const history = schemas["PracticeHistoryItem"];
+  if (history && typeof history === "object" && "properties" in history) {
+    schemas["PracticeHistoryItem"] = { ...history, properties: Object.fromEntries(
+      Object.entries(history.properties ?? {}).filter(([name]) => !["questionCode", "topicName", "revisionId", "historicalContentStatus", "review"].includes(name)),
+    ) };
+  }
+  return { ...config, paths, components: { ...config.components, schemas } };
 };
 
 export default defineConfig({
@@ -27,8 +40,7 @@ export default defineConfig({
       client: "react-query",
       mode: "split",
       baseUrl: "/api",
-      clean: true,
-      formatter: "prettier",
+      clean: false,
       override: {
         fetch: {
           includeHttpResponseReturnType: false,
@@ -53,8 +65,7 @@ export default defineConfig({
       target: "generated",
       schemas: { path: "generated/types", type: "typescript" },
       mode: "split",
-      clean: true,
-      formatter: "prettier",
+      clean: false,
       override: {
         zod: {
           // Orval resolves `auto` from lib/api-spec/package.json, which has no

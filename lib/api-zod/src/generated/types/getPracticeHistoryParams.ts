@@ -16,4 +16,8 @@ limit?: number;
  * Opaque pagination cursor returned by a previous response.
  */
 cursor?: string;
+/**
+ * Include revision review and historical-content availability plus question/topic labels. Omitted or false preserves the original response.
+ */
+includeDetails?: boolean;
 };

@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { refreshCatalog } from '../lib/catalog-cache';
+import { useAdminSession } from './admin-session-boundary';
+import { adminQueryOptions, adminMutationOptions } from '../lib/admin-session';
 import {
   getAdminListQuestionsQueryKey,
   getAdminListTopicsQueryKey,
-  getGetDashboardSummaryQueryKey,
-  getListTopicsQueryKey,
   useAdminCreateQuestion,
   useAdminDisableQuestion,
   useAdminListQuestions,
@@ -116,6 +117,7 @@ function nextOptionKey(options: FormOption[]): string {
 }
 
 export function AdminQuestionManager() {
+  const session = useAdminSession();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
   const [topicFilter, setTopicFilter] = useState('');
@@ -135,15 +137,13 @@ export function AdminQuestionManager() {
     ...(statusFilter ? { status: statusFilter } : {}),
     ...(difficultyFilter ? { difficulty: difficultyFilter } : {}),
   };
-  const listQuery = useAdminListQuestions(params, {
-    query: { queryKey: getAdminListQuestionsQueryKey(params), retry: false },
-  });
-  const topicsQuery = useAdminListTopics({
-    query: { queryKey: getAdminListTopicsQueryKey(), retry: false },
-  });
-  const createMutation = useAdminCreateQuestion();
-  const updateMutation = useAdminUpdateQuestion();
-  const disableMutation = useAdminDisableQuestion();
+  const listQuery = useAdminListQuestions(params,
+    adminQueryOptions(getAdminListQuestionsQueryKey(params), session.identity));
+  const topicsQuery = useAdminListTopics(
+    adminQueryOptions(getAdminListTopicsQueryKey(), session.identity));
+  const createMutation = useAdminCreateQuestion(adminMutationOptions('adminCreateQuestion', session.identity));
+  const updateMutation = useAdminUpdateQuestion(adminMutationOptions('adminUpdateQuestion', session.identity));
+  const disableMutation = useAdminDisableQuestion(adminMutationOptions('adminDisableQuestion', session.identity));
   const topics = [...(topicsQuery.data ?? [])].sort((a, b) => a.displayOrder - b.displayOrder);
   const questions = listQuery.data?.items ?? [];
   const total = listQuery.data?.total ?? 0;
@@ -156,15 +156,11 @@ export function AdminQuestionManager() {
     }
   }, [listQuery.data, page]);
 
-  const refreshAffectedViews = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: getAdminListQuestionsQueryKey() }),
-      queryClient.invalidateQueries({ queryKey: getListTopicsQueryKey() }),
-      queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }),
-    ]);
-  };
+  const refreshAffectedViews = (isCurrent: () => boolean) =>
+    refreshCatalog(queryClient, session.identity, isCurrent);
 
   const resetForm = () => {
+    if (!session.isCurrent()) return;
     setEditing(null);
     setForm(newForm());
     setErrors({});
@@ -172,6 +168,7 @@ export function AdminQuestionManager() {
   };
 
   const startEdit = (question: AdminQuestion) => {
+    if (!session.isCurrent()) return;
     setEditing(question);
     setForm({
       topicId: question.topicId,
@@ -191,6 +188,8 @@ export function AdminQuestionManager() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (!session.isCurrent()) return;
+    const isCurrent = session.capture();
     setNotice(null);
     setFormError(null);
     const nextErrors = validate(form);
@@ -216,32 +215,40 @@ export function AdminQuestionManager() {
       if (editing) {
         const data: AdminQuestionUpdate = fields;
         await updateMutation.mutateAsync({ id: editing.id, data });
+        if (!isCurrent()) return;
         setNotice(`Question ${editing.questionCode} updated.`);
       } else {
         const data: AdminQuestionCreate = fields;
         await createMutation.mutateAsync({ data });
+        if (!isCurrent()) return;
         setNotice('Question created.');
       }
       resetForm();
-      await refreshAffectedViews();
+      await refreshAffectedViews(isCurrent);
     } catch (error) {
-      setFormError(apiErrorMessage(error));
+      if (isCurrent()) setFormError(apiErrorMessage(error));
+    } finally {
+      if (isCurrent()) { createMutation.reset(); updateMutation.reset(); }
     }
   };
 
   const confirmDisable = async () => {
-    if (!toDisable) return;
+    if (!session.isCurrent() || !toDisable) return;
+    const isCurrent = session.capture();
     const question = toDisable;
     setToDisable(null);
     setFormError(null);
     setNotice(null);
     try {
       await disableMutation.mutateAsync({ id: question.id });
+      if (!isCurrent()) return;
       if (editing?.id === question.id) resetForm();
       setNotice(`Question ${question.questionCode} disabled. It has not been deleted.`);
-      await refreshAffectedViews();
+      await refreshAffectedViews(isCurrent);
     } catch (error) {
-      setFormError(apiErrorMessage(error));
+      if (isCurrent()) setFormError(apiErrorMessage(error));
+    } finally {
+      if (isCurrent()) disableMutation.reset();
     }
   };
 
@@ -304,7 +311,7 @@ export function AdminQuestionManager() {
             {topicsQuery.isLoading && <div style={errorStyle}>Loading topics…</div>}
             {topicsQuery.isError && (
               <div style={errorStyle} role="alert">
-                Could not load topics. <button type="button" className="button-quiet" onClick={() => void topicsQuery.refetch()}>Retry</button>
+                Could not load topics. <button type="button" className="button-quiet" onClick={() => { if (session.isCurrent()) void topicsQuery.refetch(); }}>Retry</button>
               </div>
             )}
             {!topicsQuery.isLoading && !topicsQuery.isError && topics.length === 0 && (
@@ -453,7 +460,7 @@ export function AdminQuestionManager() {
         ) : listQuery.isError ? (
           <div className="error-card" role="alert" data-testid="error-admin-questions">
             <p>{apiErrorMessage(listQuery.error)}</p>
-            <button type="button" className="button-quiet" onClick={() => void listQuery.refetch()}>Retry</button>
+            <button type="button" className="button-quiet" onClick={() => { if (session.isCurrent()) void listQuery.refetch(); }}>Retry</button>
           </div>
         ) : questions.length === 0 ? (
           <div className="empty-card" data-testid="empty-admin-questions">
@@ -487,7 +494,7 @@ export function AdminQuestionManager() {
                         <div style={{ display: 'flex', gap: 8 }}>
                           <button type="button" className="button-quiet" onClick={() => startEdit(question)}>Edit</button>
                           {question.status === 'ACTIVE' && (
-                            <button type="button" className="button-quiet" onClick={() => setToDisable(question)} disabled={disableMutation.isPending}>
+                            <button type="button" className="button-quiet" onClick={() => { if (session.isCurrent()) setToDisable(question); }} disabled={disableMutation.isPending}>
                               Disable
                             </button>
                           )}

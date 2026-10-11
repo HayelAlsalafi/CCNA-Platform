@@ -16,7 +16,14 @@ describe("question domain (database)", async () => {
     await import("@workspace/db");
   const { createQuestion, getLearnerQuestion, QuestionValidationError } =
     await import("./questions");
-  const { getPracticeQuestionForTopic, submitPracticeAnswer } = await import("./practice");
+  const { getPracticeQuestionForTopic, submitPracticeAnswer: submitBoundAnswer } = await import("./practice");
+  async function submitPracticeAnswer(questionId: string, key: string, userId: string, tx: typeof db) {
+    const [question] = await tx.select().from(questionsTable).where(eq(questionsTable.id, questionId)).limit(1);
+    if (!question) return null;
+    const delivery = await getPracticeQuestionForTopic(question.topicId, tx, userId);
+    if (!delivery || delivery.id !== questionId) return null;
+    return submitBoundAnswer(questionId, key, userId, tx, delivery.deliveryId);
+  }
   const { eq, sql } = await import("drizzle-orm");
 
   async function inRollback(fn: (tx: typeof db) => Promise<void>) {
@@ -146,7 +153,7 @@ describe("question domain (database)", async () => {
         tx,
       );
 
-      const practiceQuestion = await getPracticeQuestionForTopic(topic.id, tx);
+      const practiceQuestion = await getPracticeQuestionForTopic(topic.id, tx, user.id);
       expect(practiceQuestion?.id).toBe(created.question.id);
       expect(practiceQuestion?.options).toEqual([
         { optionKey: "A", text: "Incorrect" },
@@ -254,12 +261,12 @@ describe("question domain (database)", async () => {
         input(activeTopic.id, { status: "DISABLED" }),
         tx,
       );
-      expect(await getPracticeQuestionForTopic(activeTopic.id, tx)).toBeNull();
+      expect(await getPracticeQuestionForTopic(activeTopic.id, tx, user.id)).toBeNull();
       expect(await submitPracticeAnswer(disabledQuestion.question.id, "A", user.id, tx)).toBeNull();
 
       const disabledTopic = await makeTopic(tx, "DISABLED");
       const activeQuestion = await createQuestion(input(disabledTopic.id), tx);
-      expect(await getPracticeQuestionForTopic(disabledTopic.id, tx)).toBeNull();
+      expect(await getPracticeQuestionForTopic(disabledTopic.id, tx, user.id)).toBeNull();
       expect(await submitPracticeAnswer(activeQuestion.question.id, "A", user.id, tx)).toBeNull();
     });
   });

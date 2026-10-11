@@ -1,5 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { requireAdmin, requireAuthenticatedUser } from "../middlewares/auth";
+import { requireAdminMutationSession } from "../middlewares/admin-mutation";
 import {
   createTopic,
   disableTopic,
@@ -13,7 +14,7 @@ const router: IRouter = Router();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Every admin topic route is ADMIN-only, enforced server-side.
-router.use("/admin/topics", requireAuthenticatedUser, requireAdmin);
+router.use("/admin/topics", requireAuthenticatedUser, requireAdmin, requireAdminMutationSession);
 
 function handle(fn: (req: Request) => Promise<{ status?: number; body: unknown }>) {
   return async (req: Request, res: Response): Promise<void> => {

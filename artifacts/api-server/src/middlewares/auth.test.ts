@@ -7,6 +7,7 @@ const getAuthMock = vi.fn();
 vi.mock("@clerk/express", () => ({ getAuth: (req: unknown) => getAuthMock(req) }));
 
 type Row = Record<string, unknown>;
+let lookupBarrier: Promise<void> | null = null;
 const dbState: { selectResult: Row[]; insertResult: Row[]; updateResult: Row[] } = {
   selectResult: [],
   insertResult: [],
@@ -15,7 +16,11 @@ const dbState: { selectResult: Row[]; insertResult: Row[]; updateResult: Row[] }
 const chain = (result: () => Row[]) => {
   const c: Record<string, unknown> = {};
   for (const m of ["from", "where", "values", "set", "onConflictDoNothing"]) c[m] = () => c;
-  c["limit"] = async () => result();
+  c["limit"] = async () => {
+    const rows = result(), pending = lookupBarrier; lookupBarrier = null;
+    if (pending) await pending;
+    return rows;
+  };
   c["returning"] = async () => result();
   return c;
 };
@@ -67,6 +72,7 @@ const req = () => ({ log: { error: vi.fn() } }) as unknown as Request;
 
 beforeEach(() => {
   getAuthMock.mockReset();
+  lookupBarrier = null;
   dbState.selectResult = [];
   dbState.insertResult = [];
   dbState.updateResult = [];
@@ -182,4 +188,29 @@ describe("authorization", () => {
     expect(res.statusCode).toBe(403);
     expect(next).not.toHaveBeenCalled();
   });
+});
+
+it("captures Clerk identity once for the request and does not reread changed session claims", async () => {
+  getAuthMock.mockReturnValueOnce({ userId: "user_abc", sessionId: "ses_a", sessionClaims: { email: "learner@example.com" } })
+    .mockReturnValue({ userId: "user_other", sessionId: "ses_b", sessionClaims: { email: "other@example.com" } });
+  const existing = makeUser({ role: "ADMIN" }); dbState.selectResult = [existing]; dbState.updateResult = [existing];
+  const request = req(), next = vi.fn();
+  await requireAuthenticatedUser(request, makeRes() as unknown as Response, next as NextFunction);
+  expect(getAuthMock).toHaveBeenCalledOnce(); expect(next).toHaveBeenCalledOnce();
+  expect(request.verifiedAuth).toEqual({ userId: existing.id, clerkUserId: "user_abc", sessionId: "ses_a" });
+  expect(Object.isFrozen(request.verifiedAuth)).toBe(true);
+});
+it('keeps the captured verified session during delayed user lookup', async () => {
+  let release!: () => void;
+  lookupBarrier = new Promise<void>(resolve => { release = resolve; });
+  const auth = { userId: 'user_abc', sessionId: 'ses_a', sessionClaims: { email: 'learner@example.com' } };
+  getAuthMock.mockReturnValue(auth);
+  const existing = makeUser({ role: 'ADMIN' }); dbState.selectResult = [existing]; dbState.updateResult = [existing];
+  const request = req(), next = vi.fn();
+  const pending = requireAuthenticatedUser(request, makeRes() as unknown as Response, next as NextFunction);
+  expect(next).not.toHaveBeenCalled();
+  auth.sessionId = 'ses_b';
+  release(); await pending;
+  expect(getAuthMock).toHaveBeenCalledOnce(); expect(next).toHaveBeenCalledOnce();
+  expect(request.verifiedAuth?.sessionId).toBe('ses_a');
 });

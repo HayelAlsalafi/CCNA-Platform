@@ -36,7 +36,7 @@ const examples = [
   ...readFileSync(
     new URL("../../../../docs/api/learning-progress.md", import.meta.url),
     "utf8",
-  ).matchAll(/```json\n([\s\S]*?)\n```/g),
+  ).matchAll(/```json\r?\n([\s\S]*?)\r?\n```/g),
 ].map((match) => JSON.parse(match[1]));
 const userA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const userB = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";

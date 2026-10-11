@@ -10,6 +10,9 @@ import { Link, Redirect, Route, Switch, Router as WouterRouter, useLocation } fr
 import { ErrorBoundary } from '@/components/error-boundary';
 import { AdminTopicManager } from '@/components/admin-topics';
 import { AdminQuestionManager } from '@/components/admin-questions';
+import { ClerkRequestAuth } from '@/components/clerk-request-auth';
+import { AdminCacheGuard, AdminSessionBoundary } from '@/components/admin-session-boundary';
+import { adminAuthState } from '@/lib/admin-session';
 import { PracticeWorkspace } from '@/components/practice-workspace';
 import { PracticeHistoryPage } from '@/pages/practice-history';
 import { Dashboard, TopicsPage } from '@/pages/learning-progress';
@@ -271,11 +274,13 @@ function SignUpPage() {
   );
 }
 
-function AdminPage() {
+export function AdminPage() {
   const [location] = useLocation();
   const questionsPage = location === '/admin/questions';
-  const { isLoaded, isSignedIn, userId, sessionId } = useAuth();
-  const identity = progressIdentity({ isLoaded, isSignedIn, userId, sessionId });
+  const auth = useAuth();
+  const { isLoaded, isSignedIn } = auth;
+  const authState = adminAuthState(auth);
+  const identity = authState.status === 'signed-in' ? authState.identity : null;
   const currentUserQuery = useGetCurrentUser({
     query: {
       queryKey: sessionQueryKey(getGetCurrentUserQueryKey(), identity),
@@ -350,7 +355,7 @@ function AdminPage() {
     );
   }
 
-  if (adminAccessQuery.isLoading) {
+  if (!identity || adminAccessQuery.isPending) {
     return (
       <div className="page-wrap">
         <PageHeader eyebrow="Boundary / restricted surface" title="Checking administrator access." lead="The server is confirming the ADMIN policy for this authenticated account." />
@@ -359,7 +364,7 @@ function AdminPage() {
     );
   }
 
-  if (adminAccessQuery.isError) {
+  if (adminAccessQuery.isError || adminAccessQuery.data?.allowed !== true) {
     return (
       <div className="page-wrap">
         <PageHeader eyebrow="Boundary / authorization error" title="The server did not grant admin access." lead="The UI does not assume that a role label is enough; it also checks the protected API boundary." />
@@ -380,7 +385,9 @@ function AdminPage() {
           ? <Link href="/admin" className="button-primary" data-testid="link-admin-topics">Manage topics <ArrowRight size={15} /></Link>
           : <Link href="/admin/questions" className="button-primary" data-testid="link-admin-questions">Manage questions <ArrowRight size={15} /></Link>}
       />
-      {questionsPage ? <AdminQuestionManager /> : <AdminTopicManager />}
+      <AdminSessionBoundary key={questionsPage ? 'questions' : 'topics'} identity={identity}>
+        {questionsPage ? <AdminQuestionManager /> : <AdminTopicManager />}
+      </AdminSessionBoundary>
 
     </div>
   );
@@ -410,7 +417,9 @@ function Router() {
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
+    <ClerkRequestAuth>
     <LearningProgressCacheGuard />
+    <AdminCacheGuard />
     <ErrorBoundary resetKey={location}>
       <Switch>
         <Route path="/sign-in/*?"><SignInPage /></Route>
@@ -424,6 +433,7 @@ function Router() {
         <Route><NotFound /></Route>
       </Switch>
     </ErrorBoundary>
+    </ClerkRequestAuth>
     </ClerkProvider>
   );
 }
