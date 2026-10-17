@@ -1,0 +1,1016 @@
+.ccna-practice {
+  --practice-ink: #202b36;
+  --practice-muted: #65716f;
+  --practice-paper: #f3f0e7;
+  --practice-white: #fbfaf5;
+  --practice-line: #d9d4c8;
+  --practice-rust: #b84f34;
+  --practice-rust-dark: #8f3c2b;
+  --practice-teal: #386f6d;
+  --practice-soft-teal: #e4ece6;
+  --practice-mono: var(--app-font-mono, "Space Mono", monospace);
+  width: 100%;
+  max-width: 1540px;
+  padding: clamp(18px, 3.1vw, 48px) clamp(16px, 3.2vw, 50px) 54px;
+  gap: 22px;
+  color: var(--practice-ink);
+  font-family: var(--app-font-sans, "Plus Jakarta Sans", sans-serif);
+}
+
+.ccna-practice,
+.ccna-practice * {
+  box-sizing: border-box;
+}
+
+.ccna-practice :where(a, button, input, select, summary):focus-visible {
+  outline: 3px solid var(--practice-rust);
+  outline-offset: 3px;
+}
+
+.ccna-practice .nexus-hero {
+  min-height: 230px;
+  padding: clamp(28px, 4.3vw, 54px);
+  overflow: hidden;
+  border: 1px solid #37464e;
+  border-radius: 4px 22px 4px 22px;
+  background: #25333d;
+  box-shadow: 0 20px 42px -34px rgba(32, 43, 54, .7);
+}
+
+.ccna-practice .nexus-hero::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background-image: radial-gradient(rgba(245, 240, 229, .32) .6px, transparent .7px);
+  background-size: 7px 7px;
+  content: "";
+  opacity: .23;
+  pointer-events: none;
+  mask-image: linear-gradient(100deg, transparent 15%, #000 100%);
+}
+
+.ccna-practice .nexus-hero > div {
+  max-width: 620px;
+}
+
+.ccna-practice .nexus-hero .nexus-eyebrow {
+  color: #e7ad88;
+  font-family: var(--practice-mono);
+  font-size: 9px;
+  letter-spacing: .14em;
+}
+
+.ccna-practice .nexus-hero h1 {
+  max-width: 620px;
+  margin: 15px 0 10px;
+  color: #f6f1e6;
+  font-size: clamp(31px, 4vw, 49px);
+  font-weight: 750;
+  line-height: 1.04;
+  letter-spacing: -.06em;
+}
+
+.ccna-practice .nexus-hero p {
+  max-width: 510px;
+  margin: 0;
+  color: #c2cbc4;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.ccna-practice .nexus-hero-topology {
+  width: min(40%, 430px);
+  opacity: .72;
+}
+
+.ccna-practice > .nexus-panel,
+.ccna-practice .nexus-panel {
+  border: 1px solid var(--practice-line);
+  border-radius: 5px 17px 5px 17px;
+  background: var(--practice-white);
+  box-shadow: 0 12px 28px -25px rgba(30, 44, 48, .65);
+}
+
+.ccna-practice .nexus-panel {
+  padding: clamp(20px, 2.35vw, 31px);
+}
+
+.ccna-practice .nexus-panel h2,
+.ccna-practice .nexus-panel h3 {
+  color: var(--practice-ink);
+}
+
+.ccna-practice .nexus-panel h2 {
+  font-size: clamp(20px, 2vw, 26px);
+  line-height: 1.2;
+  letter-spacing: -.045em;
+}
+
+.ccna-practice .nexus-panel p {
+  color: #576660;
+}
+
+.ccna-practice .nexus-eyebrow {
+  color: var(--practice-rust-dark);
+  font-family: var(--practice-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.ccna-practice .nexus-muted {
+  color: var(--practice-muted);
+}
+
+.ccna-practice .nexus-error {
+  border-color: #dfb5a7;
+  border-radius: 4px 12px 4px 12px;
+  background: #f8e9e2;
+  color: #7c3426;
+  line-height: 1.65;
+}
+
+.ccna-practice .nexus-builder {
+  grid-template-columns: minmax(0, 1.48fr) minmax(270px, .78fr);
+  align-items: start;
+  gap: clamp(16px, 2.2vw, 28px);
+}
+
+.ccna-practice .nexus-builder > .nexus-panel {
+  min-width: 0;
+}
+
+.ccna-practice .nexus-section-heading {
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.ccna-practice .nexus-section-heading h2 {
+  margin: 8px 0 0;
+  color: var(--practice-ink);
+  font-size: clamp(23px, 2.5vw, 31px);
+  font-weight: 750;
+  letter-spacing: -.055em;
+}
+
+.ccna-practice .nexus-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.ccna-practice .nexus-field {
+  min-width: 0;
+  gap: 8px;
+  color: #344440;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.ccna-practice .nexus-field :is(select, input) {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 11px 13px;
+  border: 1px solid #d6d6ca;
+  border-radius: 3px 9px 3px 9px;
+  background-color: #fffdf7;
+  color: #26383a;
+  font: 500 12px/1.45 var(--app-font-sans, "Plus Jakarta Sans", sans-serif);
+  transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+.ccna-practice .nexus-field :is(select, input):hover {
+  border-color: #9cafa3;
+}
+
+.ccna-practice .nexus-field :is(select, input):focus-visible {
+  border-color: var(--practice-teal);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(56, 111, 109, .15);
+  outline: none;
+}
+
+.ccna-practice .nexus-field small {
+  color: #68746e;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.ccna-practice .nexus-field > strong {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  padding: 10px 13px;
+  border: 1px solid #d6d6ca;
+  border-radius: 3px 9px 3px 9px;
+  background: #edf1e9;
+  color: #285c51;
+  font-family: var(--practice-mono);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ccna-practice .nexus-field > button {
+  justify-self: start;
+  min-height: 40px;
+  padding: 7px 12px;
+  border: 1px solid #bfd0c5;
+  border-radius: 3px 8px 3px 8px;
+  background: #eef2e9;
+  color: #315d52;
+  cursor: pointer;
+  font: inherit;
+}
+
+.ccna-practice .nexus-builder > .nexus-panel > .nexus-muted {
+  margin: 17px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid #9eae9d;
+  background: #f1f1e9;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.ccna-practice .nexus-builder > .nexus-panel > .nexus-muted + .nexus-muted {
+  margin-top: 9px;
+}
+
+.ccna-practice .nexus-builder > .nexus-panel > .nexus-muted:has(+ .nexus-muted) {
+  border-left-color: #bd8b6d;
+}
+
+.ccna-practice .nexus-preview {
+  position: sticky;
+  top: 24px;
+  min-height: 330px;
+  padding: clamp(22px, 2.7vw, 34px);
+  overflow: hidden;
+  border: 1px solid #37464e;
+  border-radius: 4px 17px 4px 17px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(112, 152, 132, .18), transparent 42%),
+    #25333d;
+  color: #f5f0e5;
+  box-shadow: 0 18px 36px -31px rgba(32, 43, 54, .8);
+}
+
+.ccna-practice .nexus-preview::after {
+  position: absolute;
+  right: -28px;
+  bottom: -48px;
+  width: 168px;
+  height: 168px;
+  border: 1px solid rgba(218, 155, 116, .25);
+  border-radius: 50%;
+  box-shadow: 0 0 0 18px rgba(218, 155, 116, .04), 0 0 0 38px rgba(218, 155, 116, .035);
+  content: "";
+  pointer-events: none;
+}
+
+.ccna-practice .nexus-preview .nexus-eyebrow {
+  color: #e7ad88;
+}
+
+.ccna-practice .nexus-preview h2 {
+  margin: 17px 0 13px;
+  color: #f6f1e6;
+  font-size: clamp(21px, 2vw, 27px);
+  font-weight: 750;
+  line-height: 1.14;
+  letter-spacing: -.045em;
+}
+
+.ccna-practice .nexus-preview p {
+  position: relative;
+  z-index: 1;
+  color: #c7d0c9;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.ccna-practice .nexus-preview p:first-of-type {
+  padding: 13px 0;
+  border-top: 1px solid rgba(214, 224, 213, .2);
+  border-bottom: 1px solid rgba(214, 224, 213, .2);
+  color: #e1e7dc;
+  font-family: var(--practice-mono);
+  font-size: 10px;
+  line-height: 2;
+}
+
+.ccna-practice .nexus-button {
+  min-height: 45px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 3px 9px 3px 9px;
+  background: var(--practice-teal);
+  color: #fff8ed;
+  font-size: 11px;
+  font-weight: 750;
+  text-decoration: none;
+  transition: transform .16s ease, background-color .16s ease, border-color .16s ease;
+}
+
+.ccna-practice .nexus-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  background: #2d5c5b;
+}
+
+.ccna-practice .nexus-button.secondary {
+  border-color: #cbd6ce;
+  background: #eef2e9;
+  color: #354946;
+}
+
+.ccna-practice .nexus-button.secondary:not(:disabled):hover {
+  border-color: #9bafa4;
+  background: #e3ebe2;
+}
+
+.ccna-practice .nexus-button:disabled {
+  opacity: .58;
+}
+
+.ccna-practice .nexus-preview .nexus-button {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 49px;
+  margin-top: 14px;
+  background: var(--practice-rust);
+  box-shadow: 0 3px 0 #763c2d;
+}
+
+.ccna-practice .nexus-preview .nexus-button:not(:disabled):hover {
+  background: #ca6447;
+}
+
+.ccna-practice .nexus-results {
+  padding: clamp(23px, 3vw, 40px);
+}
+
+.ccna-practice .nexus-results > .nexus-eyebrow {
+  display: block;
+  margin-bottom: 9px;
+}
+
+.ccna-practice .nexus-result-grid {
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.ccna-practice .nexus-result-grid > div {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid var(--practice-line);
+  border-radius: 3px 11px 3px 11px;
+  background: #f4f2e9;
+  color: #596761;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.ccna-practice .nexus-result-grid strong {
+  margin-bottom: 5px;
+  color: #2a4744;
+  font-family: var(--practice-mono);
+  font-size: clamp(23px, 3vw, 34px);
+  letter-spacing: -.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ccna-practice .nexus-results h3 {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--practice-line);
+  font-size: 15px;
+  letter-spacing: -.02em;
+}
+
+.ccna-practice .nexus-results details {
+  padding: 15px 0;
+  border-bottom-color: var(--practice-line);
+}
+
+.ccna-practice .nexus-results summary {
+  min-height: 44px;
+  align-content: center;
+  color: #344440;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.ccna-practice .nexus-results .nexus-workspace-controls {
+  margin-top: 25px;
+}
+
+.ccna-practice .practice-session-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px 18px;
+  padding: 15px 18px;
+  border: 1px solid var(--practice-line);
+  border-radius: 3px 12px 3px 12px;
+  background: var(--practice-white);
+}
+
+.ccna-practice .practice-progress-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: #596761;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.ccna-practice .practice-progress-heading strong {
+  color: #2d4d49;
+  font-family: var(--practice-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ccna-practice .practice-session-progress > small {
+  grid-column: 2;
+  grid-row: 1;
+  color: var(--practice-rust-dark);
+  font-family: var(--practice-mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.ccna-practice .practice-progress-track {
+  grid-column: 1 / -1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #e5e3d8;
+}
+
+.ccna-practice .practice-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #386f6d, #8eaa8f);
+  transition: width .24s ease;
+}
+
+.ccna-practice .practice-session-heading {
+  margin: 2px 0 0;
+  padding: 7px 1px 1px;
+}
+
+.ccna-practice .practice-session-heading h2 {
+  margin: 0;
+  color: var(--practice-ink);
+  font-size: clamp(19px, 2.2vw, 27px);
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: -.05em;
+}
+
+.ccna-practice .practice-session-heading .nexus-muted {
+  margin: 5px 0 0;
+  font-size: 10px;
+}
+
+.ccna-practice .practice-session-heading > .flex {
+  align-items: center;
+  gap: 8px;
+}
+
+.ccna-practice .nexus-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(215px, 255px);
+  align-items: start;
+  gap: clamp(16px, 2vw, 24px);
+}
+
+.ccna-practice .nexus-workspace > .nexus-panel:first-child {
+  min-width: 0;
+  padding: clamp(21px, 3vw, 38px);
+}
+
+.ccna-practice .nexus-question-head {
+  align-items: center;
+  gap: 14px;
+  margin: -2px 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--practice-line);
+  color: #65716f;
+  font-family: var(--practice-mono);
+  font-size: 9px;
+  line-height: 1.6;
+  letter-spacing: .035em;
+}
+
+.ccna-practice .nexus-question-head span:first-child {
+  color: #53645e;
+  font-weight: 700;
+}
+
+.ccna-practice .nexus-question-head span:last-child {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border: 1px solid #d7d9ce;
+  border-radius: 2px 7px 2px 7px;
+  background: #f0efe6;
+  color: #705940;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.ccna-practice .nexus-question-text {
+  margin: 22px 0 25px;
+  color: #26353a;
+  font-size: clamp(16px, 1.5vw, 19px);
+  font-weight: 600;
+  line-height: 1.72;
+  letter-spacing: -.018em;
+}
+
+.ccna-practice .nexus-question-text :is(pre, code),
+.ccna-practice .nexus-option :is(pre, code) {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 3px 9px 3px 9px;
+}
+
+.ccna-practice .nexus-workspace fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ccna-practice .nexus-workspace legend {
+  margin-bottom: 12px;
+  color: #4e615a;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .04em;
+}
+
+.ccna-practice .nexus-options {
+  gap: 10px;
+  margin: 0;
+}
+
+.ccna-practice .nexus-option {
+  display: grid;
+  grid-template-columns: 16px 29px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  min-height: 54px;
+  padding: 15px 16px;
+  border: 1px solid #deded3;
+  border-radius: 3px 11px 3px 11px;
+  background: #f8f6ef;
+  color: #344440;
+  font-size: 12px;
+  line-height: 1.65;
+  transition: border-color .16s ease, background-color .16s ease, transform .16s ease;
+}
+
+.ccna-practice .nexus-option:hover {
+  transform: translateY(-1px);
+  border-color: #9bafa4;
+  background: #fffdf7;
+}
+
+.ccna-practice .nexus-option:has(input:checked) {
+  border-color: var(--practice-teal);
+  background: #eaf0e9;
+  box-shadow: inset 3px 0 #386f6d;
+}
+
+.ccna-practice .nexus-option:has(input:focus-visible) {
+  outline: 3px solid var(--practice-rust);
+  outline-offset: 2px;
+}
+
+.ccna-practice .nexus-option input {
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+  accent-color: var(--practice-teal);
+}
+
+.ccna-practice .nexus-option strong {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid #d5d8ce;
+  border-radius: 2px 7px 2px 7px;
+  background: #fffdf7;
+  color: #52655f;
+  font-family: var(--practice-mono);
+  font-size: 10px;
+}
+
+.ccna-practice .nexus-option:has(input:checked) strong {
+  border-color: #aebfb1;
+  background: #dce8de;
+  color: #285c51;
+}
+
+.ccna-practice .nexus-option > :last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ccna-practice .nexus-answer-feedback {
+  margin-top: 20px;
+  padding: clamp(17px, 2vw, 24px);
+  border: 1px solid #b7d3c2;
+  border-radius: 3px 12px 3px 12px;
+  background: #eaf1e9;
+  color: #304b40;
+}
+
+.ccna-practice .nexus-answer-feedback.incorrect {
+  border-color: #e0c4a0;
+  background: #f8eee2;
+  color: #634532;
+}
+
+.ccna-practice .nexus-answer-feedback h3 {
+  margin: 0 0 9px;
+  color: #285b4e;
+  font-size: 15px;
+  letter-spacing: -.02em;
+}
+
+.ccna-practice .nexus-answer-feedback.incorrect h3 {
+  color: #8f4d2e;
+}
+
+.ccna-practice .nexus-answer-feedback p {
+  color: inherit;
+  font-size: 11px;
+}
+
+.ccna-practice .nexus-text-link {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 3px 8px 3px 8px;
+  background: transparent;
+  color: #386f6d;
+  cursor: pointer;
+  font: 700 10px/1.4 var(--app-font-sans, "Plus Jakarta Sans", sans-serif);
+  text-decoration: none;
+}
+
+.ccna-practice .nexus-text-link:hover:not(:disabled) {
+  background: #eaf0e9;
+  color: #285c5b;
+}
+
+.ccna-practice .nexus-text-link:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.ccna-practice .nexus-workspace-controls {
+  align-items: center;
+  gap: 10px;
+  margin-top: 25px;
+  padding-top: 18px;
+  border-top: 1px solid var(--practice-line);
+}
+
+.ccna-practice .nexus-workspace-controls .nexus-text-link {
+  margin: 0 auto;
+}
+
+.ccna-practice .nexus-desktop-navigator {
+  position: sticky;
+  top: 24px;
+  min-width: 0;
+  padding: 20px;
+}
+
+.ccna-practice .nexus-desktop-navigator h3 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: -.025em;
+}
+
+.ccna-practice .nexus-question-nav {
+  grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+  gap: 7px;
+  margin: 17px 0;
+}
+
+.ccna-practice .nexus-question-nav button {
+  min-width: 38px;
+  min-height: 39px;
+  padding: 7px;
+  border: 1px solid #d6d8ce;
+  border-radius: 3px 8px 3px 8px;
+  background: #f8f6ef;
+  color: #53645e;
+  cursor: pointer;
+  font-family: var(--practice-mono);
+  font-size: 10px;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.ccna-practice .nexus-question-nav button:hover:not(:disabled) {
+  border-color: #93a99d;
+  background: #edf1e9;
+}
+
+.ccna-practice .nexus-question-nav button[aria-current="true"] {
+  outline: 2px solid var(--practice-rust);
+  outline-offset: 2px;
+  border-color: var(--practice-rust);
+  background: #f8e9e2;
+  color: #7c3426;
+}
+
+.ccna-practice .nexus-question-nav .answered {
+  border-color: #a9c6b3;
+  background: #e4eee4;
+  color: #285c51;
+}
+
+.ccna-practice .nexus-question-nav .selected {
+  border-color: #a6b9b2;
+  background: #e7eeeb;
+  color: #315a54;
+}
+
+.ccna-practice .nexus-question-nav .flagged::after {
+  top: -6px;
+  right: 1px;
+  color: #a85f31;
+  font-size: 10px;
+}
+
+.ccna-practice .nexus-desktop-navigator .nexus-muted {
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.ccna-practice [role="status"].nexus-panel {
+  border-color: #d8c5a9;
+  background: #f7f1e5;
+}
+
+.ccna-practice .nexus-results .nexus-button,
+.ccna-practice .nexus-workspace-controls .nexus-button {
+  min-height: 44px;
+}
+
+.practice-navigation-sheet {
+  width: min(90vw, 410px) !important;
+  max-width: none !important;
+  padding: clamp(20px, 5vw, 32px) !important;
+  border-left: 1px solid #d9d4c8 !important;
+  background: #fbfaf5 !important;
+  color: #202b36;
+}
+
+.practice-navigation-sheet :where(button):focus-visible {
+  outline: 3px solid #b84f34;
+  outline-offset: 3px;
+}
+
+.practice-navigation-sheet h2 {
+  margin: 2px 32px 7px 0;
+  color: #202b36;
+  font-family: var(--app-font-sans, "Plus Jakarta Sans", sans-serif);
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -.045em;
+}
+
+.practice-navigation-sheet > p {
+  max-width: 300px;
+  margin: 0 0 20px;
+  color: #65716f;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.practice-navigation-sheet .nexus-question-nav {
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.practice-navigation-sheet .nexus-question-nav button {
+  min-width: 42px;
+  min-height: 42px;
+  border: 1px solid #d6d8ce;
+  border-radius: 3px 8px 3px 8px;
+  background: #f8f6ef;
+  color: #53645e;
+  font-family: var(--app-font-mono, "Space Mono", monospace);
+  font-size: 10px;
+}
+
+.practice-navigation-sheet .nexus-question-nav button[aria-current="true"] {
+  outline: 2px solid #b84f34;
+  outline-offset: 2px;
+  border-color: #b84f34;
+  background: #f8e9e2;
+  color: #7c3426;
+}
+
+.practice-navigation-sheet .nexus-question-nav .answered {
+  border-color: #a9c6b3;
+  background: #e4eee4;
+  color: #285c51;
+}
+
+.practice-navigation-sheet .nexus-question-nav .selected {
+  border-color: #a6b9b2;
+  background: #e7eeeb;
+  color: #315a54;
+}
+
+.practice-navigation-sheet .nexus-question-nav .flagged::after {
+  top: -6px;
+  right: 1px;
+  color: #a85f31;
+  font-size: 10px;
+}
+
+.practice-navigation-sheet .nexus-muted {
+  color: #65716f;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+@media (max-width: 1100px) {
+  .ccna-practice .nexus-builder {
+    grid-template-columns: minmax(0, 1.3fr) minmax(245px, .85fr);
+  }
+
+  .ccna-practice .nexus-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(185px, 205px);
+  }
+}
+
+@media (max-width: 920px) {
+  .ccna-practice .nexus-builder {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ccna-practice .nexus-preview {
+    position: relative;
+    top: auto;
+    min-height: 0;
+  }
+
+  .ccna-practice .nexus-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ccna-practice .nexus-desktop-navigator {
+    position: static;
+  }
+
+  .ccna-practice .nexus-question-nav {
+    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .ccna-practice {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .ccna-practice .nexus-hero {
+    min-height: 205px;
+    padding: 25px 23px !important;
+    border-radius: 4px 17px 4px 17px;
+  }
+
+  .ccna-practice .nexus-hero > div {
+    max-width: min(100%, 520px);
+  }
+
+  .ccna-practice .nexus-hero h1 {
+    max-width: 430px;
+    font-size: clamp(29px, 8vw, 39px);
+  }
+
+  .ccna-practice .nexus-hero p {
+    max-width: 390px;
+    font-size: 12px;
+  }
+
+  .ccna-practice .nexus-hero-topology {
+    right: -65px;
+    width: 68%;
+    opacity: .28;
+  }
+
+  .ccna-practice .nexus-panel {
+    padding: 19px;
+  }
+
+  .ccna-practice .nexus-fields {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .ccna-practice .practice-session-progress {
+    padding: 13px 14px;
+  }
+
+  .ccna-practice .practice-progress-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ccna-practice .practice-session-progress > small {
+    align-self: end;
+  }
+
+  .ccna-practice .practice-session-heading {
+    gap: 12px;
+  }
+
+  .ccna-practice .practice-session-heading > .flex {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .ccna-practice .practice-session-heading > .flex > .nexus-button {
+    flex: 1 1 auto;
+  }
+
+  .ccna-practice .practice-session-heading > .flex > .nexus-mobile-navigator {
+    flex: 0 0 46px;
+  }
+
+  .ccna-practice .nexus-workspace > .nexus-panel:first-child {
+    padding: 20px 17px;
+  }
+
+  .ccna-practice .nexus-question-head {
+    align-items: flex-start;
+    font-size: 8px;
+  }
+
+  .ccna-practice .nexus-question-text {
+    font-size: 16px;
+  }
+
+  .ccna-practice .nexus-option {
+    grid-template-columns: 16px 25px minmax(0, 1fr);
+    gap: 9px;
+    padding: 13px 12px;
+    font-size: 11px;
+  }
+
+  .ccna-practice .nexus-option strong {
+    width: 24px;
+    height: 24px;
+  }
+
+  .ccna-practice .nexus-workspace-controls {
+    justify-content: stretch;
+  }
+
+  .ccna-practice .nexus-workspace-controls > .nexus-button {
+    flex: 1 1 42%;
+  }
+
+  .ccna-practice .nexus-workspace-controls .nexus-text-link {
+    order: -1;
+    flex: 1 1 100%;
+    justify-content: center;
+    margin: 0;
+  }
+
+  .ccna-practice .nexus-result-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ccna-practice *,
+  .ccna-practice *::before,
+  .ccna-practice *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
