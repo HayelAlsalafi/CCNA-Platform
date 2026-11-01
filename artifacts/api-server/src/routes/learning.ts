@@ -1,24 +1,24 @@
-import { asc, count, eq } from "drizzle-orm";
+import { and, asc, count, eq } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import {
   GetDashboardSummaryResponse,
   GetLearningProgressResponse,
   ListTopicsResponse,
 } from "@workspace/api-zod";
-import { db, topicsTable } from "@workspace/db";
+import { db, topicsTable, questionsTable } from "@workspace/db";
 
 import { requireAuthenticatedUser } from "../middlewares/auth";
 import { getLearningProgress } from "../lib/learning-progress";
 
 const router: IRouter = Router();
 
-function toTopicSummary(topic: typeof topicsTable.$inferSelect) {
+function toTopicSummary(topic: typeof topicsTable.$inferSelect, questionCount: number) {
   return {
     id: topic.id,
     slug: topic.slug,
     name: topic.name,
     description: topic.description,
-    questionCount: 0,
+    questionCount,
     attemptedCount: 0,
     correctCount: 0,
     accuracy: 0,
@@ -28,36 +28,31 @@ function toTopicSummary(topic: typeof topicsTable.$inferSelect) {
   };
 }
 
+function activeTopicsWithCounts() {
+  return db.select({ topic: topicsTable, questionCount: count(questionsTable.id) })
+    .from(topicsTable)
+    .leftJoin(questionsTable, and(eq(questionsTable.topicId, topicsTable.id), eq(questionsTable.status, 'ACTIVE')))
+    .where(eq(topicsTable.status, 'ACTIVE'))
+    .groupBy(topicsTable.id)
+    .orderBy(asc(topicsTable.displayOrder), asc(topicsTable.name));
+}
+
 router.get("/topics", async (req, res): Promise<void> => {
   req.log.info("Listing active CCNA topics");
 
-  const topics = await db
-    .select()
-    .from(topicsTable)
-    .where(eq(topicsTable.status, "ACTIVE"))
-    .orderBy(asc(topicsTable.displayOrder), asc(topicsTable.name));
+  const topics = await activeTopicsWithCounts();
 
-  res.json(ListTopicsResponse.parse(topics.map(toTopicSummary)));
+  res.json(ListTopicsResponse.parse(topics.map(item => toTopicSummary(item.topic,item.questionCount))));
 });
 
 router.get("/dashboard/summary", async (req, res): Promise<void> => {
   req.log.info("Loading learning dashboard summary");
 
-  const [topicCount] = await db
-    .select({ value: count() })
-    .from(topicsTable)
-    .where(eq(topicsTable.status, "ACTIVE"));
-
-  const topics = await db
-    .select()
-    .from(topicsTable)
-    .where(eq(topicsTable.status, "ACTIVE"))
-    .orderBy(asc(topicsTable.displayOrder), asc(topicsTable.name));
-
-  const summaries = topics.map(toTopicSummary);
+  const topics = await activeTopicsWithCounts();
+  const summaries = topics.map(item => toTopicSummary(item.topic,item.questionCount));
   const data = {
-    totalTopics: topicCount?.value ?? 0,
-    totalQuestions: 0,
+    totalTopics: topics.length,
+    totalQuestions: summaries.reduce((n,t)=>n+t.questionCount,0),
     questionsAttempted: 0,
     overallAccuracy: 0,
     studyMinutes: 0,

@@ -8,6 +8,7 @@ import { adminSessionKey, type AdminIdentity } from './admin-session';
 
 const adminFamilies = new Set<string>([
   getAdminListQuestionsQueryKey()[0], getAdminListTopicsQueryKey()[0],
+  '/api/admin/taxonomy',
 ]);
 const sharedFamilies = new Set<string>([
   getListTopicsQueryKey()[0], getGetDashboardSummaryQueryKey()[0],
@@ -29,6 +30,7 @@ function affected(key: QueryKey, identity: AdminIdentity) {
   }
   if (sharedFamilies.has(family)) return true;
   const learnerCatalog = family === getGetLearningProgressQueryKey()[0] ||
+    family === '/api/curriculum' || family === '/api/admin/curriculum/mapping' ||
     family === '/api/practice/history' ||
     /^\/api\/practice\/topics\/[^/]+\/question$/.test(family) ||
     /^\/api\/questions\/[^/]+$/.test(family);

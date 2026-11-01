@@ -1,0 +1,8 @@
+{
+  "target": "ccna_drizzle_check_20261012_c08f12ad34b6",
+  "files": {
+    "lib/db/drizzle/proposed/0012_exam_simulator.sql": "a371c060f9d712c1ea00934f01d7ff2899af370c7ab216b009bdd0610c1291ea",
+    "lib/db/drizzle/proposed/meta/0012_snapshot.json": "2c441a4e5417a2e51b6c0a2d4716bcdbcfc302a26f58b480615a2a1ce3f20d30",
+    "lib/db/drizzle/proposed/meta/0012_journal.json": "5e7f8b8aebb65c8c538210c3bc42b58d6830c87207a6a6e52989118818e33fbc"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "packId": "ccna-200-301-v1.1-sprint7-pilot-v1",
+  "topics": 24,
+  "questions": 60,
+  "objectives": 53,
+  "coveredObjectives": 44,
+  "difficulty": {
+    "EASY": 19,
+    "MEDIUM": 31,
+    "HARD": 10
+  },
+  "hashes": {
+    "source/curriculum.json": "9a12abdd8c215e02698d1db85d2b7975c4390bc0865d018be124b2c803818444",
+    "source/questions-d1.json": "336650597def1a410220a8e3ad16de0497b21867aec21711539d0ec66e7aa80b",
+    "source/questions-d2.json": "708456d23b7eb876fe2dac4ab30c92627aa7fd752e6846f93dae5bacc8ae4558",
+    "source/questions-d3.json": "842670540716699058ad6ade806236c0052147ea5441b16cdd10392a05f40e4b",
+    "source/questions-d4.json": "e2c5132a394836872d6ea628f6ef41c95c44a329a8a9ba61525ef7528548a929",
+    "source/questions-d5.json": "d4d4e1f63ac739bc8357975a2a4badabc6545da964d701a7c98038162f4da04d",
+    "source/questions-d6.json": "c1a50ef3db75a4a5eed45d3afc39d5ec49e5dcf70e93c54e3def47f945ee0eea",
+    "blueprint.create.json": "2713afcd43bc2668768de7523f42d3292b6249ad9c6feb73250b216d59750db2",
+    "domains.create.template.json": "5adad10596014dc727005f193bc1f2ffeff02d6ac3233f7bd86a8467da74ef72",
+    "objectives.create.template.json": "cd3c11df94d34c082cc62001655dbc405bc749b93b3eb954f15fa2366f70c8fe",
+    "topics.create.json": "494f0d746c63672fa40d4145e21608799f6ace82d5521224b6eb5a6dd470bfba",
+    "bindings.example.json": "ad653f99953b3785acf43085b2a93341cd3ed541492191ef14b7625913d12be0",
+    "questions.source.csv": "f2a8ededdee49a9097026309e954295adc3ebfadd0af72f2f8dc796543e8c33e",
+    "questions-review.md": "4dadf9e7b50b5bf5182e38d0a40aefe1c77563bdb65926a356a0800489e92362",
+    "curriculum-plan.md": "3a5829c568ec70c1b32579730a0a6e37bdbdab9b3b6a474fc1fdddd1610e731c",
+    "planned-changes.json": "4233e812373dc74f7fd769c3c2c29a468cb7161a455b37c498ede1a5acdd86ac"
+  }
+}

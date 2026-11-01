@@ -1,3 +1,4 @@
+import {selectedKeys,answerLabel} from "../lib/answer-selection";
 import { useEffect, useReducer } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@clerk/react';
@@ -62,8 +63,8 @@ export function HistoricalReview({ item }: { item: HistoryItem }) {
     <p>{review.difficulty.toLowerCase()}: single answer</p>
     <ul>{review.options.map(option => <li key={option.optionKey}>
       <strong>{option.optionKey}</strong> {option.text}
-      {item.selectedOptionKey === option.optionKey ? ' - Your answer' : ''}
-      {review.correctOption.optionKey === option.optionKey ? ' - Correct answer' : ''}
+      {selectedKeys(item.selectedOptionKey).includes(option.optionKey) ? ' - Your answer' : ''}
+      {(review.correctOptions ?? [review.correctOption]).some(o=>o.optionKey === option.optionKey) ? ' - Correct answer' : ''}
     </li>)}</ul>
     <p>{review.explanation}</p>
     {review.referenceNotes ? <p>Reference: {review.referenceNotes}</p> : null}
@@ -71,7 +72,7 @@ export function HistoricalReview({ item }: { item: HistoryItem }) {
   </details>;
 }
 
-function HistoryEntries({ identity }: { identity: ProgressIdentity }) {
+export function HistoryEntries({ identity }: { identity: ProgressIdentity }) {
   const client = useQueryClient();
   useEffect(() => {
     clearHistoryCache(client, identity, true);
@@ -220,7 +221,7 @@ function HistoryEntries({ identity }: { identity: ProgressIdentity }) {
                   <span>{item.topicName?.trim() || 'Topic unavailable'}</span>
                 </td>
                 <td data-label="Selected answer">
-                  <span className="history-answer">{item.selectedOptionKey}</span>
+                  <span className="history-answer">{answerLabel(item.selectedOptionKey)}</span>
                   <HistoricalReview item={item} />
                 </td>
                 <td data-label="Result">

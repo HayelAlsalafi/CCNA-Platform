@@ -1,3 +1,4 @@
+import { ccnaBookChapters } from "../../../../lib/ccna-book-chapters";
 import { and, asc, eq } from "drizzle-orm";
 import {
   createQuestionInputSchema,
@@ -28,6 +29,7 @@ export async function createQuestion(input: unknown, db: Db = defaultDb) {
     );
   }
   const q = parsed.data;
+  if(!ccnaBookChapters.some(c=>c.topicId===q.topicId)) throw new QuestionValidationError([{path:"topicId",message:"Select a canonical book chapter."}]);
 
   return db.transaction(async (tx) => {
     const [topic] = await tx
@@ -93,6 +95,7 @@ export async function getLearnerQuestion(id: string, db: Db = defaultDb) {
 
   const options = await db
     .select({
+      isCorrect: questionOptionsTable.isCorrect,
       optionKey: questionOptionsTable.optionKey,
       text: questionOptionsTable.text,
       displayOrder: questionOptionsTable.displayOrder,
@@ -108,6 +111,7 @@ export async function getLearnerQuestion(id: string, db: Db = defaultDb) {
     topicId: q.topicId,
     text: q.text,
     type: q.type,
+    ...(q.type === "MULTIPLE_CHOICE_MULTIPLE" ? {requiredSelectionCount:options.filter(o=>o.isCorrect).length} : {}),
     difficulty: q.difficulty,
     imageKey: q.imageKey,
     options: options.map((o) => ({ optionKey: o.optionKey, text: o.text })),

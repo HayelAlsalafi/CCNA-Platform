@@ -11,6 +11,7 @@ import type { PracticeQuestionType } from './practiceQuestionType';
 import type { PracticeTopic } from './practiceTopic';
 
 export interface PracticeQuestion {
+  requiredSelectionCount?: number;
   id: string;
   deliveryId: string;
   revisionId: string;

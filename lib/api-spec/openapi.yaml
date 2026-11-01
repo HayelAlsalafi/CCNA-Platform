@@ -19,6 +19,55 @@ tags:
   - name: admin
     description: Server-side administrator boundary
 paths:
+  /nexus/analytics:
+    get:
+      operationId: getCommandCenterAnalytics
+      tags:
+        - learning
+      summary: Authenticated Command Center practice evidence and separate exam summary
+      description: All-time committed practice counters; only timeline is filtered to
+        local calendar periods. Canonical historical chapter attribution. Exams
+        remain a separate cohort. No userId accepted. Read-only aggregation,
+        Cache-Control no-store.
+      security:
+        - clerkSession: []
+      parameters:
+        - name: range
+          in: query
+          schema:
+            type: string
+            enum:
+              - "7"
+              - "30"
+              - "90"
+              - all
+            default: "30"
+        - name: timezone
+          in: query
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+            default: UTC
+          description: IANA learner calendar timezone
+      responses:
+        "200":
+          description: Private learner-owned metrics; no answer keys
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommandCenterAnalyticsResponse"
+        "400":
+          description: Unsupported query or timezone
+        "401":
+          description: Sign-in required
+        "403":
+          description: Account disabled
   /healthz:
     get:
       operationId: healthCheck
@@ -981,6 +1030,646 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /chapters/{chapterId}/lessons:
+    get:
+      operationId: getChapterLessons
+      tags:
+        - learning
+      summary: List published lessons for an existing canonical chapter
+      security:
+        - clerkSession: []
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Private no-store response. Draft content is visible only to
+            authorized administrators.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonChapterListResult"
+        "400":
+          description: Invalid lesson fields or query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Administrator permission required for management operations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No accessible lesson found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent edit or related-record conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Lesson persistence awaits separately approved activation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /lessons/{id}:
+    get:
+      operationId: getPublishedLesson
+      tags:
+        - learning
+      summary: Read an immutable published lesson and adjacent published lessons
+      security:
+        - clerkSession: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Private no-store response. Draft content is visible only to
+            authorized administrators.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonPublishedResult"
+        "400":
+          description: Invalid lesson fields or query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Administrator permission required for management operations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No accessible lesson found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent edit or related-record conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Lesson persistence awaits separately approved activation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/lessons:
+    get:
+      operationId: getAdminLessons
+      tags:
+        - admin
+      summary: List lesson working copies for administrators
+      security:
+        - clerkSession: []
+      parameters:
+        - name: chapterId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Private no-store response. Draft content is visible only to
+            authorized administrators.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonAdminListResult"
+        "400":
+          description: Invalid lesson fields or query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Administrator permission required for management operations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No accessible lesson found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent edit or related-record conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Lesson persistence awaits separately approved activation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createLesson
+      tags:
+        - admin
+      summary: Create an unpublished lesson draft
+      security:
+        - clerkSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonCreateInput"
+      responses:
+        "200":
+          description: Private no-store response. Draft content is visible only to
+            authorized administrators.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonAdminResult"
+        "400":
+          description: Invalid lesson fields or query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Administrator permission required for management operations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No accessible lesson found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent edit or related-record conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Lesson persistence awaits separately approved activation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      parameters:
+        - name: X-Admin-Session
+          in: header
+          schema:
+            type: string
+            maxLength: 256
+          description: Current Clerk session intent precondition; never an authorization
+            credential.
+  /admin/lessons/{id}:
+    get:
+      operationId: getAdminLesson
+      tags:
+        - admin
+      summary: Read an administrator lesson working copy
+      security:
+        - clerkSession: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Private no-store response. Draft content is visible only to
+            authorized administrators.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonAdminResult"
+        "400":
+          description: Invalid lesson fields or query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Administrator permission required for management operations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No accessible lesson found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent edit or related-record conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Lesson persistence awaits separately approved activation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateLesson
+      tags:
+        - admin
+      summary: Save draft changes using optimistic version control
+      security:
+        - clerkSession: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Admin-Session
+          in: header
+          schema:
+            type: string
+            maxLength: 256
+          description: Current Clerk session intent precondition; never an authorization
+            credential.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonUpdateInput"
+      responses:
+        "200":
+          description: Private no-store response. Draft content is visible only to
+            authorized administrators.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonAdminResult"
+        "400":
+          description: Invalid lesson fields or query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Administrator permission required for management operations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No accessible lesson found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent edit or related-record conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Lesson persistence awaits separately approved activation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/lessons/{id}/publish:
+    post:
+      operationId: publishLesson
+      tags:
+        - admin
+      summary: Publish a new immutable revision of the saved working copy
+      security:
+        - clerkSession: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Admin-Session
+          in: header
+          schema:
+            type: string
+            maxLength: 256
+          description: Current Clerk session intent precondition; never an authorization
+            credential.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonVersionInput"
+      responses:
+        "200":
+          description: Private no-store response. Draft content is visible only to
+            authorized administrators.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonAdminResult"
+        "400":
+          description: Invalid lesson fields or query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Administrator permission required for management operations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No accessible lesson found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent edit or related-record conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Lesson persistence awaits separately approved activation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/lessons/{id}/unpublish:
+    post:
+      operationId: unpublishLesson
+      tags:
+        - admin
+      summary: Withdraw learner access without deleting revision history
+      security:
+        - clerkSession: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Admin-Session
+          in: header
+          schema:
+            type: string
+            maxLength: 256
+          description: Current Clerk session intent precondition; never an authorization
+            credential.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonVersionInput"
+      responses:
+        "200":
+          description: Private no-store response. Draft content is visible only to
+            authorized administrators.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonAdminResult"
+        "400":
+          description: Invalid lesson fields or query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Administrator permission required for management operations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No accessible lesson found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent edit or related-record conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Lesson persistence awaits separately approved activation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/lessons/reorder:
+    post:
+      operationId: reorderLessons
+      tags:
+        - admin
+      summary: Transactionally reorder lessons within one canonical chapter
+      security:
+        - clerkSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonReorderInput"
+      responses:
+        "200":
+          description: Private no-store response. Draft content is visible only to
+            authorized administrators.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonAdminListResult"
+        "400":
+          description: Invalid lesson fields or query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Administrator permission required for management operations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No accessible lesson found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent edit or related-record conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Lesson persistence awaits separately approved activation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      parameters:
+        - name: X-Admin-Session
+          in: header
+          schema:
+            type: string
+            maxLength: 256
+          description: Current Clerk session intent precondition; never an authorization
+            credential.
+  /admin/lessons/{id}/revisions:
+    get:
+      operationId: getLessonRevisions
+      tags:
+        - admin
+      summary: List immutable publication revisions for administrators
+      security:
+        - clerkSession: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Private no-store response. Draft content is visible only to
+            authorized administrators.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonRevisionListResult"
+        "400":
+          description: Invalid lesson fields or query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Administrator permission required for management operations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No accessible lesson found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrent edit or related-record conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Lesson persistence awaits separately approved activation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   parameters:
     AdminSessionPrecondition:
@@ -1122,7 +1811,7 @@ components:
           maxLength: 10000
         type:
           type: string
-          enum: [MULTIPLE_CHOICE_SINGLE]
+          enum: [MULTIPLE_CHOICE_SINGLE, MULTIPLE_CHOICE_MULTIPLE]
         difficulty:
           type: string
           enum: [EASY, MEDIUM, HARD]
@@ -1183,7 +1872,7 @@ components:
           maxLength: 10000
         type:
           type: string
-          enum: [MULTIPLE_CHOICE_SINGLE]
+          enum: [MULTIPLE_CHOICE_SINGLE, MULTIPLE_CHOICE_MULTIPLE]
         difficulty:
           type: string
           enum: [EASY, MEDIUM, HARD]
@@ -1234,7 +1923,7 @@ components:
           maxLength: 10000
         type:
           type: string
-          enum: [MULTIPLE_CHOICE_SINGLE]
+          enum: [MULTIPLE_CHOICE_SINGLE, MULTIPLE_CHOICE_MULTIPLE]
         difficulty:
           type: string
           enum: [EASY, MEDIUM, HARD]
@@ -1276,6 +1965,10 @@ components:
       type: object
       required: [id, questionCode, topicId, text, type, difficulty, imageKey, options]
       properties:
+        requiredSelectionCount:
+          type: integer
+          minimum: 2
+          maximum: 10
         id:
           type: string
           format: uuid
@@ -1288,7 +1981,7 @@ components:
           type: string
         type:
           type: string
-          enum: [MULTIPLE_CHOICE_SINGLE]
+          enum: [MULTIPLE_CHOICE_SINGLE, MULTIPLE_CHOICE_MULTIPLE]
         difficulty:
           type: string
           enum: [EASY, MEDIUM, HARD]
@@ -1331,6 +2024,10 @@ components:
       additionalProperties: false
       required: [id, deliveryId, revisionId, expiresAt, questionCode, topic, text, type, difficulty, options]
       properties:
+        requiredSelectionCount:
+          type: integer
+          minimum: 2
+          maximum: 10
         id:
           type: string
           format: uuid
@@ -1351,7 +2048,7 @@ components:
           type: string
         type:
           type: string
-          enum: [MULTIPLE_CHOICE_SINGLE]
+          enum: [MULTIPLE_CHOICE_SINGLE, MULTIPLE_CHOICE_MULTIPLE]
         difficulty:
           type: string
           enum: [EASY, MEDIUM, HARD]
@@ -1407,11 +2104,19 @@ components:
       additionalProperties: false
       required: [text, type, difficulty, imageKey, referenceNotes, options, correctOption, explanation]
       properties:
+        requiredSelectionCount:
+          type: integer
+          minimum: 2
+          maximum: 10
+        correctOptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PracticeCorrectOption"
         text:
           type: string
         type:
           type: string
-          enum: [MULTIPLE_CHOICE_SINGLE]
+          enum: [MULTIPLE_CHOICE_SINGLE, MULTIPLE_CHOICE_MULTIPLE]
         difficulty:
           type: string
           enum: [EASY, MEDIUM, HARD]
@@ -1453,7 +2158,8 @@ components:
         optionKey:
           type: string
           minLength: 1
-          maxLength: 8
+          maxLength: 128
+          description: Single key for Single Answer; canonical JSON array of distinct sorted keys for Multiple Answers.
     PracticeCorrectOption:
       type: object
       additionalProperties: false
@@ -1468,6 +2174,10 @@ components:
       additionalProperties: false
       required: [isCorrect, correctOption, explanation]
       properties:
+        correctOptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PracticeCorrectOption"
         isCorrect:
           type: boolean
         correctOption:
@@ -1752,3 +2462,1873 @@ components:
             message:
               type: string
 
+    CommandCenterCoverage:
+      type: object
+      additionalProperties: false
+      required:
+        - availableQuestions
+        - practicedQuestions
+        - availableChapters
+        - practicedChapters
+      properties:
+        availableQuestions: &a1
+          type: integer
+          minimum: 0
+        practicedQuestions: *a1
+        availableChapters: *a1
+        practicedChapters: *a1
+    CommandCenterDomainEvidence:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - code
+        - name
+        - weightPercent
+        - attempts
+        - correct
+        - uniqueQuestions
+        - accuracy
+        - status
+      properties:
+        id: &a3
+          type: string
+          format: uuid
+        code: &a2
+          type: string
+        name: *a2
+        weightPercent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        attempts: *a1
+        correct: *a1
+        uniqueQuestions: *a1
+        accuracy:
+          anyOf:
+            - type: number
+              minimum: 0
+              maximum: 100
+            - type: "null"
+        status:
+          type: string
+          enum:
+            - STRONG
+            - REVIEW
+            - DEVELOPING
+            - INSUFFICIENT
+    CommandCenterLatestExam:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - status
+        - finalizedAt
+        - questionCount
+        - percentage
+      properties:
+        id: *a3
+        status:
+          type: string
+          enum:
+            - SUBMITTED
+            - EXPIRED
+        finalizedAt: &a4
+          type: string
+          format: date-time
+        questionCount: *a1
+        percentage:
+          anyOf:
+            - type: number
+              minimum: 0
+              maximum: 100
+            - type: "null"
+    CommandCenterSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - timezone
+        - cohort
+        - coverage
+        - domains
+        - exams
+        - timeline
+      properties:
+        timezone: *a2
+        cohort:
+          type: string
+          enum:
+            - ALL_COMMITTED_PRACTICE
+        coverage:
+          $ref: "#/components/schemas/CommandCenterCoverage"
+        domains:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommandCenterDomainEvidence"
+          maxItems: 6
+        exams:
+          type: object
+          additionalProperties: false
+          required:
+            - available
+            - completed
+            - latest
+          properties:
+            available:
+              type: boolean
+            completed: *a1
+            latest:
+              anyOf:
+                - $ref: "#/components/schemas/CommandCenterLatestExam"
+                - type: "null"
+        timeline:
+          type: object
+          additionalProperties: false
+          required:
+            - truncated
+            - maximumBuckets
+          properties:
+            truncated:
+              type: boolean
+            maximumBuckets:
+              type: integer
+              minimum: 0
+              maximum: 120
+    CommandCenterTopic:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - available
+        - attempted
+        - attempts
+        - correct
+      properties:
+        id: *a3
+        name: *a2
+        available: *a1
+        attempted: *a1
+        attempts: *a1
+        correct: *a1
+    CommandCenterDomain:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - code
+        - name
+        - version
+        - available
+        - attempted
+        - attempts
+        - correct
+        - chapters
+        - covered_chapters
+      properties:
+        id: *a3
+        code: *a2
+        name: *a2
+        version: *a2
+        available: *a1
+        attempted: *a1
+        attempts: *a1
+        correct: *a1
+        chapters: *a1
+        covered_chapters: *a1
+        recommendedTopic:
+          anyOf:
+            - $ref: "#/components/schemas/CommandCenterTopic"
+            - type: "null"
+    CommandCenterTimelineBucket:
+      type: object
+      additionalProperties: false
+      required:
+        - day
+        - attempts
+        - correct
+        - incorrect
+        - completedSessions
+        - completedExams
+      properties:
+        day:
+          type: string
+          format: date
+        attempts: *a1
+        correct: *a1
+        incorrect: *a1
+        completedSessions: *a1
+        completedExams: *a1
+    CommandCenterSession:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - mode
+        - status
+        - createdAt
+        - completedAt
+        - questionCount
+        - answered
+        - correct
+        - topics
+      properties:
+        id: *a3
+        mode: *a2
+        status: *a2
+        createdAt: *a4
+        completedAt:
+          anyOf:
+            - *a4
+            - type: "null"
+        questionCount: *a1
+        removedCount: *a1
+        answered: *a1
+        correct: *a1
+        topics: *a2
+    CommandCenterAnalyticsResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - totals
+        - domains
+        - topics
+        - timeline
+        - persistence
+        - sessions
+        - resume
+        - range
+        - granularity
+        - taxonomyBasis
+        - studyTime
+        - streak
+        - commandCenter
+      properties:
+        totals:
+          type: object
+          additionalProperties: false
+          required:
+            - attempts
+            - correct
+            - unique
+            - lastActivity
+            - available
+            - unmapped
+            - unmappedAttempts
+          properties:
+            attempts: *a1
+            correct: *a1
+            unique: *a1
+            lastActivity:
+              anyOf:
+                - *a4
+                - type: "null"
+            available: *a1
+            unmapped: *a1
+            unmappedAttempts: *a1
+        domains:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommandCenterDomain"
+          maxItems: 6
+        topics:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommandCenterTopic"
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommandCenterTimelineBucket"
+          maxItems: 120
+        persistence:
+          type: boolean
+        sessions:
+          type: object
+          additionalProperties: false
+          required:
+            - items
+            - total
+            - page
+            - totalPages
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/CommandCenterSession"
+              maxItems: 5
+            total: *a1
+            page: *a1
+            totalPages: *a1
+            persistence:
+              type: boolean
+        resume:
+          anyOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - id
+                - mode
+                - questionCount
+                - createdAt
+              properties:
+                id: *a3
+                mode: *a2
+                questionCount: *a1
+                createdAt: *a4
+            - type: "null"
+        range:
+          type: string
+          enum:
+            - "7"
+            - "30"
+            - "90"
+            - all
+        granularity:
+          type: string
+          enum:
+            - day
+            - month
+        taxonomyBasis: *a2
+        studyTime:
+          type: "null"
+        streak:
+          type: "null"
+        commandCenter:
+          $ref: "#/components/schemas/CommandCenterSummary"
+    LessonContentBlock:
+      anyOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: paragraph
+            text:
+              type: string
+              minLength: 1
+              maxLength: 20000
+            runs:
+              minItems: 1
+              maxItems: 100
+              type: array
+              items:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    maxLength: 20000
+                  bold:
+                    type: boolean
+                  italic:
+                    type: boolean
+                  underline:
+                    type: boolean
+                  strike:
+                    type: boolean
+                  superscript:
+                    type: boolean
+                  subscript:
+                    type: boolean
+                  code:
+                    type: boolean
+                  href:
+                    type: string
+                    maxLength: 2000
+                  color:
+                    type: string
+                    enum:
+                      - default
+                      - muted
+                      - accent
+                      - danger
+                  highlight:
+                    type: string
+                    enum:
+                      - yellow
+                      - green
+                      - blue
+                      - pink
+                required:
+                  - text
+                additionalProperties: false
+            direction:
+              type: string
+              enum:
+                - auto
+                - ltr
+                - rtl
+            alignment:
+              type: string
+              enum:
+                - left
+                - center
+                - right
+            appearance:
+              type: object
+              properties:
+                version:
+                  type: number
+                  const: 1
+                background:
+                  type: string
+                  enum:
+                    - paper
+                    - blue
+                    - green
+                    - yellow
+                    - pink
+                accent:
+                  type: string
+                  enum:
+                    - default
+                    - muted
+                    - accent
+                    - danger
+                card:
+                  type: boolean
+                padding:
+                  type: string
+                  enum:
+                    - compact
+                    - cozy
+                    - roomy
+                spacing:
+                  type: string
+                  enum:
+                    - compact
+                    - normal
+                    - airy
+                decoration:
+                  type: boolean
+              required:
+                - version
+              additionalProperties: false
+          required:
+            - id
+            - type
+            - text
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: richText
+            runs:
+              minItems: 1
+              maxItems: 100
+              type: array
+              items:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    maxLength: 20000
+                  bold:
+                    type: boolean
+                  italic:
+                    type: boolean
+                  underline:
+                    type: boolean
+                  strike:
+                    type: boolean
+                  superscript:
+                    type: boolean
+                  subscript:
+                    type: boolean
+                  code:
+                    type: boolean
+                  href:
+                    type: string
+                    maxLength: 2000
+                  color:
+                    type: string
+                    enum:
+                      - default
+                      - muted
+                      - accent
+                      - danger
+                  highlight:
+                    type: string
+                    enum:
+                      - yellow
+                      - green
+                      - blue
+                      - pink
+                required:
+                  - text
+                additionalProperties: false
+            direction:
+              type: string
+              enum:
+                - auto
+                - ltr
+                - rtl
+            alignment:
+              type: string
+              enum:
+                - left
+                - center
+                - right
+            appearance:
+              type: object
+              properties:
+                version:
+                  type: number
+                  const: 1
+                background:
+                  type: string
+                  enum:
+                    - paper
+                    - blue
+                    - green
+                    - yellow
+                    - pink
+                accent:
+                  type: string
+                  enum:
+                    - default
+                    - muted
+                    - accent
+                    - danger
+                card:
+                  type: boolean
+                padding:
+                  type: string
+                  enum:
+                    - compact
+                    - cozy
+                    - roomy
+                spacing:
+                  type: string
+                  enum:
+                    - compact
+                    - normal
+                    - airy
+                decoration:
+                  type: boolean
+              required:
+                - version
+              additionalProperties: false
+          required:
+            - id
+            - type
+            - runs
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: heading
+            text:
+              type: string
+              minLength: 1
+              maxLength: 200
+            level:
+              anyOf:
+                - type: number
+                  const: 1
+                - type: number
+                  const: 2
+                - type: number
+                  const: 3
+                - type: number
+                  const: 4
+                - type: number
+                  const: 5
+                - type: number
+                  const: 6
+            runs:
+              minItems: 1
+              maxItems: 100
+              type: array
+              items:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    maxLength: 20000
+                  bold:
+                    type: boolean
+                  italic:
+                    type: boolean
+                  underline:
+                    type: boolean
+                  strike:
+                    type: boolean
+                  superscript:
+                    type: boolean
+                  subscript:
+                    type: boolean
+                  code:
+                    type: boolean
+                  href:
+                    type: string
+                    maxLength: 2000
+                  color:
+                    type: string
+                    enum:
+                      - default
+                      - muted
+                      - accent
+                      - danger
+                  highlight:
+                    type: string
+                    enum:
+                      - yellow
+                      - green
+                      - blue
+                      - pink
+                required:
+                  - text
+                additionalProperties: false
+            direction:
+              type: string
+              enum:
+                - auto
+                - ltr
+                - rtl
+            alignment:
+              type: string
+              enum:
+                - left
+                - center
+                - right
+            appearance:
+              type: object
+              properties:
+                version:
+                  type: number
+                  const: 1
+                background:
+                  type: string
+                  enum:
+                    - paper
+                    - blue
+                    - green
+                    - yellow
+                    - pink
+                accent:
+                  type: string
+                  enum:
+                    - default
+                    - muted
+                    - accent
+                    - danger
+                card:
+                  type: boolean
+                padding:
+                  type: string
+                  enum:
+                    - compact
+                    - cozy
+                    - roomy
+                spacing:
+                  type: string
+                  enum:
+                    - compact
+                    - normal
+                    - airy
+                decoration:
+                  type: boolean
+              required:
+                - version
+              additionalProperties: false
+          required:
+            - id
+            - type
+            - text
+            - level
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: code
+            text:
+              type: string
+              minLength: 1
+              maxLength: 20000
+            language:
+              type: string
+              maxLength: 40
+            explanation:
+              type: string
+              maxLength: 4000
+            lineNumbers:
+              type: boolean
+          required:
+            - id
+            - type
+            - text
+            - language
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: image
+            url:
+              type: string
+              maxLength: 2000
+            alt:
+              type: string
+              maxLength: 500
+            decorative:
+              type: boolean
+            caption:
+              type: string
+              maxLength: 1000
+            alignment:
+              type: string
+              enum:
+                - left
+                - center
+                - right
+            width:
+              type: string
+              enum:
+                - small
+                - medium
+                - wide
+                - full
+            pixelWidth:
+              type: integer
+              minimum: 1
+              maximum: 8192
+            pixelHeight:
+              type: integer
+              minimum: 1
+              maximum: 8192
+          required:
+            - id
+            - type
+            - url
+            - alt
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: diagram
+            url:
+              type: string
+              maxLength: 2000
+            alt:
+              type: string
+              maxLength: 500
+            decorative:
+              type: boolean
+            caption:
+              type: string
+              maxLength: 1000
+            alignment:
+              type: string
+              enum:
+                - left
+                - center
+                - right
+            width:
+              type: string
+              enum:
+                - small
+                - medium
+                - wide
+                - full
+            pixelWidth:
+              type: integer
+              minimum: 1
+              maximum: 8192
+            pixelHeight:
+              type: integer
+              minimum: 1
+              maximum: 8192
+          required:
+            - id
+            - type
+            - url
+            - alt
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: callout
+            text:
+              type: string
+              minLength: 1
+              maxLength: 20000
+            tone:
+              type: string
+              enum:
+                - info
+                - warning
+                - tip
+                - important
+                - example
+                - note
+            title:
+              type: string
+              maxLength: 200
+            runs:
+              minItems: 1
+              maxItems: 100
+              type: array
+              items:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    maxLength: 20000
+                  bold:
+                    type: boolean
+                  italic:
+                    type: boolean
+                  underline:
+                    type: boolean
+                  strike:
+                    type: boolean
+                  superscript:
+                    type: boolean
+                  subscript:
+                    type: boolean
+                  code:
+                    type: boolean
+                  href:
+                    type: string
+                    maxLength: 2000
+                  color:
+                    type: string
+                    enum:
+                      - default
+                      - muted
+                      - accent
+                      - danger
+                  highlight:
+                    type: string
+                    enum:
+                      - yellow
+                      - green
+                      - blue
+                      - pink
+                required:
+                  - text
+                additionalProperties: false
+            direction:
+              type: string
+              enum:
+                - auto
+                - ltr
+                - rtl
+            alignment:
+              type: string
+              enum:
+                - left
+                - center
+                - right
+            showIcon:
+              type: boolean
+            appearance:
+              type: object
+              properties:
+                version:
+                  type: number
+                  const: 1
+                background:
+                  type: string
+                  enum:
+                    - paper
+                    - blue
+                    - green
+                    - yellow
+                    - pink
+                accent:
+                  type: string
+                  enum:
+                    - default
+                    - muted
+                    - accent
+                    - danger
+                card:
+                  type: boolean
+                padding:
+                  type: string
+                  enum:
+                    - compact
+                    - cozy
+                    - roomy
+                spacing:
+                  type: string
+                  enum:
+                    - compact
+                    - normal
+                    - airy
+                decoration:
+                  type: boolean
+              required:
+                - version
+              additionalProperties: false
+          required:
+            - id
+            - type
+            - text
+            - tone
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: quote
+            text:
+              type: string
+              minLength: 1
+              maxLength: 20000
+            alignment:
+              type: string
+              enum:
+                - left
+                - center
+                - right
+            runs:
+              minItems: 1
+              maxItems: 100
+              type: array
+              items:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    maxLength: 20000
+                  bold:
+                    type: boolean
+                  italic:
+                    type: boolean
+                  underline:
+                    type: boolean
+                  strike:
+                    type: boolean
+                  superscript:
+                    type: boolean
+                  subscript:
+                    type: boolean
+                  code:
+                    type: boolean
+                  href:
+                    type: string
+                    maxLength: 2000
+                  color:
+                    type: string
+                    enum:
+                      - default
+                      - muted
+                      - accent
+                      - danger
+                  highlight:
+                    type: string
+                    enum:
+                      - yellow
+                      - green
+                      - blue
+                      - pink
+                required:
+                  - text
+                additionalProperties: false
+            direction:
+              type: string
+              enum:
+                - auto
+                - ltr
+                - rtl
+            attribution:
+              type: string
+              maxLength: 500
+            appearance:
+              type: object
+              properties:
+                version:
+                  type: number
+                  const: 1
+                background:
+                  type: string
+                  enum:
+                    - paper
+                    - blue
+                    - green
+                    - yellow
+                    - pink
+                accent:
+                  type: string
+                  enum:
+                    - default
+                    - muted
+                    - accent
+                    - danger
+                card:
+                  type: boolean
+                padding:
+                  type: string
+                  enum:
+                    - compact
+                    - cozy
+                    - roomy
+                spacing:
+                  type: string
+                  enum:
+                    - compact
+                    - normal
+                    - airy
+                decoration:
+                  type: boolean
+              required:
+                - version
+              additionalProperties: false
+          required:
+            - id
+            - type
+            - text
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: list
+            ordered:
+              type: boolean
+            items:
+              minItems: 1
+              maxItems: 100
+              type: array
+              items:
+                type: string
+                minLength: 1
+                maxLength: 2000
+            itemRuns:
+              minItems: 1
+              maxItems: 100
+              type: array
+              items:
+                minItems: 1
+                maxItems: 100
+                type: array
+                items:
+                  type: object
+                  properties:
+                    text:
+                      type: string
+                      maxLength: 20000
+                    bold:
+                      type: boolean
+                    italic:
+                      type: boolean
+                    underline:
+                      type: boolean
+                    strike:
+                      type: boolean
+                    superscript:
+                      type: boolean
+                    subscript:
+                      type: boolean
+                    code:
+                      type: boolean
+                    href:
+                      type: string
+                      maxLength: 2000
+                    color:
+                      type: string
+                      enum:
+                        - default
+                        - muted
+                        - accent
+                        - danger
+                    highlight:
+                      type: string
+                      enum:
+                        - yellow
+                        - green
+                        - blue
+                        - pink
+                  required:
+                    - text
+                  additionalProperties: false
+            numbering:
+              type: string
+              enum:
+                - decimal
+                - upper-alpha
+                - lower-alpha
+                - upper-roman
+                - lower-roman
+                - disc
+                - circle
+                - square
+            start:
+              type: integer
+              minimum: 1
+              maximum: 100000
+            levels:
+              minItems: 1
+              maxItems: 100
+              type: array
+              items:
+                type: integer
+                minimum: 0
+                maximum: 4
+          required:
+            - id
+            - type
+            - ordered
+            - items
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: table
+            headers:
+              minItems: 1
+              maxItems: 12
+              type: array
+              items:
+                type: string
+                minLength: 1
+                maxLength: 300
+            rows:
+              minItems: 1
+              maxItems: 100
+              type: array
+              items:
+                minItems: 1
+                maxItems: 12
+                type: array
+                items:
+                  type: string
+                  maxLength: 2000
+            headerRow:
+              type: boolean
+            headerColumn:
+              type: boolean
+            alignment:
+              type: string
+              enum:
+                - left
+                - center
+                - right
+            columnWidth:
+              type: string
+              enum:
+                - auto
+                - equal
+                - wide-first
+            cells:
+              maxItems: 1212
+              type: array
+              items:
+                type: object
+                properties:
+                  row:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                  column:
+                    type: integer
+                    minimum: 0
+                    maximum: 11
+                  background:
+                    type: string
+                    enum:
+                      - paper
+                      - blue
+                      - green
+                      - yellow
+                      - pink
+                  alignment:
+                    type: string
+                    enum:
+                      - left
+                      - center
+                      - right
+                required:
+                  - row
+                  - column
+                additionalProperties: false
+          required:
+            - id
+            - type
+            - headers
+            - rows
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: knowledgeCheck
+            prompt:
+              type: string
+              minLength: 1
+              maxLength: 20000
+            choices:
+              minItems: 2
+              maxItems: 8
+              type: array
+              items:
+                type: string
+                minLength: 1
+                maxLength: 2000
+            correctIndex:
+              type: integer
+              minimum: 0
+              maximum: 7
+            explanation:
+              type: string
+              minLength: 1
+              maxLength: 20000
+          required:
+            - id
+            - type
+            - prompt
+            - choices
+            - correctIndex
+            - explanation
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: >-
+                ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$
+            type:
+              type: string
+              const: labReference
+            title:
+              type: string
+              minLength: 1
+              maxLength: 200
+            url:
+              type: string
+              maxLength: 2000
+            description:
+              type: string
+              minLength: 1
+              maxLength: 20000
+            objectives:
+              maxItems: 30
+              type: array
+              items:
+                type: string
+                minLength: 1
+                maxLength: 500
+            requirements:
+              maxItems: 30
+              type: array
+              items:
+                type: string
+                minLength: 1
+                maxLength: 500
+            steps:
+              maxItems: 50
+              type: array
+              items:
+                type: string
+                minLength: 1
+                maxLength: 2000
+            expectedResults:
+              type: string
+              maxLength: 4000
+          required:
+            - id
+            - type
+            - title
+            - description
+          additionalProperties: false
+    LessonCreateInput:
+      type: object
+      additionalProperties: false
+      required:
+        - chapterId
+        - title
+        - description
+        - objectives
+        - estimatedMinutes
+        - displayOrder
+        - blocks
+      properties:
+        chapterId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+        description:
+          type: string
+          minLength: 0
+          maxLength: 4000
+        objectives:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 500
+          minItems: 0
+          maxItems: 30
+        estimatedMinutes:
+          type: integer
+          minimum: 1
+          maximum: 600
+        displayOrder:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        blocks:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonContentBlock"
+          minItems: 0
+          maxItems: 200
+      description: Draft input; server limits serialized UTF-8 content to 512000
+        bytes. Publication requires content and objectives.
+    LessonUpdateInput:
+      type: object
+      additionalProperties: false
+      required:
+        - chapterId
+        - title
+        - description
+        - objectives
+        - estimatedMinutes
+        - displayOrder
+        - blocks
+        - version
+      properties:
+        chapterId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+        description:
+          type: string
+          minLength: 0
+          maxLength: 4000
+        objectives:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 500
+          minItems: 0
+          maxItems: 30
+        estimatedMinutes:
+          type: integer
+          minimum: 1
+          maximum: 600
+        displayOrder:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        blocks:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonContentBlock"
+          minItems: 0
+          maxItems: 200
+        version:
+          type: integer
+          minimum: 1
+    LessonVersionInput:
+      type: object
+      additionalProperties: false
+      required:
+        - version
+      properties:
+        version:
+          type: integer
+          minimum: 1
+    LessonSummaryRecord:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - chapterId
+        - title
+        - description
+        - estimatedMinutes
+        - displayOrder
+        - version
+        - status
+        - publishedRevisionId
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        chapterId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+        description:
+          type: string
+          minLength: 0
+          maxLength: 4000
+        estimatedMinutes:
+          type: integer
+          minimum: 1
+          maximum: 600
+        displayOrder:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        version:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+            - DRAFT
+            - PUBLISHED
+        publishedRevisionId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    LessonAdminRecord:
+      type: object
+      additionalProperties: false
+      required:
+        - chapterId
+        - title
+        - description
+        - objectives
+        - estimatedMinutes
+        - displayOrder
+        - blocks
+        - id
+        - version
+        - status
+        - publishedRevisionId
+        - createdAt
+        - updatedAt
+      properties:
+        chapterId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+        description:
+          type: string
+          minLength: 0
+          maxLength: 4000
+        objectives:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 500
+          minItems: 0
+          maxItems: 30
+        estimatedMinutes:
+          type: integer
+          minimum: 1
+          maximum: 600
+        displayOrder:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        blocks:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonContentBlock"
+          minItems: 0
+          maxItems: 200
+        id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+            - DRAFT
+            - PUBLISHED
+        publishedRevisionId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    LessonPublishedSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - chapterId
+        - title
+        - description
+        - estimatedMinutes
+        - displayOrder
+        - version
+        - status
+        - publishedRevisionId
+        - createdAt
+        - updatedAt
+        - revisionId
+        - revisionNumber
+      properties:
+        id:
+          type: string
+          format: uuid
+        chapterId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+        description:
+          type: string
+          minLength: 0
+          maxLength: 4000
+        estimatedMinutes:
+          type: integer
+          minimum: 1
+          maximum: 600
+        displayOrder:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        version:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+            - PUBLISHED
+        publishedRevisionId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        revisionId:
+          type: string
+          format: uuid
+        revisionNumber:
+          type: integer
+          minimum: 1
+    LessonPublishedRecord:
+      type: object
+      additionalProperties: false
+      required:
+        - chapterId
+        - title
+        - description
+        - objectives
+        - estimatedMinutes
+        - displayOrder
+        - blocks
+        - id
+        - version
+        - status
+        - publishedRevisionId
+        - createdAt
+        - updatedAt
+        - revisionId
+        - revisionNumber
+        - chapter
+      properties:
+        chapterId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+        description:
+          type: string
+          minLength: 0
+          maxLength: 4000
+        objectives:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 500
+          minItems: 0
+          maxItems: 30
+        estimatedMinutes:
+          type: integer
+          minimum: 1
+          maximum: 600
+        displayOrder:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        blocks:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonContentBlock"
+          minItems: 0
+          maxItems: 200
+        id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+            - PUBLISHED
+        publishedRevisionId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        revisionId:
+          type: string
+          format: uuid
+        revisionNumber:
+          type: integer
+          minimum: 1
+        chapter:
+          type: object
+          additionalProperties: false
+          required:
+            - id
+            - title
+            - bookReference
+            - domainId
+            - domainName
+          properties:
+            id:
+              type: string
+              format: uuid
+            title:
+              type: string
+              minLength: 1
+              maxLength: 300
+            bookReference:
+              anyOf:
+                - type: string
+                  minLength: 0
+                  maxLength: 300
+                - type: "null"
+            domainId:
+              type: string
+              format: uuid
+            domainName:
+              type: string
+              minLength: 1
+              maxLength: 180
+    LessonRevisionRecord:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - lessonId
+        - revisionNumber
+        - createdAt
+        - snapshot
+      properties:
+        id:
+          type: string
+          format: uuid
+        lessonId:
+          type: string
+          format: uuid
+        revisionNumber:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        snapshot:
+          $ref: "#/components/schemas/LessonCreateInput"
+    LessonNavigationRecord:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+    LessonChapterListResult:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonPublishedSummary"
+          minItems: 0
+          maxItems: 200
+    LessonPublishedResult:
+      type: object
+      additionalProperties: false
+      required:
+        - lesson
+        - previous
+        - next
+      properties:
+        lesson:
+          $ref: "#/components/schemas/LessonPublishedRecord"
+        previous:
+          anyOf:
+            - $ref: "#/components/schemas/LessonNavigationRecord"
+            - type: "null"
+        next:
+          anyOf:
+            - $ref: "#/components/schemas/LessonNavigationRecord"
+            - type: "null"
+    LessonAdminListResult:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonSummaryRecord"
+          minItems: 0
+          maxItems: 200
+    LessonAdminResult:
+      type: object
+      additionalProperties: false
+      required:
+        - lesson
+      properties:
+        lesson:
+          $ref: "#/components/schemas/LessonAdminRecord"
+    LessonRevisionListResult:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonRevisionRecord"
+          minItems: 0
+          maxItems: 100
+    LessonReorderInput:
+      type: object
+      additionalProperties: false
+      required:
+        - chapterId
+        - lessons
+      properties:
+        chapterId:
+          type: string
+          format: uuid
+        lessons:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - version
+              - displayOrder
+            properties:
+              id:
+                type: string
+                format: uuid
+              version:
+                type: integer
+                minimum: 1
+              displayOrder:
+                type: integer
+                minimum: 0
+                maximum: 1000000
+          minItems: 1
+          maxItems: 500

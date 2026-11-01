@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Proposed Lesson Studio — preview left, editor right</title>
+  <desc id="desc">Static approval wireframe only. Equal-width preview and editing panes fill the available workspace beside a collapsed NEXUS navigation rail. No real lesson data or application implementation.</desc>
+  <style>text{font-family:Arial,sans-serif;fill:#172b3a}.label{font-size:13px;fill:#475569}.heading{font-size:19px;font-weight:700}.small{font-size:12px;fill:#475569}.button{font-size:13px;font-weight:700}.line{fill:#dbe5e4}</style>
+  <rect width="1440" height="900" fill="#eef4fa"/>
+  <rect width="64" height="900" fill="#0b1628"/>
+  <text x="20" y="39" style="fill:#22d3ee;font-size:22px;font-weight:700">N</text>
+  <g fill="none" stroke="#9bb1c8" stroke-width="2"><rect x="20" y="90" width="24" height="24" rx="4"/><rect x="20" y="145" width="24" height="24" rx="4"/><rect x="20" y="200" width="24" height="24" rx="4"/><rect x="20" y="255" width="24" height="24" rx="4"/></g>
+  <rect x="64" width="1376" height="84" fill="#fff"/>
+  <text x="88" y="29" class="label">NEXUS / Lessons / Lesson Studio</text>
+  <text x="88" y="61" class="heading">Full-width authoring workspace</text>
+  <text x="825" y="49" class="label">Draft · Unsaved changes</text>
+  <rect x="1024" y="23" width="154" height="42" rx="7" fill="#0f6560"/><text x="1047" y="49" class="button" style="fill:white">Save draft changes</text>
+  <rect x="1191" y="23" width="153" height="42" rx="7" fill="#fff" stroke="#b8c8c5"/><text x="1214" y="49" class="button">Publish revision</text>
+  <rect x="1355" y="23" width="61" height="42" rx="7" fill="#fff" stroke="#b8c8c5"/><text x="1369" y="49" class="button">Back</text>
+  <rect x="80" y="100" width="660" height="744" rx="10" fill="#fcfcf8" stroke="#ccd8d7"/>
+  <rect x="756" y="100" width="660" height="744" rx="10" fill="#fff" stroke="#ccd8d7"/>
+  <text x="104" y="132" class="heading">Live student preview — 50%</text>
+  <text x="104" y="156" class="small">Local preview · Not saved or published by this view</text>
+  <path d="M104 175H716" stroke="#d8e1df"/>
+  <text x="780" y="132" class="heading">Editing controls — 50%</text>
+  <text x="780" y="156" class="small">Existing authoring state, history and save workflow retained</text>
+  <path d="M780 175H1392" stroke="#d8e1df"/>
+  <text x="128" y="224" class="label">Domain / Chapter / Lesson breadcrumb</text>
+  <text x="128" y="268" style="font-size:30px;font-weight:700">Shared student renderer</text>
+  <text x="128" y="299" class="label">Readable text measure within the full preview pane</text>
+  <g class="line"><rect x="128" y="329" width="520" height="10" rx="3"/><rect x="128" y="354" width="550" height="10" rx="3"/><rect x="128" y="379" width="477" height="10" rx="3"/></g>
+  <rect x="128" y="423" width="544" height="111" rx="8" fill="#eff6ff" stroke="#cfdfed"/><text x="148" y="454" class="heading">Existing callout / rich text / content</text><text x="148" y="486" class="label">Immediate visual feedback, not fabricated lesson data</text>
+  <rect x="128" y="566" width="544" height="155" rx="4" fill="#fff" stroke="#c6d5d4"/>
+  <path d="M128 610H672M128 657H672M310 566V721M491 566V721" stroke="#c6d5d4"/>
+  <text x="144" y="595" class="label">Semantic table</text><text x="330" y="595" class="label">Header</text><text x="510" y="595" class="label">Header</text>
+  <text x="128" y="778" class="label">Independent preview scrolling · Arabic RTL / English LTR</text>
+  <rect x="780" y="195" width="612" height="58" rx="7" fill="#f4f7f7" stroke="#d8e1df"/><text x="798" y="230" class="button">Lesson setup / chapter / objectives — collapsible</text>
+  <rect x="780" y="267" width="612" height="42" rx="7" fill="#fff" stroke="#d8e1df"/><text x="798" y="294" class="label">Outline drawer     Add block     Undo lesson     Redo lesson</text>
+  <rect x="780" y="329" width="612" height="294" rx="9" fill="#fff" stroke="#3b8277"/>
+  <text x="798" y="360" class="heading">Selected content block</text>
+  <rect x="798" y="377" width="576" height="47" rx="5" fill="#eff5f3"/><text x="812" y="406" class="button">B    I    U    Color    Highlight    Link    More</text>
+  <text x="812" y="462" class="label">Existing visual rich-text editor</text>
+  <g class="line"><rect x="812" y="487" width="526" height="10" rx="3"/><rect x="812" y="512" width="489" height="10" rx="3"/></g>
+  <path d="M798 553H1374" stroke="#d8e1df"/><text x="812" y="584" class="label">Style / advanced — collapsible      Move · Duplicate · Delete</text>
+  <rect x="780" y="644" width="612" height="107" rx="8" fill="#f8fafb" stroke="#d8e1df"/>
+  <text x="798" y="676" class="heading">Table / image / CLI / check / lab blocks</text>
+  <text x="798" y="709" class="label">Contextual controls for the focused block or selected cell</text>
+  <text x="798" y="778" class="label">Independent editor scrolling · Save stays reachable</text>
+  <text x="80" y="875" class="small">PROPOSAL ONLY — no redesign implemented, no published content changed. Mobile: Editor / Preview switch with persistent actions.</text>
+</svg>

@@ -1,3 +1,4 @@
+import { ccnaBookChapters } from "../../../../lib/ccna-book-chapters";
 import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import {
   db as defaultDb,
@@ -11,6 +12,7 @@ import {
   questionDifficultyEnum,
   questionStatusEnum,
   updateQuestionInputSchema,
+  createQuestionInputSchema,
   type UpdateQuestionInput,
 } from "@workspace/db/schema";
 import { z } from "zod";
@@ -172,6 +174,16 @@ export async function updateAdminQuestion(id: string, input: unknown, db: Db = d
       if (!topic) throw validationError([{ path: "topicId", message: "Topic does not exist." }]);
     }
 
+    const [original] = await tx.select().from(questionsTable).where(eq(questionsTable.id, id));
+    const originalOptions = await tx.select().from(questionOptionsTable).where(eq(questionOptionsTable.questionId, id));
+    const merged = createQuestionInputSchema.safeParse({
+      topicId: original!.topicId, text: original!.text, type: original!.type,
+      difficulty: original!.difficulty, explanation: original!.explanation,
+      imageKey: original!.imageKey, referenceNotes: original!.referenceNotes, status: original!.status,
+      ...data, options: data.options ?? originalOptions.map(({optionKey,text,isCorrect})=>({optionKey,text,isCorrect})),
+    });
+    if (merged.success&&!ccnaBookChapters.some(c=>c.topicId===merged.data.topicId)) throw validationError([{path:"topicId",message:"Select a canonical book chapter."}]);
+    if (!merged.success) throw validationError(merged.error.issues.map(i=>({path:i.path.join('.'),message:i.message})));
     const { options: updatedOptions, ...fields } = data;
     const [question] = await tx
       .update(questionsTable)

@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { readFileSync } from 'node:fs';
 import { Router } from 'wouter';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Dashboard, TopicsPage } from './learning-progress';
+import { Dashboard } from './learning-progress';
 import type { LearningProgressResponse } from '@workspace/api-client-react';
 
 const { auth, progress, catalog, refetch } = vi.hoisted(() => ({
@@ -93,7 +93,7 @@ beforeEach(() => {
 });
 
 describe('Learning dashboard and topic map', () => {
-  it.each([Dashboard, TopicsPage])('waits for Clerk without mounting private queries', (Page) => {
+  it.each([Dashboard])('waits for Clerk without mounting private queries', (Page) => {
     auth.mockReturnValue({ isLoaded: false, isSignedIn: undefined });
     expect(render(Page)).toContain('loading-progress-auth');
     expect(progress).not.toHaveBeenCalled();
@@ -107,7 +107,7 @@ describe('Learning dashboard and topic map', () => {
     expect(render()).toContain('loading-progress-auth');
     expect(progress).not.toHaveBeenCalled();
   });
-  it.each([Dashboard, TopicsPage])('requires sign-in and hides cached private data', (Page) => {
+  it.each([Dashboard])('requires sign-in and hides cached private data', (Page) => {
     auth.mockReturnValue({ isLoaded: true, isSignedIn: false, userId: null, sessionId: null });
     const html = render(Page);
     expect(html).toContain('progress-sign-in-required');
@@ -142,7 +142,7 @@ describe('Learning dashboard and topic map', () => {
     expect(html).not.toContain('999');
     expect(html).not.toContain('Old catalog name');
   });
-  it.each([Dashboard, TopicsPage])('does not inflate coverage for repeated attempts', (Page) => {
+  it.each([Dashboard])('does not inflate coverage for repeated attempts', (Page) => {
     const html = render(Page);
     expect(html).toContain('1 of 1 currently available questions covered');
     expect(html).toContain('aria-valuenow="100"');
@@ -153,8 +153,8 @@ describe('Learning dashboard and topic map', () => {
   it('keeps topic names, descriptions, practice links and topic map navigation', () => {
     const dashboard = render();
     expect(dashboard).toContain('href="/topics"');
-    const map = render(TopicsPage);
-    expect(map).toContain('Topic map');
+    const map = render(Dashboard);
+    expect(map).toContain('href="/topics"');
     expect(map).toContain('grid-topics');
     expect(map).toContain('id="routing"');
     expect(map).toContain('Routing fundamentals');
@@ -165,7 +165,7 @@ describe('Learning dashboard and topic map', () => {
     const html = render();
     expect(html).not.toMatch(/Study time|Avg\. time|streak|This week|mini-bars/i);
   });
-  it.each([Dashboard, TopicsPage])('shows loading while progress is pending', (Page) => {
+  it.each([Dashboard])('shows loading while progress is pending', (Page) => {
     progress.mockReturnValue(queryResult({ data: undefined, isPending: true, isFetching: true }));
     expect(render(Page)).toContain('loading-learning-progress');
   });
@@ -202,7 +202,7 @@ describe('Learning dashboard and topic map', () => {
       data.topics[0].coveragePercent =
         0;
     progress.mockReturnValue(queryResult({ data }));
-    const html = render(TopicsPage);
+    const html = render(Dashboard);
     expect(html).toContain('No questions are currently available.');
     expect(html).toContain('No available questions in this topic.');
     expect(html).not.toContain('link-practice-topic-');
@@ -216,9 +216,9 @@ describe('Learning dashboard and topic map', () => {
   });
   it('separates disabled history and current coverage for moved questions', () => {
     progress.mockReturnValue(queryResult({ data: documented[4] }));
-    expect(render(TopicsPage)).toContain('1 of 1 currently available questions covered');
+    expect(render(Dashboard)).toContain('1 of 1 currently available questions covered');
     progress.mockReturnValue(queryResult({ data: documented[5] }));
-    const html = render(TopicsPage);
+    const html = render(Dashboard);
     expect(html).toContain('Historical topics');
     expect(html).toContain('Historical / disabled');
     expect(html).toContain('Practice unavailable for this disabled topic.');

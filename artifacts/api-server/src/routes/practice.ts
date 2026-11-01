@@ -1,4 +1,4 @@
-import { Router, type IRouter, type Response } from "express";
+import { Router, type IRouter, type Response, type Request, type NextFunction } from "express";
 import {
   GetPracticeHistoryResponse,
   GetPracticeHistoryWithDetailsResponse,
@@ -7,6 +7,7 @@ import {
   SubmitPracticeAnswerResponse,
 } from "@workspace/api-zod";
 import { requireAuthenticatedUser } from "../middlewares/auth";
+import { startPracticeBatch, PracticeBatchError } from '../lib/practice-batch';
 import {
   getPracticeHistory,
   getPracticeQuestionForTopic,
@@ -16,6 +17,25 @@ import {
 
 const router: IRouter = Router();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function practiceSessionPrecondition(req: Request, res: Response, next: NextFunction): void {
+  const expected=req.headers['x-practice-session'];
+  if(expected===undefined){next();return;} // Preserve existing single-answer clients.
+  if(typeof expected!=='string'||!/^[A-Za-z0-9_-]{1,256}$/.test(expected)){res.status(400).json({error:{code:'INVALID_SESSION',message:'Invalid session precondition.'}});return;}
+  if(expected!==req.verifiedAuth?.sessionId){res.status(409).json({error:{code:'SESSION_CHANGED',message:'Your sign-in session changed. Reload practice before continuing.'}});return;}
+  next();
+}
+router.post('/practice/sessions', requireAuthenticatedUser, practiceSessionPrecondition, async (req, res): Promise<void> => {
+  if (!req.dbUser || !req.verifiedAuth?.sessionId) { res.status(401).json({ error: { code: 'UNAUTHENTICATED', message: 'Authentication is required.' } }); return; }
+  try {
+    const batch = await startPracticeBatch(req.body, req.dbUser.id, req.verifiedAuth.sessionId);
+    res.status(201).json({ questions: batch.questions.map(q => GetPracticeQuestionResponse.parse(q)) });
+  } catch (error) {
+    if (error instanceof PracticeBatchError) { res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: error.message } }); return; }
+    req.log.error({ err: error }, 'Could not start practice session');
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Practice session could not be started.' } });
+  }
+});
 
 function notFound(res: Response): void {
   res.status(404).json({ error: { code: "NOT_FOUND", message: "Practice question not found." } });
@@ -126,6 +146,7 @@ router.get(
           },
           text: question.text,
           type: question.type,
+          ...("requiredSelectionCount" in question ? {requiredSelectionCount:question.requiredSelectionCount} : {}),
           difficulty: question.difficulty,
           options: question.options.map(({ optionKey, text }) => ({ optionKey, text })),
         }),
@@ -142,6 +163,7 @@ router.get(
 router.post(
   "/practice/questions/:questionId/answer",
   requireAuthenticatedUser,
+  practiceSessionPrecondition,
   async (req, res): Promise<void> => {
     // Fail closed if the authentication middleware did not attach a local user.
     if (!req.dbUser) {

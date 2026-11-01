@@ -1,0 +1,23 @@
+# Manual image checklist
+
+No images were extracted, uploaded, linked externally, or generated for these lessons. Placeholders are native text callouts.
+
+| Figure | Printed / PDF page | Lesson | Technical meaning |
+| --- | --- | --- | --- |
+| 1-1 | 14 / 3 | 1.1 Networking Models, Open Standards, and TCP/IP Layers | Upper scene: PC to cable modem over Ethernet, then coaxial CATV connection toward the Internet. Lower scene: tablet over wireless LAN/Wi-Fi to a router, with DSL providing the Internet-side connection. |
+| 1-2 | 15 / 4 | 1.1 Networking Models, Open Standards, and TCP/IP Layers | A wired PC reaches an enterprise network through Ethernet and the depicted SW1; a wireless user also accesses the enterprise network. The cloud deliberately hides infrastructure details that are irrelevant to the user-perspective discussion. |
+| 1-3 | 17 / 6 | 1.1 Networking Models, Open Standards, and TCP/IP Layers | Compare an enterprise using separate IBM, DEC and other-vendor models in the 1980s, a mixed transition including TCP/IP in the 1990s, and TCP/IP-dominated networking in the 2000s. |
+| 1-4 | 18 / 7 | 1.1 Networking Models, Open Standards, and TCP/IP Layers | Stack Application above Transport, Network, Data Link and Physical. Preserve the distinction between complete-path delivery, one-link delivery, and actual bit transmission. |
+| 1-5 | 19 / 8 | 1.2 HTTP, TCP Recovery, and Layer Interactions | Show Bob the browser requesting the default page from Larry the web server, followed by Larry returning home.htm. Preserve request and response direction. |
+| 1-6 | 20 / 9 | 1.2 HTTP, TCP Recovery, and Layer Interactions | Bob sends an HTTP GET for home.htm. Larry returns an HTTP response header indicating success and the first part of home.htm, then sends more file content in a further message without another repeated HTTP header. |
+| 1-7 | 21 / 10 | 1.2 HTTP, TCP Recovery, and Layer Interactions | Larry sends three illustrated TCP segments labeled SEQ=1, SEQ=2 and SEQ=3. Segment 2 is lost. Bob receives 1 and 3, recognizes the gap, and sends TCP feedback labeled Send 2 Next toward Larry. |
+| 1-8 | 23 / 12 | 1.3 IP Addressing and Routing from Sender to Destination | Show a local and a distant destination, with intermediate postal sites making next-location forwarding decisions. Preserve the distinction between the person depositing a letter and the postal infrastructure delivering it. |
+| 1-9 | 24 / 13 | 1.3 IP Addressing and Routing from Sender to Destination | Show Larry at 1.1.1.1 on the upper-left address group, Bob at 2.2.2.2 on the right, Archie at 3.3.3.3 below, and routers R1, R2 and R3 connecting the relevant portions of the network. |
+| 1-10 | 25 / 14 | 1.3 IP Addressing and Routing from Sender to Destination | Larry sends toward nearby R1. R1 uses destination 2.2.2.2 to select R2. R2 uses that destination to select delivery toward Bob. The packet shows source 1.1.1.1 and destination 2.2.2.2, with the TCP/HTTP information inside. |
+| 1-11 | 26 / 15 | 1.4 Ethernet Delivery and the Five Encapsulation Steps | Larry adds an Ethernet header and trailer around an IP packet, transmits the frame as electrical signals, and R1 reconstructs the bits and removes the Ethernet wrapper to recover the IP packet. |
+| 1-12 | 28 / 17 | 1.4 Ethernet Delivery and the Five Encapsulation Steps | Show application data, then a TCP header, then an IP header, then data-link header/trailer, followed by physical bit transmission. Number the stages 1 through 5 and align them with Application, Transport, Network, Data Link and Physical. |
+| 1-13 | 28 / 17 | 1.4 Ethernet Delivery and the Five Encapsulation Steps | Show TCP header + data labeled Segment, IP header + data labeled Packet, and link header (LH) + data + link trailer (LT) labeled Frame. The inner data may itself contain higher-layer headers. |
+| 1-14 | 29 / 18 | 1.5 OSI Layer Mapping and Protocol Data Units | Show OSI Application 7, Presentation 6 and Session 5 mapped to TCP/IP Application; Transport 4, Network 3, Data Link 2 and Physical 1 align with the corresponding TCP/IP categories. Preserve the supplied five-layer comparison. |
+| 1-15 | 30 / 19 | 1.5 OSI Layer Mapping and Protocol Data Units | Show nested L7H through L2H headers, with L2T at the end of the Layer 2 unit. Label the resulting objects L7PDU, L6PDU, L5PDU, L4PDU, L3PDU and L2PDU; explain L#H as layer-number header and L#T as layer-number trailer. |
+
+Figures 1-1 and 1-2 accompany protected lesson 1.0; their placeholders are at the start of 1.1 because 1.0 cannot be edited. Adding images inside 1.0 would require separate authorization.

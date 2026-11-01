@@ -1,6 +1,6 @@
 # Phase 6A.3 — Server-Verified Admin Mutation Validation
 
-Date: 2026-10-10. Worktree: `C:\Users\hayel\Desktop\ccna-phase-6a`.
+Date: 2026-10-10. Worktree: `<historical-checkout>`.
 Branch: `feature/phase-6a-question-bank-foundation`.
 Implementation base: `d1611c5d9868f8994aed4f9a5af9ffc4c2cddaa8`.
 PR [#12](https://github.com/HayelAlsalafi/kindred-identity-spark/pull/12) remains Draft, open and unmerged. This record describes local verification before publication. New-HEAD CI results are recorded separately in the PR description; earlier Phase 6A.2 CI is not evidence for this slice.
@@ -88,7 +88,7 @@ Commands use the ignored `.local/tests/phase6a3/validate.cjs` runner. It strips 
 | `orvalTypes`: `pnpm exec tsc -p lib/api-spec/tsconfig.codegen.json` | Passed; exit 0 |
 | `apiBuild`: `pnpm --filter @workspace/api-server run build` | Production bundle passed; exit 0 |
 | `build`: `pnpm --filter @workspace/ccna-learning run build`, process-only PORT=8080 / BASE_PATH=/ | Production bundle passed, 1,883 modules; exit 0 |
-| `codegenPreview`: `pnpm --filter @workspace/api-spec exec orval --config C:/Users/hayel/Desktop/ccna-phase-6a/.local/tests/phase6a3/preview.config.ts` | Both client/Zod outputs generated in ignored temporary directories; exit 0 |
+| `codegenPreview`: `pnpm --filter @workspace/api-spec exec orval --config <historical-checkout>/.local/tests/phase6a3/preview.config.ts` | Both client/Zod outputs generated in ignored temporary directories; exit 0 |
 | `git diff --check` / safety receipt | Whitespace, scope, preservation and credential checks passed; no staging |
 
 Totals add 64 API cases to the previous 145 and four frontend cases to the previous 103; focused totals are subsets, not additional tests. No selected tests failed or were skipped. DB suites and real integration/browser tests were excluded, not Passed. Full regressions/type/build checks were run again after narrowly synchronizing header declarations. The known tooltip sourcemap-location warning remains; frontend build exits 0.

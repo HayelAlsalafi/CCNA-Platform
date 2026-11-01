@@ -19,6 +19,7 @@ import {
   learningProgressOptions,
 } from "../lib/learning-progress-cache";
 import "../curriculum.css";
+import { ChapterLearningAction } from '../components/chapter-learning-action';
 
 export function CurriculumView({
   data,
@@ -205,6 +206,7 @@ export function CurriculumView({
                     </span>
                     <span className="curriculum-labs-status">Labs coming soon</span>
                   </div>
+                  <ChapterLearningAction key={chapter.id} chapterId={chapter.id} />
                   {!topics.length ? (
                     <div className="curriculum-empty curriculum-empty-topics">
                       <span className="curriculum-empty-index">NO ACTIVE TOPICS</span>

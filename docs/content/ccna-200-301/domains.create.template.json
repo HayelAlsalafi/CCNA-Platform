@@ -1,0 +1,44 @@
+[
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "code": "1.0",
+    "name": "Network Fundamentals",
+    "weightPercent": 20,
+    "displayOrder": 1
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "code": "2.0",
+    "name": "Network Access",
+    "weightPercent": 20,
+    "displayOrder": 2
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "code": "3.0",
+    "name": "IP Connectivity",
+    "weightPercent": 25,
+    "displayOrder": 3
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "code": "4.0",
+    "name": "IP Services",
+    "weightPercent": 10,
+    "displayOrder": 4
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "code": "5.0",
+    "name": "Security Fundamentals",
+    "weightPercent": 15,
+    "displayOrder": 5
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "code": "6.0",
+    "name": "Automation and Programmability",
+    "weightPercent": 10,
+    "displayOrder": 6
+  }
+]

@@ -1,0 +1,57 @@
+/lib/db/drizzle/0004_question_revisions.sql text eol=lf
+/lib/db/drizzle/0006_controlled_history_delete.sql text eol=lf
+/lib/db/drizzle/meta/0006_snapshot.json text eol=lf
+/tools/phase8a-cleanup/final-provenance-amendments.json text eol=lf
+/lib/db/drizzle/proposed/0007_nexus_sessions.sql text eol=crlf
+/lib/db/drizzle/proposed/meta/0007_snapshot.json text eol=lf
+/lib/db/drizzle/proposed/meta/0007_journal.json text eol=lf
+/lib/db/drizzle/0007_nexus_sessions.sql text eol=crlf
+/lib/db/drizzle/meta/0007_snapshot.json text eol=lf
+/lib/db/drizzle/proposed/0008_learning_achievements.sql text eol=crlf
+/lib/db/drizzle/proposed/meta/0008_snapshot.json text eol=lf
+/lib/db/drizzle/proposed/meta/0008_journal.json text eol=lf
+/lib/db/drizzle/0008_learning_achievements.sql text eol=crlf
+/lib/db/drizzle/meta/0008_snapshot.json text eol=lf
+
+lib/db/drizzle/proposed/0009_multiple_answer_questions.sql text eol=lf
+lib/db/drizzle/proposed/meta/0009_snapshot.json text eol=lf
+lib/db/drizzle/proposed/meta/0009_journal.json text eol=lf
+
+lib/db/drizzle/proposed/0010_universal_question_deletion.sql text eol=lf
+lib/db/drizzle/proposed/meta/0010_snapshot.json text eol=lf
+lib/db/drizzle/proposed/meta/0010_journal.json text eol=lf
+/lib/db/drizzle/0009_multiple_answer_questions.sql text eol=lf
+/lib/db/drizzle/meta/0009_snapshot.json text eol=lf
+/lib/db/drizzle/0010_universal_question_deletion.sql text eol=lf
+/lib/db/drizzle/meta/0010_snapshot.json text eol=lf
+
+/lib/db/drizzle/proposed/0011_canonical_book_chapters.sql text eol=lf
+/lib/db/drizzle/proposed/meta/0011_snapshot.json text eol=lf
+/lib/db/drizzle/proposed/meta/0011_journal.json text eol=lf
+/lib/db/drizzle/0011_canonical_book_chapters.sql text eol=lf
+/lib/db/drizzle/meta/0011_snapshot.json text eol=lf
+/lib/ccna-book-chapters.ts text eol=lf
+/lib/canonical-chapters.json text eol=lf
+/tools/canonical-chapters-plan.json text eol=lf
+/tools/canonical-chapters-original-approval.json text eol=lf
+
+# Preserve exact reviewed exam migration bytes on Windows.
+lib/db/drizzle/proposed/0012_exam_simulator.sql text eol=lf
+lib/db/drizzle/0012_exam_simulator.sql text eol=lf
+lib/db/drizzle/proposed/meta/0012_snapshot.json text eol=lf
+lib/db/drizzle/meta/0012_snapshot.json text eol=lf
+lib/db/drizzle/proposed/meta/0012_journal.json text eol=lf
+tools/exam-guards.sql text eol=lf
+
+# Migration/source pins cover exact bytes, including historical CRLF SQL.
+# Keep the same bytes in Git and in every checkout; never normalize approved SQL.
+/lib/db/drizzle/** -text
+/lib/db/drizzle/** whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+# Curated content manifests also pin raw bytes; preserve those source assets.
+/docs/content/** -text
+/docs/content/** whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+# Preserve the upstream license text verbatim, including its original spacing.
+/artifacts/ccna-learning/public/fonts/OFL-Amiri.txt whitespace=-blank-at-eol,-blank-at-eof
+# Keep reproducible generator output, which ends with an extra blank line.
+/lib/api-client-react/src/**/api.ts whitespace=-blank-at-eof
+/lib/api-client-react/src/**/api.schemas.ts whitespace=-blank-at-eof

@@ -1,0 +1,268 @@
+/* Phase 2C: available workspace width governs the reading layout. */
+.lesson-workspace {
+  container: learning / inline-size;
+  --reading-line: #ccd9df;
+  --reading-muted: #486174;
+  --reading-surface: #fcfbf8;
+  --reading-panel: #f0f5f6;
+  --reading-ink: #172d3f;
+  color: var(--reading-ink);
+  background: var(--reading-surface);
+  border-radius: 0;
+}
+.lesson-workspace.lesson-dark {
+  --reading-line: #506179;
+  --reading-muted: #c4d2df;
+  --reading-surface: #182536;
+  --reading-panel: #223247;
+  --reading-ink: #edf3f8;
+}
+.lesson-workspace-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-block: 12px 20px;
+}
+.lesson-workspace .lesson-learning-layout {
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 24px;
+}
+.lesson-workspace .lesson-main-content .lesson-reading-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.lesson-workspace .lesson-main-content .lesson-prose {
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  max-width: var(--lesson-reading-width, 65ch);
+  margin-inline: auto;
+  line-height: var(--lesson-line-height, 1.85);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.lesson-workspace .lesson-main-content .lesson-toc {
+  grid-column: 1;
+  grid-row: 2;
+  position: static;
+  overflow: visible;
+  max-height: none;
+  padding: 16px;
+  background: var(--reading-panel);
+  border: 1px solid var(--reading-line);
+  border-radius: 10px;
+}
+.lesson-workspace .lesson-toc nav {
+  display: grid;
+  gap: 4px;
+  margin-block: 12px;
+}
+.lesson-workspace .lesson-toc nav a {
+  border: 0;
+  padding: 7px 8px;
+  border-radius: 4px;
+  line-height: 1.45;
+}
+.lesson-workspace .lesson-toc nav a[aria-current] {
+  background: var(--reading-surface);
+  color: var(--reading-ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-weight: 650;
+}
+.lesson-workspace .lesson-toc :is(summary, h2) {
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+.lesson-workspace .lesson-toc {
+  overflow-wrap: anywhere;
+}
+.lesson-workspace :is(summary, button, a, input, select, textarea):focus-visible {
+  outline: 3px solid #2674a8;
+  outline-offset: 3px;
+}
+.lesson-workspace summary {
+  padding-block: 10px;
+  cursor: pointer;
+}
+.lesson-workspace .lesson-reading-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-block: 8px 16px;
+}
+.lesson-workspace .lesson-reading-tools {
+  position: sticky;
+  top: 68px;
+  z-index: 10;
+  background: var(--reading-surface);
+  border-bottom: 1px solid var(--reading-line);
+  padding: 8px 12px;
+}
+.lesson-reading-settings {
+  position: relative;
+}
+.lesson-settings-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--reading-line);
+  background: var(--reading-panel);
+}
+.lesson-settings-options label {
+  display: grid;
+  gap: 6px;
+}
+.lesson-workspace .lesson-reading-tools progress {
+  width: 100%;
+  accent-color: #176e62;
+}
+.lesson-workspace .lesson-toc :is(small, p) {
+  color: var(--reading-muted);
+}
+.lesson-workspace .study-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.lesson-workspace .reader-study-tools :is(button, input, textarea, select) {
+  max-width: 100%;
+}
+.lesson-workspace .reader-study-tools textarea {
+  width: 100%;
+}
+.lesson-workspace .lesson-prose :is(h1, h2, h3, h4, h5, h6) {
+  text-wrap: pretty;
+  line-height: 1.4;
+  font-weight: 650;
+}
+.lesson-workspace .lesson-block h1 {
+  font-size: 1.65em;
+  margin-block: 1.6em 0.65em;
+}
+.lesson-workspace .lesson-block h5 {
+  font-size: 1.05em;
+  margin-block: 1.25em 0.5em;
+}
+.lesson-workspace .lesson-block h6 {
+  font-size: 1em;
+  margin-block: 1.2em 0.5em;
+}
+.lesson-workspace .lesson-block {
+  scroll-margin-block-start: var(--study-hub-top, 160px);
+}
+.lesson-workspace :is(.lesson-table, pre) {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+.lesson-workspace .lesson-table table {
+  min-width: 100%;
+}
+.lesson-workspace .lesson-prose img {
+  height: auto;
+  max-width: 100%;
+}
+.lesson-workspace .lesson-pagination {
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.lesson-workspace.lesson-path-collapsed .learning-sidebar {
+  display: none;
+}
+.lesson-workspace.lesson-path-collapsed .lesson-learning-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lesson-workspace.lesson-focus-mode .lesson-toc {
+  display: block;
+}
+.lesson-workspace.lesson-focus-mode .lesson-reading-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lesson-workspace.lesson-focus-mode .lesson-learning-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lesson-workspace.lesson-focus-mode {
+  --focus-prose-width: 100ch;
+  width: 100%;
+  max-width: none;
+  padding-inline: clamp(12px, 2vw, 32px);
+}
+.lesson-workspace.lesson-focus-mode[data-focus-width="comfortable"] {
+  --focus-prose-width: 80ch;
+}
+.lesson-workspace.lesson-focus-mode[data-focus-width="full"] {
+  --focus-prose-width: 110ch;
+}
+.lesson-workspace.lesson-focus-mode .lesson-main-content {
+  width: 100%;
+  max-width: none;
+}
+.lesson-workspace.lesson-focus-mode .lesson-main-content .lesson-prose {
+  /* The selected article limit is applied on the article itself by the reader. */
+  max-width: none;
+}
+.lesson-workspace.lesson-focus-mode .lesson-prose :is(p.lesson-text, div.lesson-text, .lesson-block > blockquote, .lesson-block > ul, .lesson-block > ol) {
+  max-width: min(100%, var(--focus-prose-width));
+  margin-inline: auto;
+}
+.lesson-workspace.lesson-focus-mode .lesson-prose .lesson-heading {
+  max-width: none;
+}
+/* Temporary focus presentation leaves the shell's own collapse preference intact. */
+.nexus-app:has(.lesson-focus-mode) > .nexus-sidebar {
+  display: none;
+}
+.nexus-app:has(.lesson-focus-mode) > .nexus-body {
+  margin-left: 0;
+  width: 100%;
+}
+.lesson-workspace.lesson-focus-mode .lesson-path-toggle {
+  display: none;
+}
+@container learning (min-width: 1200px) {
+  .lesson-workspace:not(.lesson-focus-mode) .lesson-main-content .lesson-reading-layout {
+    grid-template-columns: minmax(0, 1fr) 250px;
+  }
+  .lesson-workspace:not(.lesson-focus-mode) .lesson-main-content .lesson-toc {
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: var(--study-hub-top, 160px);
+    align-self: start;
+    max-height: max(0px, calc(100dvh - var(--study-hub-top, 160px) - 16px));
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .lesson-workspace:not(.lesson-focus-mode) .lesson-toc .lesson-outline-group nav {
+    max-height: none;
+    overflow: visible;
+  }
+}
+@container learning (max-width: 1199px) {
+  .lesson-workspace .lesson-learning-layout {
+    display: block;
+  }
+  .lesson-workspace .learning-sidebar,
+  .lesson-workspace .lesson-path-toggle {
+    display: none;
+  }
+  .lesson-workspace:not(.lesson-focus-mode) .learning-mobile-navigation {
+    display: block;
+    margin-block-end: 16px;
+  }
+}
+@media (max-width: 600px) {
+  .lesson-workspace {
+    padding-inline: 12px;
+  }
+  .lesson-workspace .lesson-prose {
+    font-size: var(--lesson-font-size, 18px);
+  }
+  .lesson-workspace .lesson-toc {
+    padding: 12px;
+  }
+}

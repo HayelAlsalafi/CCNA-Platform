@@ -1,0 +1,30 @@
+{
+  "packId": "ccna-200-301-v1.1-sprint7-pilot-v1",
+  "approvalRequired": true,
+  "newRecordsMaximum": {
+    "blueprints": 1,
+    "domains": 6,
+    "objectives": 53,
+    "topics": 24,
+    "questions": 60,
+    "questionOptions": 240,
+    "initialQuestionRevisions": 60,
+    "questionObjectiveMappings": 60
+  },
+  "creationStatuses": {
+    "blueprint": "DRAFT",
+    "topics": "DISABLED",
+    "questions": "DISABLED"
+  },
+  "optionalPublicationOnlyForNewPackRecords": {
+    "blueprint": "ACTIVE",
+    "topics": "ACTIVE",
+    "questions": "ACTIVE",
+    "requiresExplicitApproval": true
+  },
+  "reusePolicy": "Reuse only verified exact natural-key matches unchanged; stop on conflicts/ambiguity.",
+  "legacyRecordChanges": [],
+  "deletions": [],
+  "migrations": [],
+  "grants": []
+}

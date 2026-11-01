@@ -1,6 +1,6 @@
 import { and, desc, eq, lt, or, sql } from "drizzle-orm";
 import { db as defaultDb, practiceAttemptsTable, questionRevisionsTable, practiceDeliveriesTable, questionsTable, topicsTable } from "@workspace/db";
-import { captureQuestionRevision, revisionFeedback, revisionReview } from "./question-revisions";
+import { captureQuestionRevision, revisionFeedback, revisionReview, normalizeSelection } from "./question-revisions";
 
 type Db = typeof defaultDb;
 export class PracticeApiError extends Error {
@@ -24,6 +24,7 @@ export async function getPracticeQuestionForTopic(topicId: string, db: Db = defa
     const s = revision.snapshot;
     return { id: row.question.id, deliveryId: delivery.id, revisionId: revision.id, expiresAt: delivery.expiresAt.toISOString(),
       questionCode: s.questionCode, topic: s.topic, text: s.text, type: s.type, difficulty: s.difficulty,
+      ...(s.type === "MULTIPLE_CHOICE_MULTIPLE" ? {requiredSelectionCount:s.options.filter(o=>o.isCorrect).length} : {}),
       options: s.options.map(({ optionKey, text }) => ({ optionKey, text })) };
   });
 }
@@ -31,10 +32,9 @@ export async function getPracticeQuestionForTopic(topicId: string, db: Db = defa
 /** Delivery ownership derives from verified request context. A later edit does
  * not change this answer key. One successful submission per delivery; retries
  * with the same answer replay feedback, different answers return 409. */
-export async function submitPracticeAnswer(questionId: string, selectedOptionKey: string, userId: string,
+export async function submitPracticeAnswer(questionId: string, selectedOptionKey: string | string[], userId: string,
   db: Db = defaultDb, deliveryId?: string, sessionId: string | null = null) {
   if (!deliveryId) throw new PracticeApiError(409, "DELIVERY_REQUIRED", "Load a fresh question before submitting an answer.");
-  const key = selectedOptionKey.trim().toUpperCase();
   return db.transaction(async tx => {
     // Serialize retries without granting the application UPDATE on immutable rows.
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${deliveryId}::text, 0))`);
@@ -43,6 +43,8 @@ export async function submitPracticeAnswer(questionId: string, selectedOptionKey
       .where(and(eq(practiceDeliveriesTable.id, deliveryId), eq(practiceDeliveriesTable.userId, userId), eq(practiceDeliveriesTable.questionId, questionId))).limit(1);
     // A token from another verified user/session is not usable, even for replay.
     if (!row || row.delivery.sessionId !== sessionId) return null;
+    const key = normalizeSelection(row.revision.snapshot, selectedOptionKey);
+    if (!key) throw new PracticeApiError(400, "INVALID_OPTION", "Select the required number of distinct options from this delivery.");
     const [prior] = await tx.select().from(practiceAttemptsTable).where(eq(practiceAttemptsTable.deliveryId, deliveryId)).limit(1);
     if (prior && prior.selectedOptionKey !== key) throw new PracticeApiError(409, "SUBMISSION_CONFLICT", "This delivery already has a submitted answer.");
     const feedback = revisionFeedback(row.revision.snapshot, key);

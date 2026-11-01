@@ -11,4 +11,5 @@ export type AdminQuestionType = typeof AdminQuestionType[keyof typeof AdminQuest
 
 export const AdminQuestionType = {
   MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+  MULTIPLE_CHOICE_MULTIPLE: 'MULTIPLE_CHOICE_MULTIPLE',
 } as const;

@@ -11,4 +11,5 @@ export type PracticeQuestionType = typeof PracticeQuestionType[keyof typeof Prac
 
 export const PracticeQuestionType = {
   MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+  MULTIPLE_CHOICE_MULTIPLE: 'MULTIPLE_CHOICE_MULTIPLE',
 } as const;

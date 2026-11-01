@@ -1,0 +1,38 @@
+{
+  "packId": "ccna-200-301-v1.1-sprint7-pilot-v1",
+  "blueprintId": null,
+  "domainIds": {
+    "1.0": null,
+    "2.0": null,
+    "3.0": null,
+    "4.0": null,
+    "5.0": null,
+    "6.0": null
+  },
+  "topicIds": {
+    "ccna-v1-1-s7-network-devices": null,
+    "ccna-v1-1-s7-media-and-transport": null,
+    "ccna-v1-1-s7-ipv4-subnetting": null,
+    "ccna-v1-1-s7-ipv6-addressing": null,
+    "ccna-v1-1-s7-vlans-and-trunks": null,
+    "ccna-v1-1-s7-stp-and-etherchannel": null,
+    "ccna-v1-1-s7-discovery-and-management": null,
+    "ccna-v1-1-s7-controller-wlan": null,
+    "ccna-v1-1-s7-routing-table": null,
+    "ccna-v1-1-s7-static-routing": null,
+    "ccna-v1-1-s7-ospfv2": null,
+    "ccna-v1-1-s7-first-hop-redundancy": null,
+    "ccna-v1-1-s7-inside-source-nat": null,
+    "ccna-v1-1-s7-dhcp-and-dns": null,
+    "ccna-v1-1-s7-monitoring-and-time": null,
+    "ccna-v1-1-s7-qos-and-secure-operations": null,
+    "ccna-v1-1-s7-risk-and-device-access": null,
+    "ccna-v1-1-s7-acls-and-vpns": null,
+    "ccna-v1-1-s7-layer2-security": null,
+    "ccna-v1-1-s7-aaa-and-wlan-security": null,
+    "ccna-v1-1-s7-controller-automation": null,
+    "ccna-v1-1-s7-rest-and-json": null,
+    "ccna-v1-1-s7-ansible-and-terraform": null,
+    "ccna-v1-1-s7-ai-network-operations": null
+  }
+}

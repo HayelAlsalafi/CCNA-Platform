@@ -30,9 +30,30 @@ const svc = {
   updateTopic: vi.fn(),
   disableTopic: vi.fn(),
 };
+const deleteRecords = vi.fn();
+const management = vi.hoisted(() => ({
+  listManagedTopics: vi.fn(),
+  topicMetadata: vi.fn(),
+  suggestTopicSlug: vi.fn(),
+  createManagedTopic: vi.fn(),
+  updateManagedTopic: vi.fn(),
+  topicDetails: vi.fn(),
+  previewTopicDependencies: vi.fn(),
+  bulkTopicStatus: vi.fn(),
+}));
+vi.mock("../lib/topics-management", () => management);
+vi.mock("../lib/admin-delete", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../lib/admin-delete")>()),
+  deleteAdminRecords: (...args: unknown[]) => deleteRecords(...args),
+}));
 vi.mock("../lib/topics-admin", async () => {
   class TopicError extends Error {
-    constructor(public status: number, public code: string, message: string, public details?: unknown) {
+    constructor(
+      public status: number,
+      public code: string,
+      message: string,
+      public details?: unknown,
+    ) {
       super(message);
     }
   }
@@ -40,7 +61,11 @@ vi.mock("../lib/topics-admin", async () => {
   return {
     ...svc,
     TopicError,
-    toAdminTopic: (t: Record<string, unknown>) => ({ ...t, createdAt: now.toISOString(), updatedAt: now.toISOString() }),
+    toAdminTopic: (t: Record<string, unknown>) => ({
+      ...t,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+    }),
   };
 });
 
@@ -74,20 +99,90 @@ function signIn(role: "USER" | "ADMIN" | null, status = "ACTIVE") {
   getAuthMock.mockReturnValue({ userId: "user_x", sessionClaims: { email: "a@example.com" } });
   const now = new Date();
   currentUser = {
-    id: "00000000-0000-0000-0000-000000000001", clerkUserId: "user_x", email: "a@example.com",
-    displayName: "a", role, status, createdAt: now, updatedAt: now, lastLoginAt: now,
+    id: "00000000-0000-0000-0000-000000000001",
+    clerkUserId: "user_x",
+    email: "a@example.com",
+    displayName: "a",
+    role,
+    status,
+    createdAt: now,
+    updatedAt: now,
+    lastLoginAt: now,
   };
 }
-const topic = { id: "11111111-1111-4111-8111-111111111111", slug: "routing", name: "Routing", description: "", displayOrder: 1, status: "ACTIVE" };
+const topic = {
+  id: "11111111-1111-4111-8111-111111111111",
+  slug: "routing",
+  name: "Routing",
+  description: "",
+  displayOrder: 1,
+  status: "ACTIVE",
+};
 const req = (method: string, path: string, body?: unknown) =>
-  fetch(base + path, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  fetch(base + path, {
+    method,
+    headers: { "content-type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const j = async (r: Response): Promise<any> => r.json();
 beforeEach(() => Object.values(svc).forEach((f) => f.mockReset()));
 
 describe("admin topic API authorization", () => {
+  it("forwards bounded management reads and exact-version writes for ADMIN", async () => {
+    signIn("ADMIN");
+    management.listManagedTopics.mockResolvedValue({ items: [], total: 0 });
+    management.updateManagedTopic.mockResolvedValue(topic);
+    expect(
+      (await req("GET", "/admin/topics/manage?page=2&pageSize=10&search=routing")).status,
+    ).toBe(200);
+    expect(management.listManagedTopics).toHaveBeenCalledWith(
+      expect.objectContaining({ page: "2", pageSize: "10", search: "routing" }),
+    );
+    const body = { name: "Edited", expectedVersion: "2026-10-14T12:00:00.123456Z" };
+    expect((await req("PATCH", "/admin/topics/manage/" + topic.id, body)).status).toBe(200);
+    expect(management.updateManagedTopic).toHaveBeenCalledWith(topic.id, body);
+  });
+  it("rejects a stale Admin session before management mutations", async () => {
+    signIn("ADMIN");
+    management.bulkTopicStatus.mockClear();
+    const response = await fetch(base + "/admin/topics/manage/bulk-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Admin-Session": "wrong-session" },
+      body: JSON.stringify({ status: "DISABLED", items: [] }),
+    });
+    expect(response.status).toBe(409);
+    expect(management.bulkTopicStatus).not.toHaveBeenCalled();
+  });
+  it("allows ADMIN single and bulk removal with exact item outcomes", async () => {
+    signIn("ADMIN");
+    deleteRecords.mockResolvedValue({
+      items: [{ id: topic.id, outcome: "BLOCKED", reason: "Active questions" }],
+      deleted: 0,
+      blocked: 1,
+    });
+    expect(await j(await req("GET", "/admin/topics/delete-policy"))).toEqual({
+      mode: "permanent-only-v1",
+    });
+    const single = await req("DELETE", `/admin/topics/${topic.id}`);
+    expect(single.status).toBe(200);
+    expect((await j(single)).blocked).toBe(1);
+    expect((await req("POST", "/admin/topics/bulk-delete", { ids: [topic.id] })).status).toBe(200);
+    expect(deleteRecords).toHaveBeenCalledWith("topics", { ids: [topic.id] });
+  });
   const routes: [string, string, unknown?][] = [
+    ["GET", "/admin/topics/manage"],
+    ["GET", "/admin/topics/manage/metadata"],
+    ["GET", "/admin/topics/manage/slug-suggestion?name=Routing"],
+    ["GET", "/admin/topics/manage/" + topic.id],
+    ["POST", "/admin/topics/manage", {}],
+    ["PATCH", "/admin/topics/manage/" + topic.id, {}],
+    ["POST", "/admin/topics/manage/deletion-preview", { ids: [topic.id] }],
+    ["POST", "/admin/topics/manage/bulk-status", {}],
+    ["GET", "/admin/topics/delete-policy"],
+    ["DELETE", `/admin/topics/${topic.id}`],
+    ["POST", "/admin/topics/bulk-delete", { ids: [topic.id] }],
     ["GET", "/admin/topics"],
     ["POST", "/admin/topics", { slug: "x", name: "X" }],
     ["PATCH", `/admin/topics/${topic.id}`, { name: "Y" }],
@@ -141,7 +236,9 @@ describe("admin topic API (ADMIN)", () => {
   });
   it("updates and disables", async () => {
     svc.updateTopic.mockResolvedValue({ ...topic, name: "New" });
-    expect((await j(await req("PATCH", `/admin/topics/${topic.id}`, { name: "New" }))).name).toBe("New");
+    expect((await j(await req("PATCH", `/admin/topics/${topic.id}`, { name: "New" }))).name).toBe(
+      "New",
+    );
     svc.disableTopic.mockResolvedValue({ ...topic, status: "DISABLED" });
     const r = await req("POST", `/admin/topics/${topic.id}/disable`);
     expect((await j(r)).status).toBe("DISABLED");

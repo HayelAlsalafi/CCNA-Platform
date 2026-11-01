@@ -1,4 +1,5 @@
 import { useAuth } from '@clerk/react';
+import { CurriculumExplorer } from './curriculum';
 import {
   ArrowRight,
   BookOpen,
@@ -292,7 +293,7 @@ function ProgressContents({
           <div className="section-head reveal reveal-2">
             <h2 className="section-title">Next practice topic</h2>
             <Link href="/topics" className="section-link" data-testid="link-view-all-topics">
-              View topic map <ChevronRight size={14} />
+              View curriculum <ChevronRight size={14} />
             </Link>
           </div>
           {focus ? (
@@ -422,5 +423,5 @@ export function Dashboard() {
   return <LearningPage view="dashboard" />;
 }
 export function TopicsPage() {
-  return <LearningPage view="topics" />;
+  return <CurriculumExplorer />;
 }

@@ -13,6 +13,15 @@ const params = { limit: 20, offset: 0 };
 let client: QueryClient;
 const fetchMock = vi.fn();
 const json = (body: unknown) => new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json' } });
+it('removes private lesson drafts on account change and preserves the current administrator', () => {
+  const oldKey = adminQueryKey(['/api/admin/lessons', 'draft'], a);
+  const currentKey = adminQueryKey(['/api/admin/lessons', 'draft'], b);
+  client.setQueryData(oldKey, { blocks: ['private draft'] });
+  client.setQueryData(currentKey, { blocks: ['current draft'] });
+  removeOtherAdminData(client, b);
+  expect(client.getQueryData(oldKey)).toBeUndefined();
+  expect(client.getQueryData(currentKey)).toEqual({ blocks: ['current draft'] });
+});
 function deferred<T>() {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>(r => { resolve = r; });

@@ -1,6 +1,6 @@
 # Phase 6A.2 — Admin Question Bank Session Isolation Validation
 
-Date: 2026-10-10. Worktree: `C:\Users\hayel\Desktop\ccna-phase-6a`.
+Date: 2026-10-10. Worktree: `<historical-checkout>`.
 Branch: `feature/phase-6a-question-bank-foundation`.
 Implementation base: `7866b5e97ce02d66a2e6f83cd4647b5ccfdf5439`.
 

@@ -28,6 +28,8 @@ const practiceService = {
   getPracticeQuestionForTopic: vi.fn(),
   submitPracticeAnswer: vi.fn(),
 };
+const startBatch=vi.fn();
+vi.mock('../lib/practice-batch',()=>({startPracticeBatch:(...args:unknown[])=>startBatch(...args),PracticeBatchError:class extends Error{readonly status=400;}}));
 vi.mock("../lib/practice", () => {
   class PracticeApiError extends Error {
     constructor(
@@ -417,6 +419,17 @@ describe("practice history display details", () => {
 
 
 describe("immutable delivery request contract", () => {
+  it('binds a batch to verified actor/session and rejects stale session intent before database work',async()=>{
+    signIn(true);getAuthMock.mockReturnValue({userId:'learner_x',sessionId:'sess_verified',sessionClaims:{email:'learner@example.com'}});
+    startBatch.mockResolvedValue({questions:[]});
+    const accepted=await fetch(base+'/practice/sessions',{method:'POST',headers:{'Content-Type':'application/json','X-Practice-Session':'sess_verified'},body:JSON.stringify({topicId,count:2})});
+    expect(accepted.status).toBe(201);expect(startBatch).toHaveBeenCalledWith({topicId,count:2},currentUser!.id,'sess_verified');startBatch.mockClear();
+    const stale=await fetch(base+'/practice/sessions',{method:'POST',headers:{'Content-Type':'application/json','X-Practice-Session':'sess_other'},body:JSON.stringify({topicId,count:2})});
+    expect(stale.status).toBe(409);expect(startBatch).not.toHaveBeenCalled();
+  });
+  it('rejects unauthenticated batch delivery requests',async()=>{
+    signIn(false);startBatch.mockClear();expect((await request('POST','/practice/sessions',{topicId,count:1})).status).toBe(401);expect(startBatch).not.toHaveBeenCalled();
+  });
   beforeEach(() => signIn(true));
   it("fails closed for an old client without a delivery", async () => {
     const response = await fetch(base + `/practice/questions/${questionId}/answer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ optionKey: "A" }) });

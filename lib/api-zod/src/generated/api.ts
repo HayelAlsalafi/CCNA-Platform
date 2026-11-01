@@ -150,9 +150,10 @@ export const GetQuestionResponse = zod.object({
   "questionCode": zod.string(),
   "topicId": zod.string().uuid(),
   "text": zod.string(),
-  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE']),
+  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE', 'MULTIPLE_CHOICE_MULTIPLE']),
   "difficulty": zod.enum(['EASY', 'MEDIUM', 'HARD']),
   "imageKey": zod.string().nullable(),
+  "requiredSelectionCount": zod.number().int().min(2).max(10).optional(),
   "options": zod.array(zod.object({
   "optionKey": zod.string(),
   "text": zod.string()
@@ -208,8 +209,9 @@ export const GetPracticeQuestionResponse = zod.object({
   "name": zod.string()
 }),
   "text": zod.string(),
-  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE']),
+  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE', 'MULTIPLE_CHOICE_MULTIPLE']),
   "difficulty": zod.enum(['EASY', 'MEDIUM', 'HARD']),
+  "requiredSelectionCount": zod.number().int().min(2).max(10).optional(),
   "options": zod.array(zod.object({
   "optionKey": zod.string(),
   "text": zod.string()
@@ -225,7 +227,7 @@ export const SubmitPracticeAnswerParams = zod.object({
   "questionId": zod.coerce.string().uuid()
 })
 
-export const submitPracticeAnswerBodyOptionKeyMax = 8;
+export const submitPracticeAnswerBodyOptionKeyMax = 128;
 
 
 
@@ -240,6 +242,7 @@ export const SubmitPracticeAnswerResponse = zod.object({
   "optionKey": zod.string(),
   "text": zod.string()
 }),
+  "correctOptions": zod.array(zod.object({optionKey:zod.string(),text:zod.string()})).optional(),
   "explanation": zod.string()
 })
 
@@ -486,7 +489,7 @@ export const AdminListQuestionsResponse = zod.object({
   "questionCode": zod.string().regex(adminListQuestionsResponseItemsItemQuestionCodeRegExp),
   "topicId": zod.string().uuid(),
   "text": zod.string().min(1).max(adminListQuestionsResponseItemsItemTextMax),
-  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE']),
+  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE', 'MULTIPLE_CHOICE_MULTIPLE']),
   "difficulty": zod.enum(['EASY', 'MEDIUM', 'HARD']),
   "explanation": zod.string().max(adminListQuestionsResponseItemsItemExplanationMax),
   "imageKey": zod.string().max(adminListQuestionsResponseItemsItemImageKeyMax).nullable(),
@@ -540,7 +543,7 @@ export const adminCreateQuestionBodyOptionsMax = 10;
 export const AdminCreateQuestionBody = zod.object({
   "topicId": zod.string().uuid(),
   "text": zod.string().min(1).max(adminCreateQuestionBodyTextMax),
-  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE']),
+  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE', 'MULTIPLE_CHOICE_MULTIPLE']),
   "difficulty": zod.enum(['EASY', 'MEDIUM', 'HARD']),
   "explanation": zod.string().max(adminCreateQuestionBodyExplanationMax).optional(),
   "imageKey": zod.string().max(adminCreateQuestionBodyImageKeyMax).nullish(),
@@ -575,7 +578,7 @@ export const AdminCreateQuestionResponse = zod.object({
   "questionCode": zod.string().regex(adminCreateQuestionResponseQuestionCodeRegExp),
   "topicId": zod.string().uuid(),
   "text": zod.string().min(1).max(adminCreateQuestionResponseTextMax),
-  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE']),
+  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE', 'MULTIPLE_CHOICE_MULTIPLE']),
   "difficulty": zod.enum(['EASY', 'MEDIUM', 'HARD']),
   "explanation": zod.string().max(adminCreateQuestionResponseExplanationMax),
   "imageKey": zod.string().max(adminCreateQuestionResponseImageKeyMax).nullable(),
@@ -629,7 +632,7 @@ export const adminUpdateQuestionBodyOptionsMax = 10;
 export const AdminUpdateQuestionBody = zod.object({
   "topicId": zod.string().uuid().optional(),
   "text": zod.string().min(1).max(adminUpdateQuestionBodyTextMax).optional(),
-  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE']).optional(),
+  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE', 'MULTIPLE_CHOICE_MULTIPLE']).optional(),
   "difficulty": zod.enum(['EASY', 'MEDIUM', 'HARD']).optional(),
   "explanation": zod.string().max(adminUpdateQuestionBodyExplanationMax).optional(),
   "imageKey": zod.string().max(adminUpdateQuestionBodyImageKeyMax).nullish(),
@@ -664,7 +667,7 @@ export const AdminUpdateQuestionResponse = zod.object({
   "questionCode": zod.string().regex(adminUpdateQuestionResponseQuestionCodeRegExp),
   "topicId": zod.string().uuid(),
   "text": zod.string().min(1).max(adminUpdateQuestionResponseTextMax),
-  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE']),
+  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE', 'MULTIPLE_CHOICE_MULTIPLE']),
   "difficulty": zod.enum(['EASY', 'MEDIUM', 'HARD']),
   "explanation": zod.string().max(adminUpdateQuestionResponseExplanationMax),
   "imageKey": zod.string().max(adminUpdateQuestionResponseImageKeyMax).nullable(),
@@ -720,7 +723,7 @@ export const AdminDisableQuestionResponse = zod.object({
   "questionCode": zod.string().regex(adminDisableQuestionResponseQuestionCodeRegExp),
   "topicId": zod.string().uuid(),
   "text": zod.string().min(1).max(adminDisableQuestionResponseTextMax),
-  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE']),
+  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE', 'MULTIPLE_CHOICE_MULTIPLE']),
   "difficulty": zod.enum(['EASY', 'MEDIUM', 'HARD']),
   "explanation": zod.string().max(adminDisableQuestionResponseExplanationMax),
   "imageKey": zod.string().max(adminDisableQuestionResponseImageKeyMax).nullable(),

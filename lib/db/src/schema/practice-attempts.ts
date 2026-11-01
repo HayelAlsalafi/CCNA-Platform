@@ -26,7 +26,7 @@ export const practiceAttemptsTable = pgTable(
       .references(() => topicsTable.id, { onDelete: "restrict" }),
     revisionId: uuid("revision_id"),
     deliveryId: uuid("delivery_id"),
-    selectedOptionKey: varchar("selected_option_key", { length: 8 }).notNull(),
+    selectedOptionKey: varchar("selected_option_key", { length: 128 }).notNull(),
     isCorrect: boolean("is_correct").notNull(),
     submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
   },

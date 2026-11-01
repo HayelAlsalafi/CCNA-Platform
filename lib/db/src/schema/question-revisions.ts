@@ -7,7 +7,7 @@ export type QuestionSnapshot = {
   questionCode: string;
   topic: { id: string; slug: string; name: string };
   text: string;
-  type: "MULTIPLE_CHOICE_SINGLE";
+  type: "MULTIPLE_CHOICE_SINGLE" | "MULTIPLE_CHOICE_MULTIPLE";
   difficulty: "EASY" | "MEDIUM" | "HARD";
   explanation: string;
   imageKey: string | null;

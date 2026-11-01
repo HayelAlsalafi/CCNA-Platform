@@ -1,0 +1,455 @@
+/* Single owner of authoring geometry. Reader styles never size this workspace. */
+.page-wrap.admin-page:has(.lesson-studio-workspace) {
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+.lesson-studio-workspace {
+  --studio-line: #ccd9df;
+  --studio-muted: #486174;
+  container: lesson-studio / inline-size;
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 68px);
+  min-height: 420px;
+  width: 100%;
+  min-width: 0;
+  color: #172d3f;
+  background: #f6f8fb;
+  overflow: hidden;
+}
+.lesson-studio-actionbar,
+.lesson-studio-viewbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--studio-line);
+  background: #fff;
+  flex: none;
+}
+.lesson-studio-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "back title" "back status";
+  align-items: center;
+  gap: 2px 12px;
+  min-width: 0;
+  flex: 1;
+}
+.lesson-studio-heading h1 {
+  grid-area: title;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lesson-studio-heading > button {
+  grid-area: back;
+  justify-self: start;
+}
+.lesson-studio-heading > span { grid-area: status; }
+.lesson-studio-heading span,
+.lesson-studio-viewbar p {
+  font-size: 0.8125rem;
+  color: var(--studio-muted);
+  margin: 0;
+}
+.lesson-studio-actions,
+.lesson-studio-viewbar [role="group"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.lesson-studio-workspace button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #b6c7cf;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  background: #fff;
+  color: #172d3f;
+}
+.lesson-studio-workspace button:hover:not(:disabled) {
+  background: #edf5f3;
+  border-color: #176e62;
+}
+.lesson-studio-workspace button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.lesson-studio-actions button[type="submit"] {
+  background: #176e62;
+  color: #fff;
+  border-color: #176e62;
+}
+.lesson-studio-workspace :focus-visible {
+  outline: 3px solid #2674a8;
+  outline-offset: 3px;
+}
+.lesson-studio-viewbar {
+  padding-block: 6px;
+}
+.lesson-studio-view-switch {
+  display: none !important;
+}
+.lesson-studio-view-switch button[aria-pressed="true"] {
+  background: #dceee9;
+  border-color: #176e62;
+}
+.lesson-studio-workspace > [role="alert"],
+.lesson-studio-workspace > [role="status"] {
+  flex: none;
+  max-height: 20dvh;
+  overflow: auto;
+  margin: 0;
+  padding: 10px 24px;
+}
+.lesson-studio-workspace .visual-lesson-workspace {
+  /* Explicit LTR grid keeps preview physically left even in an RTL app shell. */
+  direction: ltr;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.lesson-studio-workspace .visual-editor-pane,
+.lesson-studio-workspace .visual-preview-pane {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-padding: 16px;
+  padding: 16px;
+}
+.lesson-studio-workspace .visual-editor-pane {
+  background: #f6f8fb;
+  border-inline-start: 1px solid var(--studio-line);
+}
+.lesson-studio-workspace .visual-preview-pane {
+  background: #fcfbf8;
+}
+.lesson-studio-workspace:dir(rtl) .visual-editor-pane,
+.lesson-studio-workspace:dir(rtl) .visual-preview-pane {
+  direction: rtl;
+}
+.lesson-studio-workspace .visual-preview-label {
+  font-size: 0.8125rem;
+  color: var(--studio-muted);
+  margin: 0 auto 12px;
+  max-width: 72ch;
+}
+.lesson-studio-workspace .lesson-prose {
+  max-width: 72ch;
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+.lesson-studio-workspace .lesson-prose h1 {
+  font-size: 1.75rem;
+  line-height: 1.3;
+  margin-block: 0 20px;
+}
+.lesson-studio-workspace .lesson-prose pre,
+.lesson-studio-workspace .lesson-prose code,
+.lesson-studio-workspace input[type="url"],
+.lesson-studio-workspace [data-block-type="code"] textarea {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
+}
+.lesson-studio-workspace .lesson-studio-metadata {
+  border-bottom: 1px solid var(--studio-line);
+  padding-bottom: 12px;
+}
+.lesson-studio-metadata summary {
+  cursor: pointer;
+  font-weight: 650;
+  padding-block: 10px;
+}
+.lesson-studio-metadata-fields {
+  display: grid;
+  gap: 12px;
+  padding-top: 10px;
+}
+.lesson-studio-workspace .lesson-fields label {
+  font-size: 0.875rem;
+}
+.lesson-studio-workspace .lesson-blocks-editor > h2 {
+  font-size: 1.25rem;
+  margin-block: 0 16px;
+}
+.lesson-studio-workspace .lesson-block-editor {
+  background: #fff;
+  padding: 16px;
+  scroll-margin-block: 16px;
+}
+.lesson-studio-workspace .lesson-author-outline {
+  max-height: 180px;
+  overflow: auto;
+}
+.lesson-studio-workspace .lesson-row-actions {
+  gap: 8px;
+  border-top: 1px solid var(--studio-line);
+  padding-top: 12px;
+}
+.lesson-studio-workspace .visual-format-toolbar {
+  gap: 8px;
+  padding: 10px;
+}
+.visual-toolbar-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.visual-toolbar-group + .visual-toolbar-group {
+  border-inline-start: 1px solid #b6c7cf;
+  padding-inline-start: 8px;
+}
+.lesson-studio-workspace .visual-format-toolbar button {
+  font-size: 0.8125rem !important;
+  min-height: 36px;
+}
+.lesson-studio-workspace .visual-format-toolbar label {
+  font-size: 0.8125rem !important;
+}
+.lesson-studio-workspace .visual-format-toolbar select {
+  min-height: 36px;
+}
+.lesson-studio-workspace .visual-table-editor table {
+  font-size: 0.875rem;
+}
+.lesson-studio-workspace .visual-table-editor th {
+  background: #edf5f3;
+}
+.lesson-studio-workspace .visual-table-editor :is(td, th):focus-within {
+  background: #e8f3fa;
+}
+.lesson-studio-workspace:dir(rtl) {
+  letter-spacing: normal;
+}
+@container lesson-studio (max-width: 1000px) {
+  .lesson-studio-workspace .visual-lesson-workspace {
+    display: block;
+  }
+  .lesson-studio-workspace .visual-editor-pane,
+  .lesson-studio-workspace .visual-preview-pane {
+    height: 100%;
+    padding: 16px;
+  }
+  .lesson-studio-workspace .visual-lesson-workspace[data-mobile-view="editor"] .visual-preview-pane,
+  .lesson-studio-workspace
+    .visual-lesson-workspace[data-mobile-view="preview"]
+    .visual-editor-pane {
+    display: none;
+  }
+  .lesson-studio-view-switch {
+    display: flex !important;
+  }
+}
+@container lesson-studio (max-width: 520px) {
+  .lesson-studio-actionbar,
+  .lesson-studio-viewbar {
+    padding: 12px;
+    gap: 10px;
+  }
+  .lesson-studio-actions {
+    width: 100%;
+  }
+  .lesson-studio-actions button {
+    flex: 1;
+  }
+  .lesson-studio-heading h1 {
+    font-size: 1.125rem;
+  }
+  .lesson-studio-viewbar p {
+    display: none;
+  }
+}
+@media (max-height: 600px) {
+  .lesson-studio-workspace {
+    height: auto;
+    min-height: calc(100dvh - 68px);
+    overflow: visible;
+  }
+  .lesson-studio-actionbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  .lesson-studio-workspace .visual-lesson-workspace {
+    flex: none;
+    height: 65dvh;
+    min-height: 240px;
+  }
+}
+
+/* Phase 2C shared selection toolbar and compact block canvas. */
+.lesson-format-scope {
+  display: contents;
+}
+.lesson-studio-workspace .lesson-shared-format {
+  position: sticky;
+  top: -16px;
+  z-index: 12;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0 0 16px;
+  background: #fff;
+}
+.lesson-studio-workspace .visual-format-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: end;
+  padding: 10px;
+  border: 1px solid var(--studio-line);
+  border-radius: 8px;
+}
+.lesson-studio-workspace .visual-format-toolbar button {
+  font-size: 0.75rem;
+  padding: 5px 8px;
+  min-height: 36px;
+}
+.lesson-studio-workspace .visual-format-toolbar label {
+  font-size: 0.75rem;
+  display: grid;
+  gap: 4px;
+}
+.lesson-studio-workspace .visual-format-toolbar select {
+  max-width: 145px;
+  padding: 5px;
+}
+.lesson-studio-workspace .visual-format-toolbar button[aria-pressed="true"] {
+  background: #dceee9;
+  border-color: #176e62;
+}
+.lesson-studio-workspace .visual-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.lesson-studio-workspace .lesson-block-editor {
+  margin-block: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff;
+}
+.lesson-studio-workspace .lesson-block-editor:focus-within {
+  outline: 2px solid #2674a8;
+  outline-offset: 2px;
+}
+.lesson-studio-workspace .lesson-block-editor .lesson-fields {
+  gap: 10px;
+}
+.lesson-studio-workspace .visual-rich-editor {
+  border: 0;
+  padding: 0;
+}
+.lesson-studio-workspace .visual-rich-editor .tiptap {
+  min-height: 4.5em;
+  padding: 10px;
+  line-height: 1.65;
+  caret-color: #176e62;
+}
+.lesson-studio-workspace .visual-rich-editor > small {
+  display: none;
+}
+.lesson-studio-workspace .visual-rich-editor:focus-within > small {
+  display: block;
+  font-size: 0.75rem;
+}
+.lesson-studio-workspace .lesson-block-actions summary {
+  font-size: 0.8125rem;
+  padding-block: 8px;
+  cursor: pointer;
+}
+.lesson-studio-workspace .lesson-block-actions .lesson-row-actions {
+  flex-wrap: wrap;
+}
+.lesson-studio-workspace .lesson-block-actions button {
+  min-height: 36px;
+  font-size: 0.8125rem;
+}
+.lesson-studio-workspace .visual-table-scroll {
+  max-height: none;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.lesson-studio-workspace .visual-table-scroll :is(input, textarea) {
+  min-width: 100px;
+  width: 100%;
+}
+.lesson-studio-workspace .visual-image-preview {
+  max-height: 360px;
+  overflow: auto;
+  padding: 12px;
+  background: #fcfbf8;
+}
+.lesson-studio-workspace .visual-image-preview .lesson-block {
+  margin: 0;
+}
+.lesson-studio-workspace .visual-image-editor {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.lesson-studio-workspace .visual-image-editor > :is(p,small) {
+  margin: 0;
+  color: var(--studio-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.lesson-studio-workspace .visual-image-editor .visual-image-preview {
+  max-height: 220px;
+  padding: 8px;
+}
+.lesson-studio-workspace .visual-image-editor .visual-style-grid {
+  gap: 8px;
+}
+@container lesson-studio (max-width: 520px) {
+  .lesson-studio-heading {
+    flex-basis: 100%;
+  }
+  .lesson-studio-heading > button {
+    max-width: 120px;
+    font-size: 0.75rem;
+    padding: 6px;
+  }
+}
+.lesson-studio-workspace .lesson-author-outline {
+  max-height: 240px;
+  overflow: auto;
+}
+.lesson-studio-workspace .lesson-figure-placeholder-help {
+  font-size: 0.8125rem;
+  color: var(--studio-muted);
+}
+.lesson-prose :is(h5, h6) {
+  font-weight: 650;
+  margin-block: 1.25em 0.5em;
+  line-height: 1.4;
+}
+.lesson-prose h5 {
+  font-size: 1.05em;
+}
+.lesson-prose h6 {
+  font-size: 1em;
+}
+.lesson-studio-workspace .lesson-block h1 {
+  font-size: 1.65em;
+  line-height: 1.4;
+  margin-block: 1.6em 0.65em;
+}

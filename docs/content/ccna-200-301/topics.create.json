@@ -1,0 +1,170 @@
+[
+  {
+    "slug": "ccna-v1-1-s7-network-devices",
+    "name": "Network Fundamentals: Devices, topologies and Ethernet forwarding",
+    "description": "Understand how switches forward frames within a VLAN and routers connect IP networks. Trace source-MAC learning and unknown-unicast flooding. Compare access/distribution designs with spine-leaf fabrics, and distinguish a device's forwarding role from the topology around it. Practice activity: Sketch two VLANs and a router, then trace one local frame and one routed packet. CCNA v1.1 domain 1.0; objectives 1.1, 1.2, 1.13. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7001,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-media-and-transport",
+    "name": "Network Fundamentals: Cabling, interface faults and transport protocols",
+    "description": "Select copper, multimode or single-mode fiber based on distance and installation needs. Use interface counters to investigate speed and duplex problems. Explain why TCP provides retransmission and ordered delivery while UDP leaves reliability to the application. Practice activity: Compare interface status and error counters on two linked switch ports; identify which settings must agree. CCNA v1.1 domain 1.0; objectives 1.3, 1.4, 1.5. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7002,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-ipv4-subnetting",
+    "name": "Network Fundamentals: IPv4 subnets and private addressing",
+    "description": "Calculate a subnet's network, usable-host range and broadcast address from its prefix. Recognize private IPv4 ranges and verify a client's address, mask and default gateway. Explain why sharing a subnet is different from merely sharing the first three octets. Practice activity: Divide a /24 into four /26 networks and assign valid host and gateway addresses. CCNA v1.1 domain 1.0; objectives 1.6, 1.7, 1.10. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7003,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-ipv6-addressing",
+    "name": "Network Fundamentals: IPv6 prefixes and address types",
+    "description": "Read and compress IPv6 addresses, distinguish global, unique-local, link-local and multicast addresses, and explain anycast. Work through modified EUI-64 by inserting FFFE and toggling the universal/local bit. Link-local addresses support communication on one link rather than routed Internet access. Practice activity: Configure two IPv6 hosts on one /64 and inspect their link-local addresses and neighbor tables. CCNA v1.1 domain 1.0; objectives 1.8, 1.9. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7004,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-vlans-and-trunks",
+    "name": "Network Access: VLAN access ports and 802.1Q trunks",
+    "description": "Assign endpoint ports to data VLANs and carry multiple VLANs over an 802.1Q trunk. Distinguish VLAN membership, allowed VLANs and the native VLAN. Diagnose why a VLAN works locally but fails across a trunk, and identify where inter-VLAN routing is required. Practice activity: Create VLANs 10 and 20 on two switches; deliberately omit VLAN 20 from the trunk and verify the fault. CCNA v1.1 domain 2.0; objectives 2.1, 2.2. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7005,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-stp-and-etherchannel",
+    "name": "Network Access: Rapid PVST+ protection and LACP EtherChannel",
+    "description": "Explain bridge-ID root selection and how spanning tree prevents loops. Combine compatible links using LACP, recognizing active/passive negotiation. Apply edge-port protections thoughtfully: PortFast accelerates endpoint access, while BPDU guard reacts to unexpected spanning-tree participation. Practice activity: Compare LACP active/passive with passive/passive, then inspect spanning-tree root and port roles. CCNA v1.1 domain 2.0; objectives 2.4, 2.5. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7006,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-discovery-and-management",
+    "name": "Network Access: Neighbor discovery and management access",
+    "description": "Use CDP and LLDP to document directly connected neighbors and their port identities. Choose management access appropriate to the task: local console access differs from remote SSH. Recognize that Telnet exposes session content and that encrypted management still requires authentication and authorization. Practice activity: Build a neighbor table from LLDP output and compare console, Telnet and SSH access paths. CCNA v1.1 domain 2.0; objectives 2.3, 2.8. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7007,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-controller-wlan",
+    "name": "Network Access: Controller-based WLANs and client connectivity",
+    "description": "Distinguish AP connectivity, controller control functions and client data paths. Interpret WLAN configuration by matching SSID, VLAN/interface mapping and security settings. Different forwarding modes exist; do not assume that every managed AP tunnels every client frame through the controller. Practice activity: Trace a centrally switched WLAN from a client through an AP to the configured controller interface. CCNA v1.1 domain 2.0; objectives 2.6, 2.7, 2.9. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7008,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-routing-table",
+    "name": "IP Connectivity: Routing tables and forwarding decisions",
+    "description": "Read prefixes, next hops, administrative distance and metrics in a routing entry. Use longest-prefix match when forwarding to a destination. Distinguish installing competing routes to the same prefix from selecting among installed routes with different prefix lengths. Practice activity: Predict the selected route for several destinations using a table containing /16, /24 and default entries. CCNA v1.1 domain 3.0; objectives 3.1, 3.2. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7009,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-static-routing",
+    "name": "IP Connectivity: IPv4 and IPv6 static routes",
+    "description": "Configure network, host and default routes using a reachable next hop. Build a floating static route with a higher administrative distance than the preferred source. Verify route installation and next-hop reachability before assuming that a syntactically valid command creates usable connectivity. Practice activity: Add a primary OSPF path and a higher-distance static backup; inspect the table before and after losing the primary. CCNA v1.1 domain 3.0; objectives 3.3. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7010,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-ospfv2",
+    "name": "IP Connectivity: Single-area OSPFv2 neighbors and elections",
+    "description": "Identify the parameters needed for an OSPF neighbor relationship, including area and hello/dead timers. Compare point-to-point links with broadcast segments. Explain router IDs, interface priorities and DR/BDR elections, including why a later stronger candidate does not automatically replace an established DR. Practice activity: Inspect OSPF neighbors on a broadcast segment and diagnose deliberately mismatched hello intervals. CCNA v1.1 domain 3.0; objectives 3.4. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7011,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-first-hop-redundancy",
+    "name": "IP Connectivity: First-hop redundancy for host gateways",
+    "description": "Explain why a host can lose off-subnet connectivity when its only gateway fails. Use a virtual gateway address and protocol-controlled virtual MAC to maintain a stable host configuration. Distinguish first-hop gateway protection from dynamic routing and from application-server failover. Practice activity: Draw a two-router virtual gateway and trace how host traffic changes when the active router fails. CCNA v1.1 domain 3.0; objectives 3.5. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7012,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-inside-source-nat",
+    "name": "IP Services: Static and pooled inside-source NAT",
+    "description": "Read an inside-source translation as a mapping between inside-local and inside-global addresses. Compare a persistent one-to-one static mapping with dynamic pool allocation. Recognize that a finite pool without overload cannot give every simultaneous inside host a unique global address. Practice activity: Inspect static translations and then exhaust a two-address dynamic NAT pool using three active hosts. CCNA v1.1 domain 4.0; objectives 4.1. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7013,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-dhcp-and-dns",
+    "name": "IP Services: DHCP addressing, relay and DNS resolution",
+    "description": "Separate dynamic address configuration from name resolution. Follow a client's DHCP messages and explain why broadcasts need a relay to reach a server across a router. Use an interface helper address for the server destination and distinguish server and client UDP ports. Practice activity: Place a DHCP server on a different subnet and compare client behavior before and after configuring relay. CCNA v1.1 domain 4.0; objectives 4.3, 4.6. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7014,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-monitoring-and-time",
+    "name": "IP Services: NTP, SNMP and syslog operations",
+    "description": "Synchronize device clocks so that operational events can be correlated. Distinguish SNMP polling/notifications from syslog event reporting. Read severity numbers in the correct direction: lower numbers indicate greater severity, and a logging threshold includes that level and more severe events. Practice activity: Interpret a sample timeline, SNMP interface counters and syslog messages at a warnings threshold. CCNA v1.1 domain 4.0; objectives 4.2, 4.4, 4.5. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7015,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-qos-and-secure-operations",
+    "name": "IP Services: QoS behavior and secure administration",
+    "description": "Distinguish traffic classification/marking from congestion handling. Compare buffering by shaping with dropping or remarking by policing. Explain SSH's encrypted remote-access channel and the supporting host/domain/RSA setup in IOS. Compare legacy TFTP and FTP capabilities without treating either as inherently secure. Practice activity: Classify a voice flow, predict shaping versus policing behavior, and review an SSH configuration checklist. CCNA v1.1 domain 4.0; objectives 4.7, 4.8, 4.9. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7016,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-risk-and-device-access",
+    "name": "Security Fundamentals: Risk reduction and authenticated device access",
+    "description": "Distinguish a threat, an exploitable vulnerability and a mitigation. Combine patching, awareness and physical safeguards rather than relying on passwords alone. Configure local device login deliberately and distinguish true multifactor authentication from two credentials of the same factor type. Practice activity: Classify security controls in a branch office and review how a VTY line uses the local username database. CCNA v1.1 domain 5.0; objectives 5.1, 5.2, 5.3, 5.4. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7017,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-acls-and-vpns",
+    "name": "Security Fundamentals: Ordered ACL decisions and IPsec VPN use",
+    "description": "Evaluate ACL entries from top to bottom and account for implicit denial when no entry matches. Convert an IPv4 prefix to a wildcard mask for a standard ACL. Distinguish remote-user VPN access from a site-to-site encrypted connection between network gateways. Practice activity: Evaluate specific-host and whole-subnet ACL entries against four packets without changing a live router. CCNA v1.1 domain 5.0; objectives 5.5, 5.6. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7018,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-layer2-security",
+    "name": "Security Fundamentals: DHCP snooping and dynamic ARP inspection",
+    "description": "Protect access VLANs from rogue DHCP replies by distinguishing trusted server-facing links from untrusted client ports. Explain the DHCP snooping binding table and how DAI can use it to validate ARP claims. Recognize that static hosts require an explicitly planned validation method rather than assuming every legitimate host has a DHCP binding. Practice activity: Mark the trusted DHCP server path, then compare a legitimate and forged ARP sender binding. CCNA v1.1 domain 5.0; objectives 5.7. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7019,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-aaa-and-wlan-security",
+    "name": "Security Fundamentals: AAA decisions and WLAN authentication",
+    "description": "Separate proving identity, permitting actions and recording activity. Compare shared-key WLAN authentication with enterprise identity services. Recognize WPA2-Personal's shared passphrase and AES-CCMP, and understand that choosing WPA2-Enterprise introduces a different authentication design rather than merely changing a password field. Practice activity: Label authentication, authorization and accounting events, then review a WPA2-Personal WLAN configuration. CCNA v1.1 domain 5.0; objectives 5.8, 5.9, 5.10. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7020,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-controller-automation",
+    "name": "Automation and Programmability: Automation and controller-based networks",
+    "description": "Explain how repeatable automation reduces configuration variation while still requiring scope checks and validation. Distinguish controller-facing application interfaces from device-facing interfaces. Separate an underlay's IP reachability from logical overlays carried over it; centralized control does not mean the controller forwards every packet. Practice activity: Draw northbound/southbound interfaces and identify the underlay routes needed by a tunnel-based overlay. CCNA v1.1 domain 6.0; objectives 6.1, 6.2, 6.3. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7021,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-rest-and-json",
+    "name": "Automation and Programmability: REST requests and JSON data interpretation",
+    "description": "Match HTTP methods to read/create/change/delete intentions and interpret common authentication versus authorization failures. Read JSON object keys, arrays, strings, numbers and booleans. Preserve real data types when extracting configuration values; the string \"true\" is not the JSON boolean true. Practice activity: Read a sample interface JSON response and design a GET request without putting credentials in logs. CCNA v1.1 domain 6.0; objectives 6.5, 6.7. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7022,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-ansible-and-terraform",
+    "name": "Automation and Programmability: Ansible and Terraform configuration workflows",
+    "description": "Compare task-oriented Ansible playbooks with Terraform's declarative resource configuration, plan and state. Agentless management still needs a supported transport and valid access. Review target scope and intended changes before execution; repeatable tooling is not permission to replace manual approval with blind deployment. Practice activity: Compare a playbook that configures interfaces with a Terraform plan describing cloud-network resource changes. CCNA v1.1 domain 6.0; objectives 6.6. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7023,
+    "status": "DISABLED"
+  },
+  {
+    "slug": "ccna-v1-1-s7-ai-network-operations",
+    "name": "Automation and Programmability: Predictive and generative AI in operations",
+    "description": "Distinguish learning patterns from historical telemetry from generating new explanatory or configuration text. Evaluate predictions against actual outcomes and changing conditions. Treat generated device commands as proposals needing platform checks and review; convincing wording is not proof of technical correctness. Practice activity: Compare a utilization forecast with an AI-generated configuration suggestion and define a validation step for each. CCNA v1.1 domain 6.0; objectives 6.4. Pack: ccna-200-301-v1.1-sprint7-pilot-v1.",
+    "displayOrder": 7024,
+    "status": "DISABLED"
+  }
+]

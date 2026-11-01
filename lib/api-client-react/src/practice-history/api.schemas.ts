@@ -21,6 +21,7 @@ export type PracticeRevisionReviewType = typeof PracticeRevisionReviewType[keyof
 
 export const PracticeRevisionReviewType = {
   MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+  MULTIPLE_CHOICE_MULTIPLE: 'MULTIPLE_CHOICE_MULTIPLE',
 } as const;
 
 export type PracticeRevisionReviewDifficulty = typeof PracticeRevisionReviewDifficulty[keyof typeof PracticeRevisionReviewDifficulty];
@@ -50,6 +51,8 @@ export interface PracticeRevisionReview {
   referenceNotes: string | null;
   options: PracticeQuestionOption[];
   correctOption: PracticeCorrectOption;
+  correctOptions?: PracticeCorrectOption[];
+  requiredSelectionCount?: number;
   explanation: string;
 }
 

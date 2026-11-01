@@ -22,7 +22,13 @@ const chain = () => {
 vi.mock("@workspace/db", () => ({
   usersTable: { clerkUserId: "clerk_user_id", id: "id" },
   topicsTable: { id: "topic_id" },
-  questionsTable: { id: "question_id", topicId: "topic_id", status: "status", difficulty: "difficulty", createdAt: "created_at" },
+  questionsTable: {
+    id: "question_id",
+    topicId: "topic_id",
+    status: "status",
+    difficulty: "difficulty",
+    createdAt: "created_at",
+  },
   questionOptionsTable: { questionId: "question_id", displayOrder: "display_order" },
   db: { select: chain, insert: chain, update: chain, delete: chain },
 }));
@@ -33,6 +39,22 @@ const services = {
   updateAdminQuestion: vi.fn(),
   disableAdminQuestion: vi.fn(),
 };
+const deleteRecords = vi.fn();
+const studio = vi.hoisted(() => ({
+  listStudioQuestions: vi.fn(),
+  studioLookup: vi.fn(),
+  studioQuestionDetails: vi.fn(),
+  saveStudioQuestion: vi.fn(),
+  studioDuplicates: vi.fn(),
+  bulkStudioQuestions: vi.fn(),
+  studioDeletePreview: vi.fn(),
+}));
+vi.mock("../lib/question-studio", () => studio);
+vi.mock("../lib/admin-delete", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../lib/admin-delete")>()),
+  deleteAdminRecords: (...args: unknown[]) => deleteRecords(...args),
+}));
+vi.mock("../lib/admin-history-delete",async(importOriginal)=>({...await importOriginal<typeof import("../lib/admin-history-delete")>(),deleteQuestionsOrdinary:(...args:unknown[])=>deleteRecords(...args)}));
 vi.mock("../lib/questions-admin", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../lib/questions-admin")>();
   return { ...actual, ...services };
@@ -63,7 +85,7 @@ function signIn(role: "USER" | "ADMIN" | null, status = "ACTIVE") {
     currentUser = null;
     return;
   }
-  getAuthMock.mockReturnValue({ userId: "user_x", sessionClaims: { email: "admin@example.com" } });
+  getAuthMock.mockReturnValue({ userId: "user_x", sessionId:"sess_verified", sessionClaims: { email: "admin@example.com" } });
   const now = new Date();
   currentUser = {
     id: "00000000-0000-0000-0000-000000000001",
@@ -109,9 +131,46 @@ const json = async (response: Response): Promise<any> => response.json();
 beforeEach(() => Object.values(services).forEach((service) => service.mockReset()));
 
 describe("admin question API authorization", () => {
+  it("allows database-authorized ADMIN deletion and forwards exact selected IDs", async () => {
+    signIn("ADMIN");
+    deleteRecords.mockResolvedValue({
+      items: [{ id, outcome: "BLOCKED", reason: "revisions: 1" }],
+      deleted: 0,
+      blocked: 1,
+    });
+    expect(await json(await request("GET", "/admin/questions/delete-policy"))).toEqual({
+      mode: "permanent-only-v2",
+    });
+    expect((await request("DELETE", `/admin/questions/${id}`)).status).toBe(200);
+    expect(deleteRecords).toHaveBeenCalledWith({ ids: [id] },{actorId:currentUser!.id,sessionId:"sess_verified"});
+    expect((await request("POST", "/admin/questions/bulk-delete", { ids: [id] })).status).toBe(200);
+  });
   const routes: [string, string, unknown?][] = [
+    ["GET", "/admin/questions/studio"],
+    ["GET", "/admin/questions/studio/lookup?kind=topics"],
+    ["GET", "/admin/questions/studio/" + id],
+    ["POST", "/admin/questions/studio", {}],
+    ["PATCH", "/admin/questions/studio/" + id, {}],
+    ["POST", "/admin/questions/studio/duplicates", {}],
+    ["POST", "/admin/questions/studio/bulk", {}],
+    ["POST", "/admin/questions/studio/deletion-preview", {}],
+    ["POST", "/admin/questions/history-delete/preview", { ids: [id] }],
+    ["POST", "/admin/questions/history-delete/confirm", { token: id }],
+    ["GET", "/admin/questions/delete-policy"],
+    ["DELETE", `/admin/questions/${id}`],
+    ["POST", "/admin/questions/bulk-delete", { ids: [id] }],
     ["GET", "/admin/questions"],
-    ["POST", "/admin/questions", { topicId, text: "Q", type: "MULTIPLE_CHOICE_SINGLE", difficulty: "EASY", options: question.options }],
+    [
+      "POST",
+      "/admin/questions",
+      {
+        topicId,
+        text: "Q",
+        type: "MULTIPLE_CHOICE_SINGLE",
+        difficulty: "EASY",
+        options: question.options,
+      },
+    ],
     ["PATCH", `/admin/questions/${id}`, { text: "Updated" }],
     ["POST", `/admin/questions/${id}/disable`],
   ];
@@ -141,7 +200,12 @@ describe("admin question API (ADMIN)", () => {
   beforeEach(() => signIn("ADMIN"));
 
   it("validates pagination and forwards topic/status/difficulty filters", async () => {
-    services.listAdminQuestions.mockResolvedValue({ items: [question], total: 1, limit: 10, offset: 20 });
+    services.listAdminQuestions.mockResolvedValue({
+      items: [question],
+      total: 1,
+      limit: 10,
+      offset: 20,
+    });
     const response = await request(
       "GET",
       `/admin/questions?topicId=${topicId}&status=DISABLED&difficulty=HARD&limit=10&offset=20`,
@@ -169,7 +233,11 @@ describe("admin question API (ADMIN)", () => {
       text: question.text,
       type: question.type,
       difficulty: question.difficulty,
-      options: question.options.map(({ optionKey, text, isCorrect }) => ({ optionKey, text, isCorrect })),
+      options: question.options.map(({ optionKey, text, isCorrect }) => ({
+        optionKey,
+        text,
+        isCorrect,
+      })),
     });
     expect(response.status).toBe(201);
     expect((await json(response)).questionCode).toBe(question.questionCode);
@@ -178,12 +246,20 @@ describe("admin question API (ADMIN)", () => {
     services.updateAdminQuestion.mockResolvedValue({ ...question, text: "Updated question" });
     const response = await request("PATCH", `/admin/questions/${id}`, {
       text: "Updated question",
-      options: question.options.map(({ optionKey, text, isCorrect }) => ({ optionKey, text, isCorrect })),
+      options: question.options.map(({ optionKey, text, isCorrect }) => ({
+        optionKey,
+        text,
+        isCorrect,
+      })),
     });
     expect(response.status).toBe(200);
     expect(services.updateAdminQuestion).toHaveBeenCalledWith(id, {
       text: "Updated question",
-      options: question.options.map(({ optionKey, text, isCorrect }) => ({ optionKey, text, isCorrect })),
+      options: question.options.map(({ optionKey, text, isCorrect }) => ({
+        optionKey,
+        text,
+        isCorrect,
+      })),
     });
   });
   it("disables without exposing a delete operation", async () => {
@@ -201,7 +277,9 @@ describe("admin question API (ADMIN)", () => {
     services.updateAdminQuestion.mockRejectedValueOnce(
       new AdminQuestionError(404, "NOT_FOUND", "Question not found."),
     );
-    expect((await request("PATCH", `/admin/questions/${id}`, { text: "Updated" })).status).toBe(404);
+    expect((await request("PATCH", `/admin/questions/${id}`, { text: "Updated" })).status).toBe(
+      404,
+    );
     const malformed = await request("POST", "/admin/questions/not-a-uuid/disable");
     expect(malformed.status).toBe(404);
     expect(services.disableAdminQuestion).not.toHaveBeenCalled();

@@ -1,0 +1,426 @@
+[
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.1",
+    "description": "Network components",
+    "displayOrder": 1
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.2",
+    "description": "Topology designs",
+    "displayOrder": 2
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.3",
+    "description": "Link media",
+    "displayOrder": 3
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.4",
+    "description": "Interface faults",
+    "displayOrder": 4
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.5",
+    "description": "Transport protocols",
+    "displayOrder": 5
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.6",
+    "description": "IPv4 subnetting",
+    "displayOrder": 6
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.7",
+    "description": "Private IPv4",
+    "displayOrder": 7
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.8",
+    "description": "IPv6 configuration",
+    "displayOrder": 8
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.9",
+    "description": "IPv6 categories",
+    "displayOrder": 9
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.10",
+    "description": "Host addressing",
+    "displayOrder": 10
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.11",
+    "description": "Wireless principles",
+    "displayOrder": 11
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.12",
+    "description": "Virtualization basics",
+    "displayOrder": 12
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_1.0__",
+    "domainCode": "1.0",
+    "code": "1.13",
+    "description": "Ethernet forwarding",
+    "displayOrder": 13
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_2.0__",
+    "domainCode": "2.0",
+    "code": "2.1",
+    "description": "VLAN configuration",
+    "displayOrder": 1
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_2.0__",
+    "domainCode": "2.0",
+    "code": "2.2",
+    "description": "Trunk connectivity",
+    "displayOrder": 2
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_2.0__",
+    "domainCode": "2.0",
+    "code": "2.3",
+    "description": "Neighbor discovery",
+    "displayOrder": 3
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_2.0__",
+    "domainCode": "2.0",
+    "code": "2.4",
+    "description": "LACP aggregation",
+    "displayOrder": 4
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_2.0__",
+    "domainCode": "2.0",
+    "code": "2.5",
+    "description": "Spanning tree",
+    "displayOrder": 5
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_2.0__",
+    "domainCode": "2.0",
+    "code": "2.6",
+    "description": "Wireless architectures",
+    "displayOrder": 6
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_2.0__",
+    "domainCode": "2.0",
+    "code": "2.7",
+    "description": "Wireless infrastructure",
+    "displayOrder": 7
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_2.0__",
+    "domainCode": "2.0",
+    "code": "2.8",
+    "description": "Management access",
+    "displayOrder": 8
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_2.0__",
+    "domainCode": "2.0",
+    "code": "2.9",
+    "description": "WLAN settings",
+    "displayOrder": 9
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_3.0__",
+    "domainCode": "3.0",
+    "code": "3.1",
+    "description": "Routing entries",
+    "displayOrder": 1
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_3.0__",
+    "domainCode": "3.0",
+    "code": "3.2",
+    "description": "Route selection",
+    "displayOrder": 2
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_3.0__",
+    "domainCode": "3.0",
+    "code": "3.3",
+    "description": "Static routing",
+    "displayOrder": 3
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_3.0__",
+    "domainCode": "3.0",
+    "code": "3.4",
+    "description": "OSPF operations",
+    "displayOrder": 4
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_3.0__",
+    "domainCode": "3.0",
+    "code": "3.5",
+    "description": "Gateway redundancy",
+    "displayOrder": 5
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_4.0__",
+    "domainCode": "4.0",
+    "code": "4.1",
+    "description": "Address translation",
+    "displayOrder": 1
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_4.0__",
+    "domainCode": "4.0",
+    "code": "4.2",
+    "description": "Time synchronization",
+    "displayOrder": 2
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_4.0__",
+    "domainCode": "4.0",
+    "code": "4.3",
+    "description": "Address/name services",
+    "displayOrder": 3
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_4.0__",
+    "domainCode": "4.0",
+    "code": "4.4",
+    "description": "SNMP monitoring",
+    "displayOrder": 4
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_4.0__",
+    "domainCode": "4.0",
+    "code": "4.5",
+    "description": "Event logging",
+    "displayOrder": 5
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_4.0__",
+    "domainCode": "4.0",
+    "code": "4.6",
+    "description": "DHCP operation",
+    "displayOrder": 6
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_4.0__",
+    "domainCode": "4.0",
+    "code": "4.7",
+    "description": "Traffic treatment",
+    "displayOrder": 7
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_4.0__",
+    "domainCode": "4.0",
+    "code": "4.8",
+    "description": "SSH administration",
+    "displayOrder": 8
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_4.0__",
+    "domainCode": "4.0",
+    "code": "4.9",
+    "description": "File transfer",
+    "displayOrder": 9
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_5.0__",
+    "domainCode": "5.0",
+    "code": "5.1",
+    "description": "Risk concepts",
+    "displayOrder": 1
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_5.0__",
+    "domainCode": "5.0",
+    "code": "5.2",
+    "description": "Security programs",
+    "displayOrder": 2
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_5.0__",
+    "domainCode": "5.0",
+    "code": "5.3",
+    "description": "Local credentials",
+    "displayOrder": 3
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_5.0__",
+    "domainCode": "5.0",
+    "code": "5.4",
+    "description": "Credential policies",
+    "displayOrder": 4
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_5.0__",
+    "domainCode": "5.0",
+    "code": "5.5",
+    "description": "Encrypted tunnels",
+    "displayOrder": 5
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_5.0__",
+    "domainCode": "5.0",
+    "code": "5.6",
+    "description": "Packet filtering",
+    "displayOrder": 6
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_5.0__",
+    "domainCode": "5.0",
+    "code": "5.7",
+    "description": "Switch protections",
+    "displayOrder": 7
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_5.0__",
+    "domainCode": "5.0",
+    "code": "5.8",
+    "description": "AAA distinctions",
+    "displayOrder": 8
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_5.0__",
+    "domainCode": "5.0",
+    "code": "5.9",
+    "description": "Wireless protection",
+    "displayOrder": 9
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_5.0__",
+    "domainCode": "5.0",
+    "code": "5.10",
+    "description": "WLAN authentication",
+    "displayOrder": 10
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_6.0__",
+    "domainCode": "6.0",
+    "code": "6.1",
+    "description": "Automated operations",
+    "displayOrder": 1
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_6.0__",
+    "domainCode": "6.0",
+    "code": "6.2",
+    "description": "Control approaches",
+    "displayOrder": 2
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_6.0__",
+    "domainCode": "6.0",
+    "code": "6.3",
+    "description": "Software-defined architecture",
+    "displayOrder": 3
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_6.0__",
+    "domainCode": "6.0",
+    "code": "6.4",
+    "description": "Intelligent operations",
+    "displayOrder": 4
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_6.0__",
+    "domainCode": "6.0",
+    "code": "6.5",
+    "description": "Web APIs",
+    "displayOrder": 5
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_6.0__",
+    "domainCode": "6.0",
+    "code": "6.6",
+    "description": "Configuration tools",
+    "displayOrder": 6
+  },
+  {
+    "blueprintId": "__BIND_BLUEPRINT_200_301_V1_1__",
+    "domainId": "__BIND_DOMAIN_6.0__",
+    "domainCode": "6.0",
+    "code": "6.7",
+    "description": "JSON structure",
+    "displayOrder": 7
+  }
+]

@@ -11,4 +11,5 @@ export type AdminQuestionUpdateType = typeof AdminQuestionUpdateType[keyof typeo
 
 export const AdminQuestionUpdateType = {
   MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+  MULTIPLE_CHOICE_MULTIPLE: 'MULTIPLE_CHOICE_MULTIPLE',
 } as const;

@@ -1,137 +1,235 @@
 // @vitest-environment jsdom
-import { act } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
-import { QueryClient, QueryClientProvider, notifyManager } from '@tanstack/react-query';
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { PracticeWorkspace } from './practice-workspace';
-import { refreshCatalog } from '../lib/catalog-cache';
-const identity = { userId: 'admin-a', sessionId: 'session-a' };
-vi.mock('@clerk/react', () => ({ useAuth: () => ({
-  isLoaded: true, isSignedIn: true, userId: 'admin-a', sessionId: 'session-a',
-}) }));
-const topic = { id: 'topic-a', slug: 'demo', name: 'Demo', description: '', displayOrder: 0, questionCount: 1 };
-const original = {
-  id: 'question-a', deliveryId: 'delivery-a', revisionId: 'revision-a', expiresAt: '2026-10-12T10:00:00Z', questionCode: 'CCNA-Q-000001', topicId: 'topic-a',
-  text: 'Interface demo', difficulty: 'EASY', type: 'MULTIPLE_CHOICE_SINGLE',
-  options: [{ optionKey: 'A', text: 'Demo A' }, { optionKey: 'B', text: 'Demo B' }],
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { QueryClient, QueryClientProvider, notifyManager } from "@tanstack/react-query";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { PracticeWorkspace } from "./practice-workspace";
+import { refreshCatalog } from "../lib/catalog-cache";
+const auth = vi.hoisted(() => ({
+  isLoaded: true,
+  isSignedIn: true,
+  userId: "admin-a",
+  sessionId: "session-a",
+}));
+vi.mock("@clerk/react", () => ({ useAuth: () => auth }));
+const topic = {
+  id: "topic-a",
+  slug: "pilot",
+  name: "Pilot topic",
+  description: "",
+  displayOrder: 0,
+  questionCount: 2,
 };
-const grade = { isCorrect: true, correctOption: { optionKey: 'A', text: 'Demo A' }, explanation: 'Demo explanation' };
-function deferred<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>(r => { resolve = r; });
-  return { promise, resolve };
+const questions = [0, 1].map((i) => ({
+  id: "question-" + i,
+  deliveryId: "delivery-" + i,
+  revisionId: "revision-" + i,
+  expiresAt: "2030-01-01T00:00:00Z",
+  questionCode: "Q" + i,
+  topic: { id: topic.id, slug: topic.slug, name: topic.name },
+  text: "Question " + i,
+  difficulty: "EASY",
+  type: "MULTIPLE_CHOICE_SINGLE",
+  options: [
+    { optionKey: "A", text: "Option A" },
+    { optionKey: "B", text: "Option B" },
+  ],
+}));
+let client: QueryClient,
+  root: Root,
+  container: HTMLDivElement,
+  topics: (typeof topic)[],
+  late: ((response: Response) => void) | null,
+  delayed: boolean;
+const json = (data: unknown) =>
+  new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
+const el = (testId: string) => container.querySelector<HTMLElement>(`[data-testid="${testId}"]`)!;
+async function click(text: string) {
+  await act(async () => {
+    const b = [...document.querySelectorAll("button")].find((b) => b.textContent?.trim() === text);
+    if (!b) throw Error("Missing " + text);
+    b.click();
+  });
 }
-let client: QueryClient, root: Root, container: HTMLDivElement;
-let topics: typeof topic[], question: typeof original;
-let pendingRead: ReturnType<typeof deferred<Response>> | null;
-let pendingAnswer: ReturnType<typeof deferred<Response>> | null;
-const json = (data: unknown) => new Response(JSON.stringify(data), { headers: { 'content-type': 'application/json' } });
-const element = <T extends HTMLElement>(testId: string) => {
-  const el = container.querySelector<T>('[data-testid="' + testId + '"]');
-  if (!el) throw Error('Missing ' + testId); return el;
-};
-async function selectAnswer() {
-  await act(async () => { container.querySelector<HTMLInputElement>('input[value="A"]')!.click(); });
+async function start() {
+  await act(async () => el("button-start-practice").click());
 }
-async function refresh() { await act(async () => { await refreshCatalog(client, identity, () => true); }); }
+async function choose() {
+  await act(async () => container.querySelector<HTMLInputElement>('input[value="A"]')!.click());
+}
 beforeEach(async () => {
-  (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+  (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
   notifyManager.setScheduler(queueMicrotask);
-  topics = [topic]; question = structuredClone(original); pendingRead = null; pendingAnswer = null;
-  window.history.replaceState({}, '', '/practice?topicId=topic-a');
-  client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  container = document.createElement('div'); document.body.append(container); root = createRoot(container);
-  vi.stubGlobal('fetch', vi.fn((url: string) => {
-    if (url === '/api/topics') return Promise.resolve(json(topics));
-    if (url === '/api/practice/topics/topic-a/question') {
-      if (pendingRead) { const p = pendingRead; pendingRead = null; return p.promise; }
-      return Promise.resolve(json(question));
-    }
-    if (url === '/api/practice/questions/question-a/answer') {
-      if (pendingAnswer) { const p = pendingAnswer; pendingAnswer = null; return p.promise; }
-      return Promise.resolve(json(grade));
-    }
-    return Promise.reject(Error('Unexpected request: ' + url));
-  }));
-  await act(async () => { root.render(<QueryClientProvider client={client}>
-    <PracticeWorkspace isAuthLoaded isSignedIn />
-  </QueryClientProvider>); });
+  Object.assign(auth, {
+    isLoaded: true,
+    isSignedIn: true,
+    userId: "admin-a",
+    sessionId: "session-a",
+  });
+  topics = [topic];
+  late = null;
+  delayed = false;
+  window.history.replaceState({}, "", "/practice?topicId=topic-a");
+  client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  container = document.createElement("div");
+  document.body.append(container);
+  root = createRoot(container);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn((url: string, options?: RequestInit) => {
+      if (url === "/api/topics") return Promise.resolve(json(topics));
+      if (url === "/api/curriculum") return Promise.resolve(json({ domains: [], topics: [] }));
+      if (url === "/api/practice/sessions") {
+        const n = JSON.parse(String(options?.body)).count;
+        return Promise.resolve(json({ questions: questions.slice(0, n) }));
+      }
+      if (url.startsWith("/api/practice/questions/")) {
+        if (delayed)
+          return new Promise<Response>((resolve) => {
+            late = resolve;
+          });
+        return Promise.resolve(
+          json({
+            isCorrect: url.includes("question-0"),
+            correctOption: { optionKey: "A", text: "Option A" },
+            explanation: "Server rationale",
+          }),
+        );
+      }
+      return Promise.reject(Error("Unexpected request " + url));
+    }),
+  );
+  await act(async () => {
+    root.render(
+      <QueryClientProvider client={client}>
+        <PracticeWorkspace isAuthLoaded isSignedIn />
+      </QueryClientProvider>,
+    );
+  });
+  const input = container.querySelector<HTMLInputElement>("#practice-count")!;
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, "2");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
 });
 afterEach(async () => {
-  await act(async () => root.unmount()); client.clear(); container.remove();
-  vi.unstubAllGlobals(); notifyManager.setScheduler(callback => setTimeout(callback, 0));
-  delete (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT;
+  await act(async () => root.unmount());
+  client.clear();
+  container.remove();
+  vi.unstubAllGlobals();
+  notifyManager.setScheduler((callback) => setTimeout(callback, 0));
+  delete (globalThis as any).IS_REACT_ACT_ENVIRONMENT;
 });
-
-it('clears a selected option when a catalog edit changes the delivered question', async () => {
-  await selectAnswer();
-  expect(element<HTMLButtonElement>('button-submit-answer').disabled).toBe(false);
-  question = { ...question, text: 'Updated interface demo', options: [{ optionKey: 'A', text: 'New A' }, { optionKey: 'B', text: 'New B' }] };
-  await refresh();
-  expect(element('text-practice-question').textContent).toBe('Updated interface demo');
-  expect(container.querySelector<HTMLInputElement>('input[value="A"]')!.checked).toBe(false);
-  expect(element<HTMLButtonElement>('button-submit-answer').disabled).toBe(true);
+it("shows setup availability and makes no delivery request before Start Practice", () => {
+  expect(container.textContent).toContain("2 available questions");
+  expect(vi.mocked(fetch).mock.calls.some(([url]) => url === "/api/practice/sessions")).toBe(false);
 });
-
-it('hides retained delivery and answer feedback when its topic is disabled', async () => {
-  await selectAnswer();
-  await act(async () => element<HTMLButtonElement>('button-submit-answer').click());
-  expect(element('result-practice-answer').textContent).toContain('Correct answer');
-  topics = []; await refresh();
-  expect(container.querySelector('[data-testid="panel-practice-question"]')).toBeNull();
-  expect(container.querySelector('[data-testid="result-practice-answer"]')).toBeNull();
-  expect(container.textContent).toContain('no longer active');
-});
-
-it('hides the old question during a catalog refetch, then preserves selection if content is unchanged', async () => {
-  await selectAnswer();
-  const pending = deferred<Response>(); pendingRead = pending;
-  let refreshing!: Promise<void>;
-  await act(async () => { refreshing = refreshCatalog(client, identity, () => true); await Promise.resolve(); });
-  expect(container.querySelector('[data-testid="button-submit-answer"]')).toBeNull();
-  expect(element('loading-practice-question')).toBeTruthy();
-  await act(async () => { pending.resolve(json(question)); await refreshing; });
+it("preserves selected answers and flags through next/previous and direct navigation", async () => {
+  await start();
+  await choose();
+  await click("Flag for Review");
+  await act(async () => el("button-next-question").click());
+  expect(container.textContent).toContain("Question 2 of 2");
+  expect(container.textContent).toContain("Progress: 0%");
+  await act(async () =>
+    container
+      .querySelector<HTMLButtonElement>('[aria-label="Question 1, unanswered, flagged"]')!
+      .click(),
+  );
   expect(container.querySelector<HTMLInputElement>('input[value="A"]')!.checked).toBe(true);
+  expect(container.textContent).toContain("1 flagged");
 });
-
-it('does not attach a delayed accepted answer to an edited delivery', async () => {
-  const pending = deferred<Response>(); pendingAnswer = pending;
-  await selectAnswer(); await act(async () => element<HTMLButtonElement>('button-submit-answer').click());
-  question = { ...question, text: 'Updated after submission' }; await refresh();
-  await act(async () => { pending.resolve(json(grade)); });
-  expect(element('text-practice-question').textContent).toBe('Updated after submission');
+it("submits only the server delivery and selected key, and counts confirmed answers rather than position", async () => {
+  await start();
+  await choose();
+  await act(async () => el("button-submit-answer").click());
+  const call = vi
+    .mocked(fetch)
+    .mock.calls.find(([url]) => String(url).endsWith("question-0/answer"));
+  expect(JSON.parse(String(call?.[1]?.body))).toEqual({ optionKey: "A", deliveryId: "delivery-0" });
+  expect(container.textContent).toContain("Progress: 50%");
+  expect(container.textContent).toContain("1 answered");
+});
+it("confirms finishing with unanswered selections and scores only accepted submissions", async () => {
+  await start();
+  await choose();
+  await act(async () => el("button-submit-answer").click());
+  await click("Finish Practice");
+  expect(document.querySelector('[role="alertdialog"]')).not.toBeNull();
+  await click("Confirm Finish");
+  expect(el("practice-results").textContent).toContain("50%");
+  expect(container.textContent).toContain("1 correct · 0 incorrect · 1 unanswered · 2 total");
+  expect(container.textContent).toContain("Server rationale");
+});
+it("renders correct and incorrect results without requiring an unanswered confirmation", async () => {
+  await start();
+  await choose();
+  await act(async () => el("button-submit-answer").click());
+  await act(async () => el("button-next-question").click());
+  await choose();
+  await act(async () => el("button-submit-answer").click());
+  await click("Finish Practice");
+  expect(container.textContent).toContain("1 correct · 1 incorrect · 0 unanswered · 2 total");
+  expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+});
+it("hides an archived topic from new answering but preserves submitted history", async () => {
+  await start();
+  await choose();
+  await act(async () => el("button-submit-answer").click());
+  topics = [];
+  await act(async () => {
+    await refreshCatalog(client, { userId: "admin-a", sessionId: "session-a" }, () => true);
+  });
+  expect(container.querySelector('[data-testid="panel-practice-question"]')).toBeNull();
+  expect(container.textContent).toContain("no longer active");
+});
+it("suppresses duplicate submissions while a grading request is in flight", async () => {
+  await start();
+  await choose();
+  delayed = true;
+  await act(async () => {
+    el("button-submit-answer").click();
+    el("button-submit-answer").click();
+  });
+  expect(
+    vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith("/answer")),
+  ).toHaveLength(1);
+  await act(async () =>
+    late!(
+      json({
+        isCorrect: true,
+        correctOption: { optionKey: "A", text: "Option A" },
+        explanation: "Saved",
+      }),
+    ),
+  );
+});
+it("does not attach a late accepted grade to another signed-in session", async () => {
+  await start();
+  await choose();
+  delayed = true;
+  await act(async () => el("button-submit-answer").click());
+  auth.userId = "other";
+  auth.sessionId = "other-session";
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <PracticeWorkspace isAuthLoaded isSignedIn />
+      </QueryClientProvider>,
+    ),
+  );
+  await act(async () =>
+    late!(
+      json({
+        isCorrect: true,
+        correctOption: { optionKey: "A", text: "Option A" },
+        explanation: "PRIVATE OLD RESULT",
+      }),
+    ),
+  );
+  expect(container.textContent).not.toContain("PRIVATE OLD RESULT");
   expect(container.querySelector('[data-testid="result-practice-answer"]')).toBeNull();
-  expect(element<HTMLButtonElement>('button-submit-answer').disabled).toBe(true);
-});
-
-it('does not resurrect an old result if content changes and later returns to its earlier text', async () => {
-  const pending = deferred<Response>(); pendingAnswer = pending;
-  await selectAnswer(); await act(async () => element<HTMLButtonElement>('button-submit-answer').click());
-  question = { ...original, text: 'Intermediate edit' }; await refresh();
-  question = structuredClone(original); await refresh();
-  await act(async () => { pending.resolve(json(grade)); });
-  expect(container.querySelector('[data-testid="result-practice-answer"]')).toBeNull();
-});
-
-
-it('submits the exact server-issued delivery and excludes client grading/identity', async () => {
-  await selectAnswer(); await act(async () => element<HTMLButtonElement>('button-submit-answer').click());
-  const call = vi.mocked(fetch).mock.calls.find(([url]) => url === '/api/practice/questions/question-a/answer');
-  expect(JSON.parse(String(call?.[1]?.body))).toEqual({ optionKey: 'A', deliveryId: 'delivery-a' });
-});
-it('clears a selection when a new delivery has identical question content', async () => {
-  await selectAnswer(); question = { ...question, deliveryId: 'delivery-new' }; await refresh();
-  expect(container.querySelector<HTMLInputElement>('input[value="A"]')!.checked).toBe(false);
-  expect(element<HTMLButtonElement>('button-submit-answer').disabled).toBe(true);
-});
-it('offers a fresh delivery after a 409 without silently resubmitting', async () => {
-  const pending = deferred<Response>(); pendingAnswer = pending;
-  await selectAnswer(); await act(async () => element<HTMLButtonElement>('button-submit-answer').click());
-  await act(async () => { pending.resolve(new Response(JSON.stringify({ error: { code: 'DELIVERY_EXPIRED', message: 'Expired' } }), { status: 409, headers: { 'content-type': 'application/json' } })); });
-  expect(element('error-practice-submit').textContent).toContain('Load a fresh question');
-  expect(element('button-retry-submit-answer').textContent).toContain('Load fresh question');
-  question = { ...question, deliveryId: 'replacement' };
-  await act(async () => element<HTMLButtonElement>('button-retry-submit-answer').click());
-  expect(element<HTMLButtonElement>('button-submit-answer').disabled).toBe(true);
-  expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === '/api/practice/questions/question-a/answer')).toHaveLength(1);
 });

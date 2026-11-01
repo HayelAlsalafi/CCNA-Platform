@@ -110,6 +110,7 @@ export type AdminQuestionType = typeof AdminQuestionType[keyof typeof AdminQuest
 
 export const AdminQuestionType = {
   MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+  MULTIPLE_CHOICE_MULTIPLE: 'MULTIPLE_CHOICE_MULTIPLE',
 } as const;
 
 export type AdminQuestionDifficulty = typeof AdminQuestionDifficulty[keyof typeof AdminQuestionDifficulty];
@@ -171,6 +172,7 @@ export type AdminQuestionCreateType = typeof AdminQuestionCreateType[keyof typeo
 
 export const AdminQuestionCreateType = {
   MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+  MULTIPLE_CHOICE_MULTIPLE: 'MULTIPLE_CHOICE_MULTIPLE',
 } as const;
 
 export type AdminQuestionCreateDifficulty = typeof AdminQuestionCreateDifficulty[keyof typeof AdminQuestionCreateDifficulty];
@@ -232,6 +234,7 @@ export type AdminQuestionUpdateType = typeof AdminQuestionUpdateType[keyof typeo
 
 export const AdminQuestionUpdateType = {
   MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+  MULTIPLE_CHOICE_MULTIPLE: 'MULTIPLE_CHOICE_MULTIPLE',
 } as const;
 
 export type AdminQuestionUpdateDifficulty = typeof AdminQuestionUpdateDifficulty[keyof typeof AdminQuestionUpdateDifficulty];
@@ -294,6 +297,7 @@ export type LearnerQuestionType = typeof LearnerQuestionType[keyof typeof Learne
 
 export const LearnerQuestionType = {
   MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+  MULTIPLE_CHOICE_MULTIPLE: 'MULTIPLE_CHOICE_MULTIPLE',
 } as const;
 
 export type LearnerQuestionDifficulty = typeof LearnerQuestionDifficulty[keyof typeof LearnerQuestionDifficulty];
@@ -311,6 +315,7 @@ export type LearnerQuestionOptionsItem = {
 };
 
 export interface LearnerQuestion {
+  requiredSelectionCount?: number;
   id: string;
   questionCode: string;
   topicId: string;
@@ -337,6 +342,7 @@ export type PracticeQuestionType = typeof PracticeQuestionType[keyof typeof Prac
 
 export const PracticeQuestionType = {
   MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+  MULTIPLE_CHOICE_MULTIPLE: 'MULTIPLE_CHOICE_MULTIPLE',
 } as const;
 
 export type PracticeQuestionDifficulty = typeof PracticeQuestionDifficulty[keyof typeof PracticeQuestionDifficulty];
@@ -349,6 +355,7 @@ export const PracticeQuestionDifficulty = {
 } as const;
 
 export interface PracticeQuestion {
+  requiredSelectionCount?: number;
   id: string;
   deliveryId: string;
   revisionId: string;
@@ -391,6 +398,7 @@ export interface PracticeCorrectOption {
 }
 
 export interface PracticeAnswerResult {
+  correctOptions?: PracticeCorrectOption[];
   isCorrect: boolean;
   correctOption: PracticeCorrectOption;
   explanation: string;

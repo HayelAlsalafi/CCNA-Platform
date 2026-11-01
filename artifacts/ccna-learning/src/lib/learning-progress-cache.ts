@@ -48,11 +48,16 @@ export function learningProgressQueryOptions(identity: ProgressIdentity) {
   return getGetLearningProgressQueryOptions(learningProgressOptions(identity));
 }
 
+function isPrivateLearningKey(key: readonly unknown[]) {
+  const endpoint=String(key[0]);
+  return key[0]===getGetLearningProgressQueryKey()[0] || endpoint.startsWith('/api/nexus/') || endpoint==='/api/exams' || endpoint.startsWith('/api/exams/') || endpoint==='/api/lessons' || endpoint.startsWith('/api/lessons/') || endpoint==='/api/chapters';
+}
+
 export function removeOtherProgress(client: QueryClient, identity: ProgressIdentity | null) {
   const filters = {
     predicate: (query: { queryKey: readonly unknown[] }) => {
-      if (query.queryKey[0] !== getGetLearningProgressQueryKey()[0]) return false;
-      const owner = query.queryKey[1] as ProgressIdentity | undefined;
+      if (!isPrivateLearningKey(query.queryKey)) return false;
+      const owner = query.queryKey.at(-1) as ProgressIdentity | undefined;
       return (
         !identity || owner?.userId !== identity.userId || owner?.sessionId !== identity.sessionId
       );
@@ -65,7 +70,7 @@ export function removeOtherProgress(client: QueryClient, identity: ProgressIdent
 }
 
 export function removeProgress(client: QueryClient, identity: ProgressIdentity) {
-  const filters = { queryKey: learningProgressKey(identity), exact: true };
+  const filters = {predicate:(q:{queryKey:readonly unknown[]})=>{const owner=q.queryKey.at(-1) as ProgressIdentity|undefined;return isPrivateLearningKey(q.queryKey)&&owner?.userId===identity.userId&&owner?.sessionId===identity.sessionId;}};
   void client.cancelQueries(filters);
   client.removeQueries(filters);
 }

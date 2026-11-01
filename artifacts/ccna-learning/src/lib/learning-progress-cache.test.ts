@@ -271,3 +271,34 @@ describe('Learning progress cache and answer lifecycle', () => {
     expect(client.getQueryData(learningProgressKey(newSession))).toEqual(updated);
   });
 });
+
+
+it('clears learner lesson and chapter caches on session change', () => {
+  const client = new QueryClient();
+  const old = sessionQueryKey(['/api/lessons', 'lesson-a'], a);
+  const chapter = sessionQueryKey(['/api/chapters', 'chapter-a', 'lessons'], a);
+  const current = sessionQueryKey(['/api/lessons', 'lesson-a'], b);
+  client.setQueryData(old, { content: 'old' }); client.setQueryData(chapter, { items: [] });
+  client.setQueryData(current, { content: 'current' });
+  removeOtherProgress(client, b);
+  expect(client.getQueryData(old)).toBeUndefined(); expect(client.getQueryData(chapter)).toBeUndefined();
+  expect(client.getQueryData(current)).toEqual({ content: 'current' });
+  client.clear();
+});
+it('removes exam answers/results from old learner sessions while retaining the current actor and public catalog',()=>{
+  const oldRun=sessionQueryKey(['/api/exams','old-run'],a);
+  const currentRun=sessionQueryKey(['/api/exams','current-run'],b);
+  const oldHistory=sessionQueryKey(['/api/exams/history',1],a);
+  client.setQueryData(oldRun,{selected:['A'],result:{correct:1}});
+  client.setQueryData(oldHistory,{private:true});
+  client.setQueryData(currentRun,{selected:['B']});
+  client.setQueryData(['/api/curriculum'],{public:true});
+  removeOtherProgress(client,b);
+  expect(client.getQueryData(oldRun)).toBeUndefined();
+  expect(client.getQueryData(oldHistory)).toBeUndefined();
+  expect(client.getQueryData(currentRun)).toEqual({selected:['B']});
+  expect(client.getQueryData(['/api/curriculum'])).toEqual({public:true});
+  removeProgress(client,b);
+  expect(client.getQueryData(currentRun)).toBeUndefined();
+  expect(client.getQueryData(['/api/curriculum'])).toEqual({public:true});
+});

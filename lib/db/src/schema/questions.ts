@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  foreignKey,
+  type AnyPgColumn,
   index,
   integer,
   pgEnum,
@@ -14,6 +16,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
 import { topicsTable } from "./topics";
+import { curriculumChaptersTable } from "./curriculum-chapters";
 
 /**
  * Phase 3A — Question Domain Foundation.
@@ -22,7 +25,10 @@ import { topicsTable } from "./topics";
  * dedicated sequence (column default), never by the client or app code, and a
  * trigger (see migration 0001) rejects any UPDATE that changes it.
  */
-export const questionTypeEnum = pgEnum("question_type", ["MULTIPLE_CHOICE_SINGLE"]);
+// Retain the historical enum; the separately approved v2 migration changes only
+// the live column type, without rewriting any revision/attempt payload.
+export const legacyQuestionTypeEnum = pgEnum("question_type", ["MULTIPLE_CHOICE_SINGLE"]);
+export const questionTypeEnum = pgEnum("question_type_v2", ["MULTIPLE_CHOICE_SINGLE", "MULTIPLE_CHOICE_MULTIPLE"]);
 export const questionDifficultyEnum = pgEnum("question_difficulty", ["EASY", "MEDIUM", "HARD"]);
 export const questionStatusEnum = pgEnum("question_status", ["ACTIVE", "DISABLED"]);
 
@@ -53,6 +59,7 @@ export const questionsTable = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
+    foreignKey({name:"questions_chapter_fk",columns:[table.topicId],foreignColumns:[curriculumChaptersTable.id as AnyPgColumn]}).onDelete("restrict"),
     index("questions_topic_status_idx").on(table.topicId, table.status),
     index("questions_status_idx").on(table.status),
   ],
@@ -94,17 +101,21 @@ export const questionOptionInputSchema = z.object({
 function validateQuestionOptions(
   options: { optionKey: string; isCorrect: boolean }[],
   ctx: z.RefinementCtx,
+  type = "MULTIPLE_CHOICE_SINGLE",
 ) {
   const keys = new Set(options.map((o) => o.optionKey.toUpperCase()));
   if (keys.size !== options.length) {
     ctx.addIssue({ code: "custom", path: ["options"], message: "Option keys must be unique." });
   }
+  if (type === "MULTIPLE_CHOICE_MULTIPLE" && options.some(o=>!/^[-_a-z0-9]{1,8}$/i.test(o.optionKey))) {
+    ctx.addIssue({code:"custom",path:["options"],message:"Multiple-answer option keys must use 1-8 letters, digits, underscores or hyphens."});
+  }
   const correct = options.filter((o) => o.isCorrect).length;
-  if (correct !== 1) {
+  if (type === "MULTIPLE_CHOICE_SINGLE" ? correct !== 1 : type === "MULTIPLE_CHOICE_MULTIPLE" ? correct < 2 : correct < 1) {
     ctx.addIssue({
       code: "custom",
       path: ["options"],
-      message: "MULTIPLE_CHOICE_SINGLE requires exactly one correct option.",
+      message: type === "MULTIPLE_CHOICE_SINGLE" ? "MULTIPLE_CHOICE_SINGLE requires exactly one correct option." : type === "MULTIPLE_CHOICE_MULTIPLE" ? "Multiple Answers requires at least two correct options." : "At least one correct option is required.",
     });
   }
 }
@@ -123,7 +134,7 @@ export const createQuestionInputSchema = z
   })
   .strict()
   .superRefine((q, ctx) => {
-    validateQuestionOptions(q.options, ctx);
+    validateQuestionOptions(q.options, ctx, q.type);
   });
 
 export type CreateQuestionInput = z.infer<typeof createQuestionInputSchema>;
@@ -146,7 +157,8 @@ export const updateQuestionInputSchema = z
     if (Object.keys(q).length === 0) {
       ctx.addIssue({ code: "custom", message: "At least one field must be provided." });
     }
-    if (q.options) validateQuestionOptions(q.options, ctx);
+    // Full merged validation also runs in updateAdminQuestion before any write.
+    if (q.options) validateQuestionOptions(q.options, ctx, q.type ?? "UNSPECIFIED");
   });
 
 export type UpdateQuestionInput = z.infer<typeof updateQuestionInputSchema>;

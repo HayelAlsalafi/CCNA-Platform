@@ -36,7 +36,7 @@ export const GetPracticeHistoryResponse = zod.object({
   "historicalContentStatus": zod.enum(['VERIFIED_SNAPSHOT', 'LEGACY_UNAVAILABLE']).optional().describe('Present only with includeDetails=true. Legacy scores are preserved; original content is unknown.'),
   "review": zod.object({
   "text": zod.string(),
-  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE']),
+  "type": zod.enum(['MULTIPLE_CHOICE_SINGLE', 'MULTIPLE_CHOICE_MULTIPLE']),
   "difficulty": zod.enum(['EASY', 'MEDIUM', 'HARD']),
   "imageKey": zod.string().nullable(),
   "referenceNotes": zod.string().nullable(),
@@ -44,6 +44,8 @@ export const GetPracticeHistoryResponse = zod.object({
   "optionKey": zod.string(),
   "text": zod.string()
 })),
+  "requiredSelectionCount": zod.number().int().min(2).max(10).optional(),
+  "correctOptions": zod.array(zod.object({optionKey:zod.string(),text:zod.string()})).optional(),
   "correctOption": zod.object({
   "optionKey": zod.string(),
   "text": zod.string()

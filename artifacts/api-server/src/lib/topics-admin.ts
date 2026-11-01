@@ -1,3 +1,4 @@
+import { ccnaBookChapters } from "../../../../lib/ccna-book-chapters";
 import { asc, eq } from "drizzle-orm";
 import { db as defaultDb, topicsTable, type Topic } from "@workspace/db";
 import { createTopicInputSchema, updateTopicInputSchema } from "@workspace/db/schema";
@@ -55,20 +56,13 @@ export async function listAllTopics(db: Db = defaultDb) {
   return db.select().from(topicsTable).orderBy(asc(topicsTable.displayOrder), asc(topicsTable.name));
 }
 
-export async function createTopic(input: unknown, db: Db = defaultDb) {
-  const data = parse(createTopicInputSchema, input);
-  await ensureSlugFree(db, data.slug);
-  try {
-    const [row] = await db.insert(topicsTable).values(data).returning();
-    return row!;
-  } catch (e) {
-    if (isUniqueViolation(e)) throw new TopicError(409, "CONFLICT", "A topic with this slug already exists.");
-    throw e;
-  }
+export async function createTopic(_input: unknown, _db: Db = defaultDb): Promise<Topic> {
+  throw new TopicError(409,"CONFLICT","Use Chapters & domains to initialize a missing canonical chapter. Arbitrary topic creation is retired.");
 }
 
 export async function updateTopic(id: string, input: unknown, db: Db = defaultDb) {
   const data = parse(updateTopicInputSchema, input);
+  assertCanonicalTopicEdit(id,data);
   if (data.slug) await ensureSlugFree(db, data.slug, id);
   try {
     const [row] = await db
@@ -92,4 +86,10 @@ export async function disableTopic(id: string, db: Db = defaultDb) {
     .returning();
   if (!row) throw new TopicError(404, "NOT_FOUND", "Topic not found.");
   return row;
+}
+
+export function assertCanonicalTopicEdit(id:string,data:{name?:string;slug?:string}) {
+ const c=ccnaBookChapters.find(c=>c.topicId===id);
+ if(!c || (data.name!==undefined&&data.name!==c.title)||(data.slug!==undefined&&data.slug!==c.slug))
+   throw new TopicError(409,"CONFLICT","Canonical chapter title, slug and stable identity cannot be changed. Edit description, order or availability instead.");
 }

@@ -52,3 +52,33 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+# Operator-only evidence, credentials and installed local skills.
+/.agents/
+/%SystemDrive%/
+*.bak
+*.log
+*.dump
+*.db
+*.sqlite
+*.sqlite3
+*.clixml
+*.pem
+*.key
+.env.*
+!.env.example
+!**/.env.example
+/tools/canonical-chapters-original-approval.json
+/tools/canonical-chapters-plan.json
+/docs/content/ccna-200-301/bound/
+/docs/content/ccna-200-301/manual-runs/
+/docs/content/ccna-200-301/chapter-1/chapter-1-content-pack.json
+/tools/taxonomy-rehearsal/manifest.json
+/tools/taxonomy-rehearsal/profiles/*/manifest.json
+/docs/maintenance/repository-cleanup-inventory.json
+/docs/maintenance/repository-cleanup-proposed-deletions.json
+/tools/phase8a-cleanup/final-legacy-inventory.json
+/tools/phase8a-cleanup/final-provenance-amendments.json
+# Deferred, unverified alternate provisioning; SeaweedFS is the accepted store.
+/tools/minio-local/
+/tools/study-activation/proposed-startup-0014.patch

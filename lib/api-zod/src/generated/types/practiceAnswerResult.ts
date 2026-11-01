@@ -8,6 +8,7 @@
 import type { PracticeCorrectOption } from './practiceCorrectOption';
 
 export interface PracticeAnswerResult {
+  correctOptions?: PracticeCorrectOption[];
   isCorrect: boolean;
   correctOption: PracticeCorrectOption;
   explanation: string;

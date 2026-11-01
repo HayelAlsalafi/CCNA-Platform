@@ -18,6 +18,9 @@ const affectedKeys = [
   sessionQueryKey(['/api/practice/history', { limit: 20, offset: 20 }], a),
   sessionQueryKey(['/api/practice/topics/topic-a/question'], a),
   sessionQueryKey(['/api/questions/question-a'], a),
+  sessionQueryKey(['/api/curriculum'], a),
+  sessionQueryKey(['/api/admin/curriculum/mapping'], a),
+  adminQueryKey(['/api/admin/taxonomy', 'question-a'], a),
 ];
 const clients: QueryClient[] = [];
 function client() {

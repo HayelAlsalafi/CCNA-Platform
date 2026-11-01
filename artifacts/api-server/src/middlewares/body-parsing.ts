@@ -9,6 +9,16 @@ const formParser = express.urlencoded({ extended: true });
  * Every existing route retains the original JSON-then-form parsing behavior.
  */
 export const parseApiBody: RequestHandler = (req, res, next) => {
+  if(/^\/api\/study(?:\/|$)/i.test(req.path)){next();return;}
+  // Lesson writes use a bounded route parser after authenticated ADMIN checks.
+  if (/^\/api\/admin\/lessons(?:\/[^/]+(?:\/(?:publish|unpublish))?)?\/?$/i.test(req.path)) {
+    next();
+    return;
+  }
+  if (/^\/api\/admin\/question-import\/(?:preview|confirm)\/?$/i.test(req.path)) {
+    next();
+    return;
+  }
   if (req.method === "GET" && /^\/api\/learning\/progress\/?$/i.test(req.path)) {
     next();
     return;

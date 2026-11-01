@@ -11,4 +11,5 @@ export type LearnerQuestionType = typeof LearnerQuestionType[keyof typeof Learne
 
 export const LearnerQuestionType = {
   MULTIPLE_CHOICE_SINGLE: 'MULTIPLE_CHOICE_SINGLE',
+  MULTIPLE_CHOICE_MULTIPLE: 'MULTIPLE_CHOICE_MULTIPLE',
 } as const;

@@ -21,7 +21,8 @@ import {
   useNexusIdentity,
   nexusError,
 } from "../lib/nexus";
-import { NetworkTopologyMap } from "../components/nexus-visuals";
+import { NetworkTopologyMap, LearningAnalytics } from "../components/nexus-visuals";
+import { CommandCenterInsights, SkillEvidenceSummary, recommendationReason } from "../components/command-center-insights";
 import { YearlyActivity, SkillMatrix, useLearnerProgress } from "../components/learning-evidence";
 import { Skeleton } from "../components/ui/skeleton";
 import "./nexus-overview.css";
@@ -75,12 +76,14 @@ function OverviewSkeleton() {
 
 export function NexusOverview() {
   const [activeTab, setActiveTab] = useState<OverviewTabId>("glance");
+  const [range, setRange] = useState("30");
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const progress = useLearnerProgress();
   const identity = useNexusIdentity();
   const auth = useAuth();
   const { user } = useUser();
   const query = useNexusAnalytics();
+  const activityQuery = useNexusAnalytics(range);
   const data = query.data;
   const next = data ? recommendTopic(data.topics) : null;
   const name = identity && user?.id === identity.userId ? user.firstName || "learner" : "learner";
@@ -300,6 +303,7 @@ export function NexusOverview() {
                 icon={<Activity size={17} />}
               />
             </section>
+            <CommandCenterInsights data={data} />
             <footer className="overview-footnote">
               <span><RadioTower size={13} /> CCNA 200-301 / NEXUS</span>
               <span>Progress reflects saved evidence. It does not infer mastery or exam readiness.</span>
@@ -328,6 +332,7 @@ export function NexusOverview() {
                 hidden={activeTab !== "activity"}
               >
                 <div className="overview-module overview-activity">
+                  {activityQuery.isError ? <section className="nexus-panel" role="alert"><h2>Recent trend could not load</h2><p>{nexusError(activityQuery.error)}</p><button className="nexus-button secondary" onClick={() => void activityQuery.refetch()}>Retry recent trend</button></section> : activityQuery.data ? <LearningAnalytics data={activityQuery.data} range={range} onRange={setRange} /> : <section className="nexus-panel" role="status" aria-label="Loading recent trend"><Skeleton className="h-40" /></section>}
                   <YearlyActivity />
                 </div>
               </div>
@@ -342,7 +347,10 @@ export function NexusOverview() {
               >
                 <div className="overview-module overview-skills">
                 {progress.data ? (
-                  <SkillMatrix data={progress.data} />
+                  <>
+                    <SkillEvidenceSummary data={progress.data} />
+                    <SkillMatrix data={progress.data} />
+                  </>
                 ) : progress.isError ? (
                   <section className="nexus-panel overview-progress-error" role="alert">
                     <span className="nexus-eyebrow">SKILL EVIDENCE</span>
@@ -400,8 +408,8 @@ export function NexusOverview() {
                       <strong>{next?.name ?? "Explore the curriculum"}</strong>
                       <p>
                         {next
-                          ? `${next.available - next.attempted} available questions not yet attempted.`
-                          : "No eligible recommendation is currently available."}
+                          ? recommendationReason(next)
+                          : data.totals.attempts ? "No topic currently meets the review or coverage rule. Explore the curriculum or try the Exam Simulator." : "Start with the Learning Curriculum or Challenge Arena; no recorded practice is assumed."}
                       </p>
                     </div>
                   </li>
@@ -429,6 +437,7 @@ export function NexusOverview() {
                 >
                   Explore the full curriculum <ArrowUpRight size={15} />
                 </Link>
+                <Link href="/exam" className="overview-curriculum-link">Open Exam Simulator <ArrowUpRight size={15} /></Link>
               </section>
 
               <section className="nexus-panel overview-recent-panel">

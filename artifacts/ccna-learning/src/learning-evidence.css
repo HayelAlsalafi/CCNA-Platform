@@ -1,0 +1,225 @@
+.nexus-year-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+}
+.nexus-year-controls button {
+  padding: 8px;
+  background: #eef4fa;
+  border-radius: 7px;
+}
+.nexus-year-controls button:disabled {
+  opacity: 0.4;
+}
+.nexus-calendar-scroll {
+  overflow-x: auto;
+  margin: 24px 0 18px;
+  padding-bottom: 12px;
+}
+.nexus-calendar {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  grid-template-rows: 24px auto;
+  gap: 4px;
+  min-width: 780px;
+  --cell: 12px;
+  --gap: 3px;
+}
+.nexus-months {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(var(--weeks), 1fr);
+  color: #52657c;
+  font-size: 9px;
+}
+.nexus-months span {
+  overflow: visible;
+  white-space: nowrap;
+}
+.nexus-weekdays {
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: repeat(7, var(--cell));
+  gap: var(--gap);
+  font-size: 8px;
+  align-items: center;
+  color: #52657c;
+}
+.nexus-calendar-weeks {
+  display: grid;
+  grid-template-columns: repeat(var(--weeks), 1fr);
+  gap: var(--gap);
+}
+.nexus-calendar-week {
+  display: grid;
+  grid-template-rows: repeat(7, var(--cell));
+  gap: var(--gap);
+}
+.nexus-calendar-week button,
+.nexus-activity-legend i {
+  border-radius: 3px;
+  border: 1px solid #0b162808;
+  min-width: 10px;
+}
+.nexus-calendar-week button[aria-selected="true"] {
+  outline: 2px solid #10243e;
+  outline-offset: 1px;
+}
+.nexus-yearly [data-level="0"] {
+  background: #e8eff5;
+}
+.nexus-yearly [data-level="1"] {
+  background: #b9ebe4;
+}
+.nexus-yearly [data-level="2"] {
+  background: #58c9b7;
+}
+.nexus-yearly [data-level="3"] {
+  background: #138f81;
+}
+.nexus-yearly [data-level="4"] {
+  background: #10554f;
+}
+.nexus-calendar-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 10px;
+  color: #52657c;
+}
+.nexus-activity-legend {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.nexus-activity-legend i {
+  width: 12px;
+  height: 12px;
+}
+.nexus-radar-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 28px;
+}
+.nexus-radar-layout svg {
+  width: 100%;
+  max-height: 370px;
+}
+.nexus-skill-buttons {
+  display: grid;
+  gap: 8px;
+}
+.nexus-skill-buttons button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  text-align: left;
+  border: 1px solid #dde7f0;
+  background: #f7fafc;
+  border-radius: 9px;
+  padding: 13px;
+  gap: 7px;
+  font-size: 11px;
+}
+.nexus-skill-buttons button[aria-pressed="true"] {
+  border-color: #08748c;
+  background: #ecfbfc;
+}
+.nexus-skill-buttons small {
+  grid-column: 1/-1;
+  color: #52657c;
+  font-size: 10px;
+}
+.nexus-skill-buttons strong {
+  font-size: 10px;
+  color: #08748c;
+}
+.nexus-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.nexus-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  border: 1px solid #dce6f0;
+  border-radius: 12px;
+  padding: 20px;
+  background: #f7fafc;
+}
+.nexus-badge.earned {
+  background: #f0fbf8;
+  border-color: #b8e1d7;
+}
+.nexus-badge-icon {
+  background: #e8eff5;
+  border-radius: 50%;
+  padding: 13px;
+  color: #53677e;
+}
+.nexus-badge.earned .nexus-badge-icon {
+  background: #d6f3eb;
+  color: #0f766e;
+}
+.nexus-badge > div {
+  flex: 1;
+  min-width: 0;
+}
+.nexus-badge strong {
+  display: block;
+  font-size: 13px;
+}
+.nexus-badge small {
+  display: block;
+  color: #52657c;
+  font-size: 10px;
+  margin-top: 6px;
+}
+.nexus-badge progress {
+  width: 100%;
+  height: 6px;
+  accent-color: #0d9488;
+}
+.nexus-badge details {
+  font-size: 10px;
+  color: #52657c;
+  margin-top: 10px;
+}
+.nexus-badge summary {
+  cursor: pointer;
+}
+.nexus-badge ul {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+}
+.nexus-skill-matrix .nexus-history-table {
+  min-width: 620px;
+}
+@media (max-width: 900px) {
+  .nexus-radar-layout {
+    grid-template-columns: 1fr;
+  }
+  .nexus-badge-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .nexus-badge {
+    gap: 10px;
+    padding: 15px;
+  }
+  .nexus-badge-icon {
+    padding: 9px;
+  }
+  .nexus-skill-buttons button {
+    grid-template-columns: 1fr;
+  }
+  .nexus-calendar {
+    min-width: 760px;
+  }
+}

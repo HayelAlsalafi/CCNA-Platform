@@ -10,6 +10,7 @@ import type { LearnerQuestionOptionsItem } from './learnerQuestionOptionsItem';
 import type { LearnerQuestionType } from './learnerQuestionType';
 
 export interface LearnerQuestion {
+  requiredSelectionCount?: number;
   id: string;
   questionCode: string;
   topicId: string;

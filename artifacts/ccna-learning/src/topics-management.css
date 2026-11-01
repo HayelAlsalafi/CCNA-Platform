@@ -1,0 +1,331 @@
+.topics-manager {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+.topic-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.topic-stats > div {
+  padding: 1.1rem 1.3rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface, #fff);
+}
+.topic-stats small {
+  display: block;
+  color: #64748b;
+}
+.topic-stats strong {
+  font-size: 1.75rem;
+  font-weight: 650;
+}
+.topic-toolbar,
+.topic-list-options,
+.topic-pagination,
+.topic-status-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.topic-toolbar .admin-search {
+  flex: 1 1 260px;
+}
+.topics-manager label {
+  font-size: 0.8rem;
+}
+.topics-manager select,
+.topic-form input:not([type="checkbox"]),
+.topic-form textarea,
+.topic-form select {
+  background: var(--background, #fff);
+  border: 1px solid var(--line, #dce2eb);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  color: var(--foreground, #172033);
+  min-height: 42px;
+}
+.topics-manager select {
+  margin-inline-start: 0.5rem;
+}
+.topic-filter {
+  max-width: 240px;
+  justify-content: space-between;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.topic-list-options > p {
+  margin-inline-end: auto;
+  color: #64748b;
+}
+.topic-table-scroll {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface, #fff);
+}
+.topic-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+  font-size: 0.85rem;
+}
+.topic-table th {
+  text-align: start;
+  font-weight: 600;
+  color: #64748b;
+  background: var(--muted, #f5f7fa);
+  white-space: nowrap;
+}
+.topic-table td,
+.topic-table th {
+  padding: 1rem;
+  border-bottom: 1px solid var(--line, #e2e8f0);
+}
+.topic-table tr:last-child td {
+  border-bottom: 0;
+}
+.topic-table td:nth-child(2) {
+  min-width: 210px;
+}
+.topic-table td:nth-child(3) {
+  max-width: 260px;
+}
+.topic-table small,
+.topic-card-grid small,
+.topic-detail small {
+  display: block;
+  color: #64748b;
+  font-size: 0.75rem;
+  margin-block-start: 0.25rem;
+  overflow-wrap: anywhere;
+}
+.topic-name {
+  font-weight: 600;
+  text-align: start;
+  color: var(--foreground, #172033);
+  font-size: 0.95rem;
+}
+.topic-name:hover {
+  text-decoration: underline;
+}
+.topic-table a,
+.topic-detail a {
+  color: var(--primary, #2563eb);
+}
+.topic-pagination {
+  justify-content: flex-end;
+}
+.topic-pagination > label {
+  margin-inline-end: auto;
+}
+.topic-empty {
+  padding: 3rem 1rem;
+  text-align: center;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+}
+.topic-empty h2 {
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+.topic-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.topic-card-grid article {
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.topic-card-grid header,
+.topic-card-grid footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.topic-card-grid header > button {
+  margin-inline-start: auto;
+}
+.topic-card-grid p {
+  font-size: 0.85rem;
+  color: #64748b;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.topic-card-grid footer {
+  font-size: 0.75rem;
+  justify-content: space-between;
+  margin-block-start: auto;
+  padding-block-start: 1rem;
+}
+.topic-sheet {
+  width: min(100vw, 620px) !important;
+  max-width: 620px !important;
+  overflow-y: auto;
+  padding: 1.75rem !important;
+}
+.topic-form {
+  display: grid;
+  gap: 1.2rem;
+  margin-block-start: 1.5rem;
+}
+.topic-form label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.topic-form small {
+  font-weight: 400;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+.topic-form [aria-invalid="true"] {
+  border-color: #dc2626;
+}
+.topic-form summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding-block: 0.75rem;
+}
+.topic-form details label {
+  margin-block: 0.75rem;
+}
+.topic-form footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  border-top: 1px solid var(--line);
+  padding-block-start: 1rem;
+}
+.topic-form .topic-check,
+.topic-form .topic-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.topic-warning {
+  padding: 1rem;
+  border: 1px solid #e6b457;
+  border-radius: 8px;
+  background: #fff9eb;
+  color: #805400;
+  font-size: 0.85rem;
+}
+.topic-detail {
+  display: grid;
+  gap: 1rem;
+  margin-block-start: 1.5rem;
+}
+.topic-detail dl > div {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  padding: 0.25rem 0;
+}
+.topic-detail dt {
+  color: #64748b;
+}
+.topic-detail dd {
+  overflow-wrap: anywhere;
+}
+.topic-detail h3 {
+  font-weight: 600;
+}
+.topic-detail li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.85rem;
+}
+.topic-detail-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.4rem;
+}
+.topic-dependency-list {
+  max-height: 35vh;
+  overflow-y: auto;
+  font-size: 0.8rem;
+}
+.topic-dependency-list > div {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.topic-dependency-list small,
+.topic-dependency-list span {
+  display: block;
+  margin-block-start: 0.3rem;
+}
+.topics-manager input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary, #2563eb);
+}
+.topics-manager :focus-visible,
+.topic-sheet :focus-visible {
+  outline: 2px solid var(--primary, #2563eb);
+  outline-offset: 3px;
+}
+.topic-status-results {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.topic-sheet input[type="checkbox"] {
+  margin-block-start: 0.2rem;
+}
+.topics-manager .admin-bulk-controls {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+.topics-manager button {
+  min-height: 36px;
+}
+@media (max-width: 640px) {
+  .topic-stats {
+    gap: 0.5rem;
+  }
+  .topic-stats > div {
+    padding: 0.75rem;
+  }
+  .topic-stats strong {
+    font-size: 1.4rem;
+  }
+  .topic-toolbar > * {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+  .topic-list-options {
+    font-size: 0.8rem;
+  }
+  .topic-pagination {
+    justify-content: center;
+  }
+  .topic-pagination > label {
+    width: 100%;
+    margin: 0;
+  }
+  .topic-sheet {
+    padding: 1.25rem !important;
+  }
+  .topics-manager button {
+    min-height: 44px;
+  }
+}
