@@ -102,7 +102,7 @@ it("returns honest not-activated errors without fabricated saved items", async (
   );
   const response = await fetch(`${base}/study/lessons/${id}`);
   expect(response.status).toBe(503);
-  expect((await response.json()).error.code).toBe("STUDY_NOT_READY");
+  expect(((await response.json()) as { error: { code: string; message: string; details: { path: string }[] } }).error.code).toBe("STUDY_NOT_READY");
 });
 it("protects image uploads with database ADMIN authorization before reading bytes", async () => {
   expect(

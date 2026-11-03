@@ -322,7 +322,8 @@ it("saves and reloads an explicit section position, resumes it and never complet
   expect(host.textContent).not.toContain("Reading position 0%");
   expect(calls.some((call) => call.options.method === "PUT")).toBe(false);
   await click("Start this lesson");
-  await click("Save reading position");
+  await click("Save Position");
+  await click("Progress");
   const request = calls
     .filter((call) => call.url === "/api/study/progress" && call.options.method === "PUT")
     .at(-1)!;
@@ -334,10 +335,18 @@ it("saves and reloads an explicit section position, resumes it and never complet
     version: 1,
   });
   expect(storedProgress).toMatchObject({ state: "IN_PROGRESS", blockId, version: 2 });
+  // A fresh reader/client must recover the persisted server fixture, not cached state.
+  await act(async()=>root.unmount());client.clear();
+  client=new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}});root=createRoot(host);
+  await render(<LessonReader chapterId={chapterId} lessonId={lessonId}/>);
+  await click("Progress");
+  expect(storedProgress).toMatchObject({state:"IN_PROGRESS",blockId,version:2});
   expect(host.textContent).toContain("Saved reading position: section 1");
-  const resume = [...host.querySelectorAll("a")].find(
-    (link) => link.textContent === "Resume saved position",
+  const resume = [...host.querySelectorAll<HTMLButtonElement>("button")].find(
+    (button) => button.textContent?.trim() === "Resume Saved Position",
   )!;
+  expect(resume.disabled).toBe(false);
+  vi.mocked(Element.prototype.scrollIntoView).mockClear();
   await act(async () => resume.click());
   expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
     block: "start",

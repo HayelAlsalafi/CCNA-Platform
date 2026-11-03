@@ -673,7 +673,8 @@ export function QuestionStudioEditor({
                   {error}
                 </p>
               )}
-              <footer>
+              <p className="muted">New questions start unpublished. Reopen the saved question, review readiness, then publish explicitly.</p>
+                <footer>
                 <Button type="button" variant="outline" onClick={close} disabled={pending}>
                   Cancel
                 </Button>
@@ -691,7 +692,7 @@ export function QuestionStudioEditor({
                     : detail && !duplicate
                       ? "Save changes"
                       : form.status === "ACTIVE"
-                        ? "Publish question"
+                        ? "Create unpublished"
                         : "Create question"}
                 </Button>
               </footer>

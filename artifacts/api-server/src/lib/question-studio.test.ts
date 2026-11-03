@@ -203,6 +203,12 @@ it("blocks duplicate creation before any writer unless explicitly acknowledged",
   });
   expect(writes.create).not.toHaveBeenCalled();
 });
+it("an explicit existing-question publication passes readiness before the revision-aware writer",async()=>{
+  writes.update.mockClear();writes.update.mockResolvedValue({id});
+  const {db}=fake([[],[],[{id}],[{editToken:token}],[{status:"ACTIVE"}],[],[{editToken:token}]]);
+  await saveStudioQuestion({question:{...question,status:"ACTIVE"},assignments:[],expectedToken:token},id,db);
+  expect(writes.update).toHaveBeenCalledWith(id,expect.objectContaining({status:"ACTIVE"}),db,true);
+});
 it("blocks publication in a disabled topic and stale edits before rewriting content", async () => {
   const { db } = fake([[], [], [{ status: "DISABLED" }]]);
   await expect(

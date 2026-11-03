@@ -19,13 +19,13 @@ let server:ReturnType<ReturnType<typeof express>['listen']>,base:string;
 beforeAll(async()=>{const app=express();app.use((_req,res,next)=>{(_req as any).log={info:()=>{}};next();});app.use('/api',router);server=app.listen(0,'127.0.0.1');await new Promise<void>(r=>server.once('listening',r));base=`http://127.0.0.1:${(server.address()as AddressInfo).port}/api`;});
 afterAll(()=>new Promise<void>(r=>server.close(()=>r())));
 it('topic selector counts use actual aggregate results and ACTIVE filters, including empty topics',async()=>{
- const r=await fetch(base+'/topics');expect(r.status).toBe(200);const topics=await r.json();
+ const r=await fetch(base+'/topics');expect(r.status).toBe(200);const topics=(await r.json()) as { questionCount: number }[];
  expect(topics.map((t:any)=>t.questionCount)).toEqual([3,0]);
  expect(new PgDialect().sqlToQuery(state.join).params).toEqual(['ACTIVE']);
  expect(new PgDialect().sqlToQuery(state.where).params).toEqual(['ACTIVE']);
 });
 it('public dashboard totals no longer report a hardcoded zero question bank',async()=>{
- const r=await fetch(base+'/dashboard/summary');expect(r.status).toBe(200);const data=await r.json();
+ const r=await fetch(base+'/dashboard/summary');expect(r.status).toBe(200);const data=(await r.json()) as { totalQuestions: number; totalTopics: number; focusTopic: {questionCount:number} };
  expect(data.totalQuestions).toBe(3);expect(data.totalTopics).toBe(2);
  expect(data.focusTopic.questionCount).toBe(3);
 });

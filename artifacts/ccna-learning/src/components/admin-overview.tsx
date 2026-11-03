@@ -1,3 +1,4 @@
+import { AdminLearners } from "./admin-learners";
 import { Link } from "wouter";
 import { ArrowRight, BookOpen, FileQuestion, FolderTree, Upload } from "lucide-react";
 import {
@@ -93,6 +94,7 @@ export function AdminOverview() {
           }
         />
       )}
+      <AdminLearners />
       <AdminPanel title="A deliberate content workflow">
         <ol className="admin-workflow">
           <li>

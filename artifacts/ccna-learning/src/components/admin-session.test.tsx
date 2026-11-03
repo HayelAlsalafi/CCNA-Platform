@@ -198,7 +198,8 @@ async function input(selector: string, value: string) {
     el.dispatchEvent(new Event(el.tagName === "SELECT" ? "change" : "input", { bubbles: true }));
   });
 }
-const writes = () => calls.filter((call) => call.options.method !== "GET");
+// Readiness is a read-only POST; only persistence requests count as writes.
+const writes = () => calls.filter((call) => call.options.method !== "GET" && call.url !== "/api/admin/questions/studio/readiness");
 
 beforeEach(() => {
   vi.stubGlobal(

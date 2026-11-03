@@ -137,7 +137,7 @@ it.each([
   { correctOption: "A;Z" },
   { correctOption: "A;A" },
 ])("rejects ambiguous or legacy import mappings %j", (patch) =>
-  expect(validateImportRows([{ ...record, ...patch }], catalog, new Set())[0].status).toBe(
+  expect(validateImportRows([{ ...record, ...Object.fromEntries(Object.entries(patch).filter((entry): entry is [string, string] => typeof entry[1] === "string")) }], catalog, new Set())[0].status).toBe(
     "rejected",
   ),
 );

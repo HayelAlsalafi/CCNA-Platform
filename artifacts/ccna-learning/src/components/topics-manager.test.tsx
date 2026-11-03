@@ -251,6 +251,7 @@ it("preserves selection across pages and clears it when filters change", async (
 it("confirms bulk visibility and carries exact selected UUIDs and versions across pages", async () => {
   await click('[aria-label="Select topic ' + id + '"]');
   await button("Next");
+  await vi.waitFor(async()=>{await act(async()=>{});expect(host.querySelector('[aria-label="Select topic '+other+'"]')).not.toBeNull();});
   await click('[aria-label="Select topic ' + other + '"]');
   await button("Disable selected");
   expect(calls.some((c) => c.options.method === "POST")).toBe(false);

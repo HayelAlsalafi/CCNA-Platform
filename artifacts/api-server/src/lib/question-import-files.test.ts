@@ -1,3 +1,4 @@
+import { ccnaBookChapters } from "../../../../lib/ccna-book-chapters";
 import { describe, expect, it } from "vitest";
 import {
   importHeaders,
@@ -12,10 +13,10 @@ import {
   zipEntries,
   MAX_FILE_BYTES,
 } from "./question-import-files";
-const topic = "11111111-1111-4111-8111-111111111111",
+const topic = ccnaBookChapters[0].topicId,
   blueprint = "22222222-2222-4222-8222-222222222222";
 const row = {
-  topicId: topic,
+  chapterCode: ccnaBookChapters[0].code,
   text: "Which protocol?",
   difficulty: "EASY",
   optionA: "OSPF",
@@ -141,14 +142,20 @@ describe("row validation and explicit taxonomy", () => {
     expect(out[0]?.row).toBe(2);
     expect(out[0]?.errors.length).toBeGreaterThan(0);
   });
-  it("accepts multiple objective codes with exactly one explicitly selected primary", () => {
+  it("rejects retired objective mappings and accepts only the explicit canonical chapter without inferred objectives", () => {
     const out = validateImportRows(
       [record({ blueprintId: blueprint, objectiveCodes: "1.1;2.1", primaryObjectiveCode: "2.1" })],
       catalog,
       new Set(),
     );
-    expect(out[0]?.status).toBe("accepted");
-    expect(out[0]?.draft?.assignments.map((a) => a.isPrimary)).toEqual([false, true]);
+    expect(out[0]?.status).toBe("rejected");
+    expect(out[0]?.draft).toBeUndefined();
+    expect(out[0]?.errors.some(error=>/retired/i.test(error.message))).toBe(true);
+    const canonical=validateImportRows([row],catalog,new Set());
+    expect(canonical[0]?.status).toBe("accepted");
+    expect(canonical[0]?.draft?.question.topicId).toBe(topic);
+    expect(canonical[0]?.draft?.question.status).toBe("DISABLED");
+    expect(canonical[0]?.draft?.assignments).toEqual([]);
   });
   it.each<Record<string, string>>([
     { blueprintId: blueprint },

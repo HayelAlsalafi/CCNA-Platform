@@ -57,7 +57,8 @@ router.get("/lesson-media/:id", (req, res) => {
       );
       // Authorization is evaluated before every conditional cache response.
       res.setHeader("Cache-Control","private, no-cache");
-      res.setHeader("Vary","Authorization, Cookie");
+      res.vary("Authorization");
+      res.vary("Cookie");
       res.setHeader("ETag",`"${sha256}"`);
       if(req.get("If-None-Match")===`"${sha256}"`) {res.status(304).end();return;}
       res.setHeader("Content-Type", mime);

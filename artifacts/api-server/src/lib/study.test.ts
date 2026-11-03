@@ -237,7 +237,7 @@ it("counts completion only against visible current revisions and never reads ano
   expect(completionPercent(0, 0)).toBe(0);
 });
 it("proposes only three additive tables with owner RLS and revision restrictions", () => {
-  const sql = readFileSync("lib/db/drizzle/proposed/0014_interactive_study.sql", "utf8");
+  const sql = readFileSync(new URL("../../../../lib/db/drizzle/proposed/0014_interactive_study.sql",import.meta.url), "utf8");
   expect(sql.match(/CREATE TABLE/g)).toHaveLength(3);
   expect(sql).not.toMatch(/\b(DROP|TRUNCATE|GRANT|DELETE FROM)\b/);
   expect(sql).toContain("ENABLE ROW LEVEL SECURITY");
@@ -250,9 +250,11 @@ it("proposes only three additive tables with owner RLS and revision restrictions
       expect(fk.onDelete).toBe("restrict");
     }
   }
-  expect(
-    JSON.parse(readFileSync("lib/db/drizzle/meta/_journal.json", "utf8")).entries.at(-1).tag,
-  ).toBe("0013_learning_lessons");
+  const journal=JSON.parse(readFileSync(new URL("../../../../lib/db/drizzle/meta/_journal.json",import.meta.url),"utf8"));
+  expect(journal.entries[12]).toMatchObject({idx:12,tag:"0013_learning_lessons"});
+  expect(journal.entries[13]).toMatchObject({idx:13,tag:"0014_interactive_study"});
+  expect(journal.entries.at(-1)).toMatchObject({idx:16,tag:"0017_exam_simulator"});
+  expect(journal.entries.map((entry:{idx:number})=>entry.idx)).toEqual(Array.from({length:17},(_,i)=>i));
 });
 it("keeps generated contracts aligned with current study payloads and enhanced immutable lesson blocks", () => {
   const annotation = {

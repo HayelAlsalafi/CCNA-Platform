@@ -276,6 +276,9 @@ it("expiration requests server finalization and disables further editing", async
   await flush();
   expect(calls.filter((c) => c.url.endsWith("/submit"))).toHaveLength(1);
   expect(host.textContent).toContain("Expired exam results");
+  await flush();
+  expect(calls.filter((c) => c.url.endsWith("/submit"))).toHaveLength(1);
+  expect([...host.querySelectorAll<HTMLInputElement>("input[type=radio],input[type=checkbox]")].every(input=>input.disabled)).toBe(true);
 });
 it("owned history resumes the exact saved session", async () => {
   await render();
@@ -284,6 +287,22 @@ it("owned history resumes the exact saved session", async () => {
   );
   expect(window.location.search).toBe("?session=" + id);
   expect(host.textContent).toContain("Select a transport protocol.");
+});
+it("crossing the original deadline auto-submits once and leaves no editable answers", async () => {
+  const start=Date.parse("2026-01-01T00:00:00Z");
+  vi.useFakeTimers({toFake:["Date"]});vi.setSystemTime(start);
+  try {
+    run.serverNow=new Date(start).toISOString();run.deadlineAt=new Date(start+500).toISOString();
+    window.history.replaceState({},"","/exam?session="+id);await render();
+    expect(calls.filter(c=>c.url.endsWith("/submit"))).toHaveLength(0);
+    run.needsFinalization=true;vi.setSystemTime(start+2000);
+    await act(async()=>{await new Promise(r=>setTimeout(r,1200));});await flush();
+    expect(calls.filter(c=>c.url.endsWith("/submit"))).toHaveLength(1);
+    expect(host.textContent).toContain("Expired exam results");
+    expect(host.querySelector("input[type=radio]:not(:disabled),input[type=checkbox]:not(:disabled)")).toBeNull();
+    await act(async()=>{await new Promise(r=>setTimeout(r,1100));});
+    expect(calls.filter(c=>c.url.endsWith("/submit"))).toHaveLength(1);
+  }finally{vi.useRealTimers();}
 });
 it("signed-out visitors see sign-in without leaking an existing run", async () => {
   auth.isSignedIn = false;

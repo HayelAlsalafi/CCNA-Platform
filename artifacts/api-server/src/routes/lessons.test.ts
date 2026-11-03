@@ -188,7 +188,7 @@ it("conflict responses preserve meaningful reload feedback", async () => {
   );
   const response = await fetch(`${base}/admin/lessons/${id}/publish`, write({ version: 1 }));
   expect(response.status).toBe(409);
-  expect((await response.json()).error.message).toBe("Reload latest version.");
+  expect(((await response.json()) as { error: { code: string; message: string; details: { path: string }[] } }).error.message).toBe("Reload latest version.");
 });
 it("sanitizes unexpected driver errors without raw SQL or credentials", async () => {
   state.operation.mockRejectedValue(new Error("password=never-print SELECT secret"));
@@ -234,7 +234,7 @@ it("rejects malformed successful service responses instead of exposing invalid l
   state.operation.mockResolvedValue({ lesson: { title: "Missing immutable snapshot" } });
   const response = await fetch(`${base}/lessons/${id}`);
   expect(response.status).toBe(500);
-  const error = (await response.json()).error;
+  const error = ((await response.json()) as { error: { code: string; message: string; details: { path: string }[] } }).error;
   expect(error.code).toBe("LESSON_RESPONSE_INVALID");
   expect(error.details).toContainEqual({ path: "lesson.id", code: expect.any(String) });
   expect(JSON.stringify(error)).not.toContain("Missing immutable snapshot");
@@ -292,7 +292,7 @@ it("passes non-empty real chapter and library service outputs through the actual
   );
   const chapter = await fetch(`${base}/chapters/${chapterId}/lessons`);
   expect(chapter.status).toBe(200);
-  expect((await chapter.json()).items[0]).toMatchObject({
+  expect(((await chapter.json()) as { items: unknown[] }).items[0]).toMatchObject({
     id: lessonId,
     chapterId,
     status: "PUBLISHED",
@@ -306,7 +306,7 @@ it("passes non-empty real chapter and library service outputs through the actual
   );
   const library = await fetch(`${base}/admin/lessons/library?page=1&pageSize=25`);
   expect(library.status).toBe(200);
-  const body = await library.json();
+  const body = (await library.json()) as { items: unknown[]; total: number };
   expect(body.items[0]).toMatchObject({
     id: lessonId,
     status: "PUBLISHED",
@@ -319,7 +319,7 @@ it("returns GET filter diagnostics instead of telling the reader to edit lesson 
   state.user.role = "ADMIN";
   const response = await fetch(`${base}/admin/lessons/library?pageSize=500`);
   expect(response.status).toBe(400);
-  const error = (await response.json()).error;
+  const error = ((await response.json()) as { error: { code: string; message: string; details: { path: string }[] } }).error;
   expect(error.message).toContain("invalid filters");
   expect(error.details[0].path).toBe("pageSize");
   expect(state.operation).not.toHaveBeenCalled();

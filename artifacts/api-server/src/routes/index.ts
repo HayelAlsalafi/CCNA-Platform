@@ -1,3 +1,4 @@
+import adminLearnersRouter from "./admin-learners";
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import learningRouter from "./learning";
@@ -19,6 +20,7 @@ const router: IRouter = Router();
 router.use(healthRouter);
 router.use(learningRouter);
 router.use(authRouter);
+router.use(adminLearnersRouter);
 router.use(questionsRouter);
 router.use(practiceRouter);
 router.use(adminTopicsRouter);

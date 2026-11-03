@@ -162,8 +162,9 @@ export async function createAdminQuestion(input: unknown, db: Db = defaultDb) {
   }
 }
 
-export async function updateAdminQuestion(id: string, input: unknown, db: Db = defaultDb) {
+export async function updateAdminQuestion(id: string, input: unknown, db: Db = defaultDb, publicationReviewed = false) {
   const data = parseUpdate(input);
+  if (data.status === "ACTIVE" && !publicationReviewed) throw validationError([{path:"status",message:"Review and publish through Question Studio."}]);
 
   return db.transaction(async (tx) => {
     const [existing] = await tx.select({ id: questionsTable.id }).from(questionsTable).where(eq(questionsTable.id, id)).limit(1).for("update");
@@ -175,6 +176,7 @@ export async function updateAdminQuestion(id: string, input: unknown, db: Db = d
     }
 
     const [original] = await tx.select().from(questionsTable).where(eq(questionsTable.id, id));
+    if (original?.status === "ACTIVE" && !publicationReviewed) throw validationError([{path:"status",message:"Edit published questions through Question Studio so readiness is rechecked."}]);
     const originalOptions = await tx.select().from(questionOptionsTable).where(eq(questionOptionsTable.questionId, id));
     const merged = createQuestionInputSchema.safeParse({
       topicId: original!.topicId, text: original!.text, type: original!.type,

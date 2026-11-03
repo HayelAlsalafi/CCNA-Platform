@@ -51,7 +51,7 @@ export async function createQuestion(input: unknown, db: Db = defaultDb) {
         explanation: q.explanation,
         imageKey: q.imageKey,
         referenceNotes: q.referenceNotes,
-        status: q.status,
+        status: "DISABLED",
       })
       .returning();
     if (!question) throw new Error("Question insert returned no row.");

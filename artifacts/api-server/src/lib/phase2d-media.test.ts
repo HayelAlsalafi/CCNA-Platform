@@ -1,3 +1,4 @@
+import { tmpdir } from "node:os";
 import {expect,it,vi} from "vitest";
 import {mkdtemp,mkdir,readFile} from "node:fs/promises";
 import path from "node:path";
@@ -26,7 +27,7 @@ it("keeps uploads blocked before object writes when metadata is not activated",a
   await expect(createLibraryMedia(actor,await fixture(),"image/png",{},db as never,store)).rejects.toMatchObject({code:"MEDIA_LIBRARY_NOT_READY"});expect(store.put).not.toHaveBeenCalled();
 });
 it("stores and retrieves real optimized objects in a disposable local fixture, without overwriting references",async()=>{
-  const base=path.resolve(".local/phase2d-media-fixtures");await mkdir(base,{recursive:true});const root=await mkdtemp(path.join(base,"case-"));expect(root.startsWith(base+path.sep)).toBe(true);
+  const base=path.join(tmpdir(), "ccna-phase2d-media-fixtures");await mkdir(base,{recursive:true});const root=await mkdtemp(path.join(base,"case-"));expect(root.startsWith(base+path.sep)).toBe(true);
   const store=new LocalLessonMedia(root);let inserted:any[]=[];const queries:string[]=[];
   const db={execute:vi.fn(async(statement:unknown)=>{const q=new PgDialect().sqlToQuery(statement as never);queries.push(q.sql);
     if(q.sql.includes("information_schema"))return{rows:[{count:8}]};

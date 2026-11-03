@@ -88,7 +88,7 @@ export function cleanEnvironment(parent, mode, input) {
     result.PORT = '3000'; result.DATABASE_URL = applicationUrl(input);
     result.CLERK_PUBLISHABLE_KEY = input.publishableKey; result.CLERK_SECRET_KEY = input.secretKey;
     result.LOG_LEVEL = 'warn';
-    for (const name of ['LESSON_MEDIA_PROVIDER','LESSON_MEDIA_S3_ENDPOINT','LESSON_MEDIA_S3_REGION','LESSON_MEDIA_S3_BUCKET','LESSON_MEDIA_S3_ACCESS_KEY_ID','LESSON_MEDIA_S3_SECRET_ACCESS_KEY'])
+    for (const name of ['ALLOWED_ORIGINS','API_TRUST_PROXY','API_RATE_WINDOW_MS','API_RATE_GLOBAL','API_RATE_ADMIN','API_RATE_UPLOADS','API_RATE_EXAM_START','API_RATE_PRACTICE_SUBMIT','LESSON_MEDIA_PROVIDER','LESSON_MEDIA_S3_ENDPOINT','LESSON_MEDIA_S3_REGION','LESSON_MEDIA_S3_BUCKET','LESSON_MEDIA_S3_ACCESS_KEY_ID','LESSON_MEDIA_S3_SECRET_ACCESS_KEY'])
       if (typeof parent[name] === 'string') result[name] = parent[name];
   }
   if (mode === 'web') {

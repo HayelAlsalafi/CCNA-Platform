@@ -124,6 +124,6 @@ it("identifies response validation failure without exposing row values", async (
   state.analytics.mockRejectedValue(new NexusError(500, "ANALYTICS_RESPONSE_INVALID", "Learning data could not be validated."));
   const response = await fetch(base);
   expect(response.status).toBe(500);
-  expect((await response.json()).error.code).toBe("ANALYTICS_RESPONSE_INVALID");
+  expect(((await response.json()) as { error: { code: string; message: string; details: { path: string }[] } }).error.code).toBe("ANALYTICS_RESPONSE_INVALID");
   expect(state.log).toHaveBeenCalledWith({ code: "ANALYTICS_RESPONSE_INVALID" }, "Nexus operation rejected");
 });

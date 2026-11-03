@@ -1,3 +1,5 @@
+import path from "node:path";
+import {fileURLToPath} from "node:url";
 // @vitest-environment jsdom
 import { act, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -52,7 +54,7 @@ it("reuses one observer to update the toolbar inset and disconnects it on unmoun
   await act(async()=>root!.unmount());root=undefined;expect(disconnect).toHaveBeenCalledOnce();
 });
 it("limits sticky scrolling to the normal desktop column without nesting an outline scroller",()=>{
-  const css=readFileSync("artifacts/ccna-learning/src/learning-workspace.css","utf8");
+  const css=readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)),"../learning-workspace.css"),"utf8");
   const desktop=css.slice(css.indexOf("@container learning (min-width: 1200px)"),css.indexOf("@container learning (max-width: 1199px)"));
   expect(desktop).toContain(":not(.lesson-focus-mode)");expect(desktop).toContain("position: sticky");expect(desktop).toContain("top: var(--study-hub-top, 160px)");expect(desktop).toContain("align-self: start");expect(desktop).toContain("overflow-y: auto");expect(desktop).toContain("overflow: visible");
 });

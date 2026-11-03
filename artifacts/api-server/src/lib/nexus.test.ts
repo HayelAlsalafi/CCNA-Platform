@@ -93,7 +93,7 @@ it("rejects unsupported timeline ranges", async () => {
   });
 });
 it("proposal restricts historical bindings and requires non-null terminal timestamps", () => {
-  const sql = readFileSync("lib/db/drizzle/proposed/0007_nexus_sessions.sql", "utf8");
+  const sql = readFileSync(new URL("../../../../lib/db/drizzle/proposed/0007_nexus_sessions.sql",import.meta.url), "utf8");
   expect(sql).toContain("completed_at IS NOT NULL");
   expect(sql).toContain("FOREIGN KEY(delivery_id,user_id,question_id,revision_id)");
   expect(sql.match(/ON DELETE RESTRICT/g)).toHaveLength(3);

@@ -1,3 +1,4 @@
+import { ccnaBookChapters } from "../../../../lib/ccna-book-chapters";
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({ writes: [] as unknown[], failAt: 0, calls: 0 }));
 vi.mock('@workspace/db', async () => ({ ...(await import('@workspace/db/schema')), db: {} }));
@@ -10,14 +11,14 @@ vi.mock('./questions', () => ({
   }),
 }));
 import {
-  topicsTable,
+  curriculumChaptersTable,
   examObjectivesTable,
   questionsTable,
   questionOptionsTable,
 } from '@workspace/db/schema';
 import { previewQuestionImport, confirmQuestionImport, PREVIEW_TTL_MS } from './question-import';
 import { importHeaders } from './admin-content-validation';
-const topic = '11111111-1111-4111-8111-111111111111';
+const topic = ccnaBookChapters[0].topicId;
 const upload = (rows = 1) => ({
   filename: 'questions.csv',
   dataBase64: Buffer.from(
@@ -29,7 +30,7 @@ const upload = (rows = 1) => ({
             (h) =>
               (
                 ({
-                  topicId: topic,
+                  chapterCode: ccnaBookChapters[0].code,
                   text: `Question ${i}`,
                   difficulty: 'EASY',
                   optionA: 'yes',
@@ -57,7 +58,7 @@ function fake() {
   const database = {
     select: () => ({
       from: async (table: unknown) =>
-        table === topicsTable
+        table === curriculumChaptersTable
           ? [{ id: stale ? '22222222-2222-4222-8222-222222222222' : topic }]
           : duplicate && table === questionsTable
             ? [{ id: 'existing', topicId: topic, text: 'Question 0' }]

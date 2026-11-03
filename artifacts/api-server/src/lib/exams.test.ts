@@ -90,6 +90,7 @@ it("active DTO has no answer keys, feedback, explanation or reference notes", ()
 });
 it("terminal feedback uses the captured revision and supports multiple correct options", () => {
   const dto = examQuestionDTO(row(["B", "A"], true), true);
+  if (!("review" in dto)) throw new Error("Terminal DTO must include review");
   expect(dto.review?.correctOptions).toHaveLength(2);
   expect(dto.review?.explanation).toBe("PRIVATE EXPLANATION");
 });

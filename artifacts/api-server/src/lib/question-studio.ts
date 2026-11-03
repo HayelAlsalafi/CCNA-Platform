@@ -295,7 +295,7 @@ async function saveInTransaction(
   if (duplicates.items.length && !input.acknowledgeDuplicate)
     conflict("Possible duplicate question. Review it and explicitly acknowledge before saving.");
   const question = id
-    ? await updateAdminQuestion(id, input.question, tx)
+    ? await updateAdminQuestion(id, input.question, tx, true)
     : await createAdminQuestion(input.question, tx);
   return { question, editToken: await editToken(question.id, tx) };
 }

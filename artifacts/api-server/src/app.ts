@@ -1,5 +1,5 @@
 import express, { type Express } from "express";
-import cors from "cors";
+import { installPilotSecurity, apiNotFound, apiError } from "./middlewares/pilot-security";
 import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
@@ -34,7 +34,7 @@ app.use(
   }),
 );
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
-app.use(cors({ credentials: true, origin: true }));
+installPilotSecurity(app);
 app.use(parseApiBody);
 app.use(
   clerkMiddleware((req) => ({
@@ -46,5 +46,7 @@ app.use(
 );
 
 app.use("/api", router);
+app.use("/api", apiNotFound);
+app.use(apiError);
 
 export default app;

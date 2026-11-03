@@ -42,8 +42,11 @@ describe("official additive taxonomy migration (static, no database)", () => {
     expect(normalize(definition!)).toBe(normalize(`CREATE TYPE public.${examBlueprintStatusEnum.enumName} AS ENUM ('${examBlueprintStatusEnum.enumValues.join("', '")}')`));
   });
   it("is journaled after the revision migration and preserves rehearsed SQL", () => {
-    expect(journal.entries.at(-1)).toMatchObject({ idx: 5, tag: "0005_exam_taxonomy" });
-    expect(journal.entries.map((entry) => entry.idx)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(journal.entries[4]).toMatchObject({ idx: 4, tag: "0004_question_revisions" });
+    expect(journal.entries.slice(0,6).at(-1)).toMatchObject({ idx: 5, tag: "0005_exam_taxonomy" });
+    expect(journal.entries.at(-1)).toMatchObject({idx:16,tag:"0017_exam_simulator"});
+    expect(journal.entries.slice(0,6).map((entry) => entry.idx)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(journal.entries.map(entry=>entry.idx)).toEqual(Array.from({length:17},(_,i)=>i));
     expect(migration).toBe(readFileSync(new URL("../../../../lib/db/drizzle/proposed/0005_exam_taxonomy.sql", import.meta.url), "utf8"));
   });
   it.each(tables.map((table) => [getTableName(table), table] as const))("matches columns, defaults, checks, keys and indexes for %s", (_name, table) => {

@@ -47,10 +47,13 @@ const row = {
   updatedAt: new Date("2026-10-27T00:00:00Z"),
 };
 it("keeps the approved lesson migration additive with matching publication ownership FK", () => {
-  const proposal = readFileSync("lib/db/drizzle/proposed/0013_learning_lessons.sql", "utf8");
-  const journal = JSON.parse(readFileSync("lib/db/drizzle/meta/_journal.json", "utf8"));
-  expect(journal.entries.at(-1).tag).toBe("0013_learning_lessons");
-  expect(readFileSync("lib/db/drizzle/0013_learning_lessons.sql", "utf8")).toBe(proposal);
+  const proposal = readFileSync(new URL("../../../../lib/db/drizzle/proposed/0013_learning_lessons.sql",import.meta.url), "utf8");
+  const journal = JSON.parse(readFileSync(new URL("../../../../lib/db/drizzle/meta/_journal.json",import.meta.url), "utf8"));
+  expect(journal.entries[12]).toMatchObject({idx:12,tag:"0013_learning_lessons"});
+  expect(journal.entries[13]).toMatchObject({idx:13,tag:"0014_interactive_study"});
+  expect(journal.entries.at(-1)).toMatchObject({idx:16,tag:"0017_exam_simulator"});
+  expect(journal.entries.map((entry:{idx:number})=>entry.idx)).toEqual(Array.from({length:17},(_,i)=>i));
+  expect(readFileSync(new URL("../../../../lib/db/drizzle/0013_learning_lessons.sql",import.meta.url), "utf8")).toBe(proposal);
   expect(proposal).not.toMatch(
     /\b(?:DROP|TRUNCATE)\b|(?:DELETE FROM|UPDATE|ALTER TABLE) public\.(?:questions|topics|practice_|users|curriculum_chapters)/i,
   );

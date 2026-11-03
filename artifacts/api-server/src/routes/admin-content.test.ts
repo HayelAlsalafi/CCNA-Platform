@@ -130,7 +130,7 @@ describe('Admin content boundaries', () => {
       body: '{',
     });
     expect(r.status).toBe(400);
-    expect((await r.json()).error.code).toBe('INVALID_UPLOAD');
+    expect(((await r.json()) as { error: { code: string; message: string; details: { path: string }[] } }).error.code).toBe('INVALID_UPLOAD');
   });
   it('returns real downloadable CSV and XLSX templates under no-store', async () => {
     for (const ext of ['csv', 'xlsx']) {

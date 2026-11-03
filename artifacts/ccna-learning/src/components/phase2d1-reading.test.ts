@@ -1,16 +1,25 @@
+import path from "node:path";
+import {fileURLToPath} from "node:url";
 // @vitest-environment jsdom
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { afterEach, expect, it } from "vitest";
+const require=createRequire(import.meta.url);
+const {parse}=require(require.resolve("postcss",{paths:[require.resolve("vite")]}));
 
 afterEach(() => { document.head.innerHTML = ""; document.body.innerHTML = ""; });
 
 it("removes the hidden navigation column in focus and restores it on exit", () => {
   const style = document.createElement("style");
-  // Desktop unconditional rules; container queries are not implemented by jsdom.
-  style.textContent = ["nexus.css", "lessons.css", "study.css", "learning-workspace.css"]
-    .map(name => readFileSync(`artifacts/ccna-learning/src/${name}`, "utf8").split("@container")[0])
-    .join("\n");
   document.head.append(style);
+  // Exercise the real unconditional desktop cascade. A nested media rule or
+  // unsupported container block must not make jsdom discard the entire sheet.
+  // Insert each top-level rule independently; do not invent layout declarations.
+  for(const name of ["nexus.css","lessons.css","study.css","learning-workspace.css"]){
+    const source=parse(readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)),"..",name),"utf8"));
+    for(const rule of source.nodes.filter((node:{type:string})=>node.type==="rule"))
+      style.sheet!.insertRule(rule.toString(),style.sheet!.cssRules.length);
+  }
   document.body.innerHTML = `<div class="nexus-app"><aside class="nexus-sidebar"></aside><div class="nexus-body"><div class="lesson-workspace"><div class="lesson-learning-layout"><nav class="learning-sidebar"></nav><main class="lesson-main-content"><article class="lesson-prose"></article><aside class="lesson-toc"><textarea>Unsaved note</textarea></aside></main></div></div></div></div>`;
   const workspace = document.querySelector(".lesson-workspace")!;
   const layout = document.querySelector(".lesson-learning-layout")!;

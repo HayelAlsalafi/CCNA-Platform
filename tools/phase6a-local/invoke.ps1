@@ -47,7 +47,7 @@ foreach($name in @('SystemRoot','SYSTEMROOT','WINDIR','COMSPEC','PATH','PATHEXT'
   if($null -ne $value){$info.EnvironmentVariables[$name]=$value}
 }
 if ($Mode -eq 'api') {
-  $mediaNames = @('LESSON_MEDIA_PROVIDER','LESSON_MEDIA_S3_ENDPOINT','LESSON_MEDIA_S3_REGION','LESSON_MEDIA_S3_BUCKET','LESSON_MEDIA_S3_ACCESS_KEY_ID','LESSON_MEDIA_S3_SECRET_ACCESS_KEY')
+  $mediaNames = @('ALLOWED_ORIGINS','API_TRUST_PROXY','API_RATE_WINDOW_MS','API_RATE_GLOBAL','API_RATE_ADMIN','API_RATE_UPLOADS','API_RATE_EXAM_START','API_RATE_PRACTICE_SUBMIT','LESSON_MEDIA_PROVIDER','LESSON_MEDIA_S3_ENDPOINT','LESSON_MEDIA_S3_REGION','LESSON_MEDIA_S3_BUCKET','LESSON_MEDIA_S3_ACCESS_KEY_ID','LESSON_MEDIA_S3_SECRET_ACCESS_KEY')
   $mediaFile = Join-Path $root '.local\minio\api-credentials.xml'
   . (Join-Path $PSScriptRoot 'seaweed-environment.ps1')
   # The existing external SeaweedFS file is authoritative when present. Never copy it.

@@ -1,11 +1,11 @@
 // Actual Drizzle on a query-recording fake client, never a PostgreSQL connection.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync,mkdirSync,mkdtempSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {isolatedMigrationClient} from './migration-context.mjs';
-import {sourcePlan,stageExam} from './activation.mjs';
+import {examSourceFixture} from '../test-support/exam-source-fixture.mjs';
 import {assertExamProposal} from './proposal.mjs';
 const database='ccna_exam_0017_restore_'+'a'.repeat(24);
 function fixture(overrides={},ignoreSetting=false) {
@@ -22,10 +22,10 @@ function fixture(overrides={},ignoreSetting=false) {
   }};
 }
 test('actual staged Drizzle statements target public, retain the setting through savepoints and keep ledger in drizzle',async()=>{
-  const root=process.cwd(),req=createRequire(path.join(root,'lib/db/package.json'));
+  const repository=process.cwd(),{root,work,plan,activation}=await examSourceFixture(repository),req=createRequire(path.join(repository,'lib/db/package.json'));
   const {drizzle}=req('drizzle-orm/node-postgres'),{migrate}=req('drizzle-orm/node-postgres/migrator');
-  mkdirSync('.local/exam-0017-source-tests',{recursive:true});const work=mkdtempSync(path.join(root,'.local/exam-0017-source-tests/context-')),folder=path.join(work,'migrations');
-  stageExam(root,folder,sourcePlan(root));const c=fixture(),guarded=await isolatedMigrationClient(c,database);
+  const folder=path.join(work,'migrations');
+  activation.stageExam(root,folder,plan);const c=fixture(),guarded=await isolatedMigrationClient(c,database);
   await migrate(drizzle(guarded),{migrationsFolder:folder,migrationsSchema:'drizzle',migrationsTable:'__drizzle_migrations'});
   assert.deepEqual(c.targets,[{table:'exam_sessions',schema:'public',path:'public, pg_catalog'},{table:'exam_session_items',schema:'public',path:'public, pg_catalog'}]);
   assert(c.calls.some(s=>s==='SAVEPOINT ccna_lesson_transaction'));assert(c.calls.some(s=>s==='RELEASE SAVEPOINT ccna_lesson_transaction'));

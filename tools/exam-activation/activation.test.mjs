@@ -1,27 +1,28 @@
 import {requiredSafetyCases} from './safety-assertions.mjs';
 // Offline filesystem/query fixtures only. No PostgreSQL or service startup.
-import {test} from 'node:test';
+import {test,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync,mkdirSync,mkdtempSync,cpSync,readdirSync} from 'node:fs';
 import path from 'node:path';
-import {createRequire} from 'node:module';
-import {sourcePlan,offlinePlan,stageExam,promoteExam,assertFreshBackup,assertRehearsal,toolingHash} from './activation.mjs';
+import {examSourceFixture,installedServiceRequire} from '../test-support/exam-source-fixture.mjs';
 import {assertExamProposal,exam17Migration} from './proposal.mjs';
 import {executionIntent} from './apply.mjs';
-import {migrationManifest,runtimeTableInventory} from '../phase6a-local/policy.mjs';
+
 import {upgradeSnapshots,assertSchemaCatalog} from '../phase6a-local/upgrade.mjs';
 import {assertExamDetails,examExpression} from './runtime-details.mjs';
 import {assertExamPrivileges} from '../exam-policy.mjs';
 import {withReadOnlyUtc} from '../study-activation/read-only-utc.mjs';
 import {loadExamServices} from './service-fixture.mjs';
-const root=process.cwd(),plan=sourcePlan(root);
-mkdirSync('.local/exam-0017-source-tests',{recursive:true});
-const work=mkdtempSync(path.join(root,'.local/exam-0017-source-tests/offline-'));
+const repository=process.cwd();
+const {root,work,plan,activation,policy}=await examSourceFixture(repository);
+const {sourcePlan,offlinePlan,stageExam,promoteExam,assertFreshBackup,assertRehearsal,toolingHash}=activation;
+const {migrationManifest,runtimeTableInventory}=policy;
+after(()=>{assert.equal(JSON.parse(readFileSync(path.join(repository,'lib/db/drizzle/meta/_journal.json'))).entries.length,17);assertExamProposal(repository);});
 function copy() {
  const dest=mkdtempSync(path.join(work,'source-'));
- cpSync('lib/db/drizzle',path.join(dest,'lib/db/drizzle'),{recursive:true});
- cpSync('tools/exam-activation',path.join(dest,'tools/exam-activation'),{recursive:true});
- for(const name of ['tools/canonical-chapters-original-approval.json','tools/canonical-chapters-plan.json','lib/ccna-book-chapters.ts','lib/canonical-chapters.json']){mkdirSync(path.dirname(path.join(dest,name)),{recursive:true});cpSync(name,path.join(dest,name));}
+ cpSync(path.join(root,'lib/db/drizzle'),path.join(dest,'lib/db/drizzle'),{recursive:true});
+ cpSync(path.join(root,'tools/exam-activation'),path.join(dest,'tools/exam-activation'),{recursive:true});
+ for(const name of ['tools/canonical-chapters-original-approval.json','tools/canonical-chapters-plan.json','lib/ccna-book-chapters.ts','lib/canonical-chapters.json']){mkdirSync(path.dirname(path.join(dest,name)),{recursive:true});cpSync(path.join(root,name),path.join(dest,name));}
  return dest;
 }
 test('exact 16 baseline remains accepted, Plan is offline and only 0017 is staged',()=>{
@@ -43,7 +44,7 @@ test('promotion copies exact forward metadata; valid 17 accepted and partial/unk
 });
 test('proposal preserves all original definitions, historical deletion helper, ACL boundaries',()=>{
  const source=assertExamProposal(root);assert.equal(source.snapshot.prevId,source.baseline.id);
- const sql=readFileSync(plan.proposal.file,'utf8'),old=readFileSync('lib/db/drizzle/proposed/0012_exam_simulator.sql','utf8');
+ const sql=readFileSync(path.join(root,plan.proposal.file),'utf8'),old=readFileSync(path.join(root,'lib/db/drizzle/proposed/0012_exam_simulator.sql'),'utf8');
  const bodies=s=>[...s.matchAll(/AS \$\$([\s\S]*?)\$\$/g)].map(m=>m[1]);assert.deepEqual(bodies(sql),bodies(old));
  assert(sql.includes('RENAME TO execute_question_deletion_pre_exam'));
  assert(sql.includes('GRANT UPDATE(selected_keys,flagged,answer_version,graded_result)'));
@@ -76,8 +77,10 @@ test('postcommit verifier always uses transaction-local UTC and rolls back on mi
  assert(calls.some(s=>s.includes('READ ONLY')));assert(calls.some(s=>s.includes("set_config('TimeZone','UTC',true)")));assert.equal(calls.at(-1),'ROLLBACK');
 });
 test('actual service fixture bundles with inert DB shim and no application pool',()=>{
- const folder=path.join(work,'bundle');mkdirSync(folder);const req=createRequire(path.join(root,'lib/db/package.json'));
- const services=loadExamServices(root,folder,req);assert.equal(typeof services.examStart,'function');assert.equal(typeof services.examSubmit,'function');
+ const folder=path.join(work,'bundle');mkdirSync(folder);const req=installedServiceRequire(repository);
+ const previous=process.env.ESBUILD_BINARY_PATH;
+ try {const services=loadExamServices(root,folder,req);assert.equal(typeof services.examStart,'function');assert.equal(typeof services.examSubmit,'function');}
+ finally {if(previous===undefined)delete process.env.ESBUILD_BINARY_PATH;else process.env.ESBUILD_BINARY_PATH=previous;}
 });
 test('exact exam runtime metadata accepts reviewed fixtures and rejects extra grants, policies, constraints and index drift',async()=>{
  const tables=['exam_sessions','exam_session_items'];
