@@ -1,0 +1,82 @@
+[
+  {
+    "tag": "0000_baseline",
+    "when": 1790841815042,
+    "hash": "b39fe82f5797542f49912d07408d96f8bac49a592263dde8082505ccea8d9bd4"
+  },
+  {
+    "tag": "0001_question_domain",
+    "when": 1791178791105,
+    "hash": "b3fee57baf66f4cb0d3cd27efee61d5508e93123b4ea6f42b120a78173a88a58"
+  },
+  {
+    "tag": "0002_question_code_immutable",
+    "when": 1791178792322,
+    "hash": "63dd70e696142401560e5d5063ca39d0498107b9e67ae8cdf2756c352709b28f"
+  },
+  {
+    "tag": "0003_practice_attempts",
+    "when": 1791446400000,
+    "hash": "0117dfe4623e214b59f806b70dc684bdc963c25bb83895c327ea86b10fbc6a3d"
+  },
+  {
+    "tag": "0004_question_revisions",
+    "when": 1791694800000,
+    "hash": "74584d593471b633abd8387f44d15c19b9cdd49b3fa54cfaa26712d1c043b495"
+  },
+  {
+    "tag": "0005_exam_taxonomy",
+    "when": 1791808640068,
+    "hash": "d1d40e488a00c14c7958dc5b1f83bda5e4bb420a4d05974ae92c3f6ca0027226"
+  },
+  {
+    "tag": "0006_controlled_history_delete",
+    "when": 1791964800000,
+    "hash": "2b77bb268d42f33d2fe24d0fb909939e8253a17e751c5b56beebb6332dfaf298"
+  },
+  {
+    "tag": "0007_nexus_sessions",
+    "when": 1792022400000,
+    "hash": "b2578800031d07e81297591577b862cfe3952a0955cfc8f1af204637be088b40"
+  },
+  {
+    "tag": "0008_learning_achievements",
+    "when": 1792022401000,
+    "hash": "b608cb80e72745c41904bdfa5292c74218b44f9a94c7d5975b3738e17a4010c4"
+  },
+  {
+    "tag": "0009_multiple_answer_questions",
+    "when": 1792108800000,
+    "hash": "cd2ea484ba1b6f850eb1f64b95fbe91869deecd2093061e05336588819492cef"
+  },
+  {
+    "tag": "0010_universal_question_deletion",
+    "when": 1792108801000,
+    "hash": "31d30aba74261ab2cdcf3e1bc5298fab4b9fd3e7743f1f1659255a4a26fd7b5f"
+  },
+  {
+    "tag": "0011_canonical_book_chapters",
+    "when": 1792195200000,
+    "hash": "27dd0aaa98728d0bcc20ba07b1e5ce92bc6f914a5f04549d503f61ddb2699316"
+  },
+  {
+    "tag": "0013_learning_lessons",
+    "when": 1793059200000,
+    "hash": "e85ace211e7feb28183c3f9a9e7822bd437b060c81717be2aeb4739df0d394a3"
+  },
+  {
+    "tag": "0014_interactive_study",
+    "when": 1793145600000,
+    "hash": "c61edf950aa5de1b5638b98ec406a4e4472efa8c7e7790716a8d447456e06893"
+  },
+  {
+    "tag": "0015_lesson_media_library",
+    "when": 1793145600001,
+    "hash": "f42de505df26dc5a00a49e740ba59ccc1c0e6d053f1f6f77a84b8bf92090a63b"
+  },
+  {
+    "tag": "0016_safe_lesson_deletion",
+    "when": 1793145600002,
+    "hash": "7a64aaaf5fc40e117a7aad2f11682d3fa8426673f17277c77009d19606dd0116"
+  }
+]

@@ -1,3 +1,4 @@
+import {exam17Migration,assertExamProposal} from '../exam-activation/proposal.mjs';
 import {portableRoot,workspaceRoot} from "../workspace-root.mjs";
 import {deletionMigration,assertDeletionProposal} from '../lesson-deletion/policy.mjs';
 import {mediaMigration,assertMediaProposal} from '../media-activation/proposal.mjs';
@@ -109,7 +110,7 @@ export function migrationManifest(root) {
   const dir = path.join(root, 'lib/db/drizzle');
   const journal = JSON.parse(readFileSync(path.join(dir, 'meta/_journal.json'), 'utf8'));
   const lessonOnly=journal.entries.length===13&&journal.entries[12]?.tag===lessonMigration[0];
-  const reviewed=journal.entries.length===16?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration,lessonMigration,studyMigration,mediaMigration,deletionMigration]:journal.entries.length===15?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration,lessonMigration,studyMigration,mediaMigration]:journal.entries.length===14?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration,lessonMigration,studyMigration]:journal.entries.length===13?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration,lessonOnly?lessonMigration:examMigration]:journal.entries.length===12?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration]:journal.entries.length===11?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration]:journal.entries.length===10?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration]:journal.entries.length===9?[...migrations,nexusMigration,learningMigration]:journal.entries.length===8?[...migrations,nexusMigration]:migrations;
+  const reviewed=journal.entries.length===17?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration,lessonMigration,studyMigration,mediaMigration,deletionMigration,exam17Migration]:journal.entries.length===16?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration,lessonMigration,studyMigration,mediaMigration,deletionMigration]:journal.entries.length===15?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration,lessonMigration,studyMigration,mediaMigration]:journal.entries.length===14?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration,lessonMigration,studyMigration]:journal.entries.length===13?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration,lessonOnly?lessonMigration:examMigration]:journal.entries.length===12?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration,canonicalMigration]:journal.entries.length===11?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration,universalDeleteMigration]:journal.entries.length===10?[...migrations,nexusMigration,learningMigration,multipleAnswerMigration]:journal.entries.length===9?[...migrations,nexusMigration,learningMigration]:journal.entries.length===8?[...migrations,nexusMigration]:migrations;
   if (journal.entries.length !== reviewed.length) fail('Migration inventory changed; review required.');
   if(reviewed.length>=8)assertNexusSource(root);
   if(reviewed.length>=9)assertLearningSource(root);
@@ -118,7 +119,8 @@ export function migrationManifest(root) {
   if(reviewed.length===13){if(lessonOnly)assertLessonSource(root);else assertExamSource(root);}
   if(reviewed.length>=14){assertLessonSource(root);assertStudyProposal(root);}
   if(reviewed.length>=15)assertMediaProposal(root);
-  if(reviewed.length===16)assertDeletionProposal(root);
+  if(reviewed.length>=16)assertDeletionProposal(root);
+  if(reviewed.length===17)assertExamProposal(root);
   return reviewed.map(([tag, when, expected], index) => {
     const entry = journal.entries[index];
     if (entry.tag !== tag || entry.when !== when || entry.idx !== index) fail('Migration journal changed; review required.');
@@ -143,10 +145,11 @@ export function runtimeTableInventory(manifest) {
   if(inventory>=11)tables.push('question_deletion_audits');
   if(inventory>=12)tables.push('curriculum_chapters');
   if(inventory===13){if(isLessonChain(manifest))tables.push('lessons','lesson_revisions');else if(manifest.at(-1)?.tag===examMigration[0])tables.push('exam_sessions','exam_session_items');else fail('Unrecognized runtime migration chain.');}
-  if(inventory===14||inventory===15||inventory===16){if(manifest[12]?.tag!==lessonMigration[0]||manifest[13]?.tag!==studyMigration[0])fail('Unrecognized study migration chain.');tables.push('lessons','lesson_revisions','lesson_annotations','lesson_progress','lesson_media');}
+  if(inventory===14||inventory===15||inventory===16||inventory===17){if(manifest[12]?.tag!==lessonMigration[0]||manifest[13]?.tag!==studyMigration[0])fail('Unrecognized study migration chain.');tables.push('lessons','lesson_revisions','lesson_annotations','lesson_progress','lesson_media');}
   if(inventory>=15&&(manifest[14]?.tag!==mediaMigration[0]||manifest[14]?.when!==mediaMigration[1]||manifest[14]?.hash!==mediaMigration[2]))fail('Unreviewed media migration.');
-  if(inventory===16&&(manifest[15]?.tag!==deletionMigration[0]||manifest[15]?.when!==deletionMigration[1]||manifest[15]?.hash!==deletionMigration[2]))fail('Unreviewed deletion migration.');
-  if(inventory>16)fail('Unreviewed runtime migration count.');
+  if(inventory>=16&&(manifest[15]?.tag!==deletionMigration[0]||manifest[15]?.when!==deletionMigration[1]||manifest[15]?.hash!==deletionMigration[2]))fail('Unreviewed deletion migration.');
+  if(inventory===17){assertExamProposal(policy.root);if(manifest[16]?.tag!==exam17Migration[0]||manifest[16]?.when!==exam17Migration[1]||manifest[16]?.hash!==exam17Migration[2])fail('Unreviewed exam migration.');tables.push('exam_sessions','exam_session_items');}
+  if(inventory>17)fail('Unreviewed runtime migration count.');
   return tables.sort();
 }
 export function assertRuntimePrivileges(p) {

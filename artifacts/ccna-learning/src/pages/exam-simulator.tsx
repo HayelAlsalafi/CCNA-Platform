@@ -19,6 +19,8 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "../components/ui/alert-dialog";
+import { ExamConfiguration } from "./exam-configuration";
+import { History, ClipboardList } from "lucide-react";
 import "./exam-workspace.css";
 export function ExamSimulatorPage() {
   const identity = useNexusIdentity();
@@ -36,7 +38,7 @@ function ExamActor() {
   const [domains, setDomains] = useState<string[]>([]),
     [chapters, setChapters] = useState<string[]>([]),
     [count, setCount] = useState(10),
-    [minutes, setMinutes] = useState(30),
+    [customMinutes, setMinutes] = useState<number | null>(null),
     [requestId, setRequestId] = useState(() => crypto.randomUUID());
   const [index, setIndex] = useState(0),
     [page, setPage] = useState(1),
@@ -56,10 +58,9 @@ function ExamActor() {
     retry: false,
     gcTime: 0,
   });
-  useEffect(() => {
-    const available = availability.data?.available;
-    if (available && available > 0) setCount((current) => Math.min(current, available, 100));
-  }, [availability.data?.available]);
+  // Practice pacing only; active exam timing continues to use the server clock.
+  const minutes = customMinutes ?? (Number.isInteger(count) && count >= 1 && count <= 100
+    ? Math.max(5, Math.round(count * 120 / 100)) : NaN);
   const runKey = sessionQueryKey(["/api/exams", id], identity);
   const runQuery = useQuery({
     queryKey: runKey,
@@ -207,14 +208,6 @@ function ExamActor() {
   const selections = draft?.keys ?? current?.selectedOptionKeys ?? [];
   const flagged = draft?.flagged ?? current?.flagged ?? false;
   const frozen = busy || remaining === 0 || !!run?.needsFinalization || !!run?.contentRemoved;
-  const domainOptions = [
-    ...new Map(
-      availability.data?.chapters.map((c) => [
-        c.domainId,
-        { id: c.domainId, name: c.domainName, code: c.domainCode, weight: c.weight },
-      ]) ?? [],
-    ).values(),
-  ];
   const numberValid =
     Number.isInteger(count) &&
     count >= 1 &&
@@ -249,7 +242,7 @@ function ExamActor() {
     );
   return (
     <div className="nexus-page exam-workspace">
-      <header>
+      <header className="exam-page-header">
         <span className="nexus-eyebrow">CCNA 200-301 / EXAM WORKSPACE</span>
         <h1>Exam Simulator</h1>
         <p>
@@ -289,140 +282,21 @@ function ExamActor() {
           </button>
         </section>
       ) : !run || !id ? (
-        <>
-          <section className="nexus-panel">
-            <h2>Configure your exam</h2>
-            {availability.isPending ? (
-              <p role="status">Checking eligible published questions...</p>
-            ) : availability.isError ? (
-              <p role="alert">
-                {nexusError(availability.error)}{" "}
-                <button onClick={() => void availability.refetch()}>Retry availability</button>
-              </p>
-            ) : (
-              <>
-                {!availability.data?.ready && (
-                  <p role="status">
-                    Exam backend NOT ACTIVATED. The proposed exam migration and reviewed runtime
-                    permissions require separate approval. No demo questions will be used.
-                  </p>
-                )}
-                <p>
-                  <strong>{availability.data?.available ?? 0}</strong> eligible published questions
-                  for these filters.
-                </p>
-                {availability.data?.available === 0 && (
-                  <p role="status">
-                    No published questions are available. An administrator can create, review and
-                    publish questions in the canonical chapters.
-                  </p>
-                )}
-                <div className="exam-config-grid">
-                  <label>
-                    Number of questions
-                    <input
-                      type="number"
-                      min={1}
-                      max={Math.min(100, availability.data?.available ?? 0)}
-                      value={Number.isNaN(count) ? "" : count}
-                      onChange={(e) => {
-                        setCount(e.target.valueAsNumber);
-                        setRequestId(crypto.randomUUID());
-                      }}
-                    />
-                  </label>
-                  <label>
-                    Duration in minutes
-                    <input
-                      type="number"
-                      min={5}
-                      max={180}
-                      value={Number.isNaN(minutes) ? "" : minutes}
-                      onChange={(e) => {
-                        setMinutes(e.target.valueAsNumber);
-                        setRequestId(crypto.randomUUID());
-                      }}
-                    />
-                  </label>
-                </div>
-                <fieldset>
-                  <legend>Domains — none selected means all domains</legend>
-                  <div className="exam-filter-grid">
-                    {domainOptions.map((d) => (
-                      <label key={d.id}>
-                        <input
-                          type="checkbox"
-                          checked={domains.includes(d.id)}
-                          onChange={() => {
-                            setDomains(
-                              domains.includes(d.id)
-                                ? domains.filter((x) => x !== d.id)
-                                : [...domains, d.id],
-                            );
-                            setChapters([]);
-                            setRequestId(crypto.randomUUID());
-                          }}
-                        />
-                        {d.code} {d.name} <small>{d.weight}% official blueprint weight</small>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <details>
-                  <summary>Optional chapter selection</summary>
-                  <label>
-                    Search chapters
-                    <input
-                      type="search"
-                      value={filter}
-                      onChange={(e) => setFilter(e.target.value)}
-                    />
-                  </label>
-                  <p>No chapters selected means all chapters in the chosen domains.</p>
-                  <div className="exam-chapter-select">
-                    {availability.data?.chapters
-                      .filter(
-                        (c) =>
-                          (!domains.length || domains.includes(c.domainId)) &&
-                          (c.title + " " + c.code).toLowerCase().includes(filter.toLowerCase()),
-                      )
-                      .map((c) => (
-                        <label key={c.id}>
-                          <input
-                            type="checkbox"
-                            checked={chapters.includes(c.id)}
-                            onChange={() => {
-                              setChapters(
-                                chapters.includes(c.id)
-                                  ? chapters.filter((x) => x !== c.id)
-                                  : [...chapters, c.id],
-                              );
-                              setRequestId(crypto.randomUUID());
-                            }}
-                          />
-                          {c.code} — {c.title}
-                        </label>
-                      ))}
-                  </div>
-                </details>
-                <p>
-                  Selection is randomized once when the server creates the exam. Questions cannot
-                  exceed the available bank; domain weights are learning context, not a promise of
-                  official exam distribution.
-                </p>
-                <button
-                  className="nexus-button"
-                  disabled={
-                    busy || !availability.data?.ready || !numberValid || availability.isFetching
-                  }
-                  onClick={() => void start()}
-                >
-                  {busy ? "Creating exam..." : "Start exam"}
-                </button>
-              </>
-            )}
-          </section>
-        </>
+        <ExamConfiguration
+          availability={availability.data}
+          pending={availability.isPending}
+          fetching={availability.isFetching}
+          error={availability.isError ? nexusError(availability.error) : undefined}
+          retry={() => void availability.refetch()}
+          count={count} minutes={minutes} domains={domains} chapters={chapters}
+          filter={filter} setFilter={setFilter}
+          automaticTiming={customMinutes === null} restoreAutomaticTiming={() => { setMinutes(null); setRequestId(crypto.randomUUID()); }}
+          setCount={setCount} setMinutes={setMinutes}
+          setDomains={setDomains} setChapters={setChapters}
+          changed={() => setRequestId(crypto.randomUUID())}
+          numberValid={numberValid} busy={busy} start={() => void start()}
+          historyTotal={history.isSuccess && availability.data?.ready ? history.data.total : undefined}
+        />
       ) : null}
       {run && id && active && (
         <section className="nexus-panel">
@@ -671,21 +545,21 @@ function ExamActor() {
           </button>
         </section>
       )}
-      <section className="nexus-panel">
-        <h2>Your exam history</h2>
+      <section className="nexus-panel exam-history" aria-labelledby="exam-history-title">
+        <h2 id="exam-history-title"><History size={20} aria-hidden="true" /> Your exam history</h2>
         {history.isPending ? (
-          <p>
-            {availability.data?.ready
-              ? "Loading history..."
-              : "History is available after the exam migration."}
-          </p>
+          <div className="exam-history-empty" role="status">
+            <ClipboardList size={28} aria-hidden="true" />
+            <h3>{availability.data?.ready ? "Loading your exam history" : "Your exam history will appear here"}</h3>
+            <p>{availability.data?.ready ? "Retrieving your saved exams..." : "History is available after the exam migration."}</p>
+          </div>
         ) : history.isError ? (
           <p role="alert">
             {nexusError(history.error)}{" "}
             <button onClick={() => void history.refetch()}>Retry history</button>
           </p>
         ) : !history.data?.items.length ? (
-          <p>No exams yet. Your submitted and active exams will appear here.</p>
+          <div className="exam-history-empty"><ClipboardList size={28} aria-hidden="true" /><h3>No exams yet</h3><p>Your submitted and active exams will appear here.</p></div>
         ) : (
           <>
             <div className="exam-history-scroll">

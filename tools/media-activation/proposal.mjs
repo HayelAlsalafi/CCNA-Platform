@@ -21,7 +21,7 @@ export function assertMediaProposal(root) {
   delete table.checkConstraints.lesson_media_library_metadata_ck;delete table.indexes.lesson_media_library_created_idx;
   assert.equal(snapshot.prevId,base.id);assert.deepEqual({...previous,id:base.id,prevId:base.prevId},base,'Unrelated schema change');
   const journal=JSON.parse(read('proposed/meta/0015_journal.json')),official=JSON.parse(read('meta/_journal.json'));
-  assert([14,15,16].includes(official.entries.length));assert.deepEqual(journal.entries.slice(0,14),official.entries.slice(0,14));
+  assert([14,15,16,17].includes(official.entries.length));assert.deepEqual(journal.entries.slice(0,14),official.entries.slice(0,14));
   assert.deepEqual(journal.entries[14],{idx:14,version:'7',when:mediaMigration[1],tag:mediaMigration[0],breakpoints:true});
   if(official.entries.length>=15){assert.deepEqual({...official,entries:official.entries.slice(0,15)},journal);assert(read('0015_lesson_media_library.sql').equals(read('proposed/0015_lesson_media_library.sql')));assert(read('meta/0015_snapshot.json').equals(read('proposed/meta/0015_snapshot.json')));}
   return {snapshot,journal,baseline:base};

@@ -1,3 +1,4 @@
+import {assertExamProposal} from '../exam-activation/proposal.mjs';
 import {assertDeletionProposal,assertDeletionFunction} from '../lesson-deletion/policy.mjs';
 import {assertMediaProposal} from '../media-activation/proposal.mjs';
 import {assertMediaRuntimeCatalog} from '../media-activation/runtime.mjs';
@@ -14,8 +15,10 @@ import {questionBankSnapshot} from '../question-bank-policy.mjs';
 import {learningSnapshot} from '../learning-policy.mjs';
 import { policy, LocalRuntimeError, assertIdentity, assertLedger, migrationManifest } from "./policy.mjs";
 
-const fail = (message) => {
-  throw new LocalRuntimeError(message);
+const fail = (message, expected, actual) => {
+  const error=new LocalRuntimeError(message);
+  if(expected!==undefined){error.expected=expected;error.actual=actual;error.operator='catalogEqual';}
+  throw error;
 };
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const diagnosticIdentifier = (value) =>
@@ -71,6 +74,7 @@ export function upgradeSnapshots(root) {
   if(journal.entries.length===14)result[1]=assertStudyProposal(root).snapshot;
   if(journal.entries.length===15)result[1]=assertMediaProposal(root).snapshot;
   if(journal.entries.length===16)result[1]=assertDeletionProposal(root).snapshot;
+  if(journal.entries.length===17)result[1]=assertExamProposal(root).snapshot;
   return result;
 }
 export function assertOnlyTaxonomyPending(rows, manifest) {
@@ -151,7 +155,7 @@ export function assertSchemaCatalog(actual, snapshot) {
     ])
     .sort((a, b) => (a.table + "/" + a.name).localeCompare(b.table + "/" + b.name));
   if (!equal(actual.constraints, expectedConstraints))
-    fail("Application constraints differ from reviewed snapshot or are unvalidated.");
+    fail("Application constraints differ from reviewed snapshot or are unvalidated.",expectedConstraints,actual.constraints);
   const expectedIndexes = tables
     .flatMap((t) => [
       ...Object.entries(t.indexes).map(([name, i]) => ({
@@ -285,7 +289,7 @@ export async function verifyUpgradeState(
   if (phase === "before") assertOnlyTaxonomyPending(rows, manifest);
   else assertLedger(rows, manifest);
   assertSchemaCatalog(await readSchemaCatalog(client), snapshots[phase === "before" ? 0 : 1]);
-  if(phase==='after'&&manifest.length>=15){await assertMediaRuntimeCatalog(client,policy.root,manifest);if(manifest.length===16)await assertDeletionFunction(client,policy.root);}
+  if(phase==='after'&&manifest.length>=15){await assertMediaRuntimeCatalog(client,policy.root,manifest);if(manifest.length>=16)await assertDeletionFunction(client,policy.root);}
   if(phase==='after'&&manifest.length>=8)await assertNexusFunction(client,policy.root,policy.migrationRole);
   if (requireEmpty)
     for (const table of taxonomyTables)

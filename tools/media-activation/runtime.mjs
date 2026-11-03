@@ -1,3 +1,9 @@
+import {checked,check} from '../exam-activation/diagnostics.mjs';
+import {assertExamDetails} from '../exam-activation/runtime-details.mjs';
+import {assertExamProposal} from '../exam-activation/proposal.mjs';
+import {assertExamPrivileges} from '../exam-policy.mjs';
+import {assertQuestionBankFunctions} from '../question-bank-policy.mjs';
+import {assertDeletionFunction} from '../lesson-deletion/policy.mjs';
 import assert from 'node:assert/strict';
 import {assertMediaProposal,mediaColumns} from './proposal.mjs';
 import {readSchemaCatalog,assertSchemaCatalog} from '../phase6a-local/upgrade.mjs';
@@ -35,12 +41,14 @@ export async function assertMediaDetails(client,snapshot) {
   assert.deepEqual(index,[{definition:'CREATE INDEX lesson_media_library_created_idx ON public.lesson_media USING btree (created_at DESC, id)',indisvalid:true,indisready:true}],'Media index ordering or validity changed');
 }
 export async function assertMediaRuntimeCatalog(client,root,manifest,owner=policy.migrationRole) {
-  const {snapshot}=assertMediaProposal(root),actual=await readSchemaCatalog(client);
-  assert([15,16].includes(manifest.length));assertMediaCatalogStructure(actual,snapshot,owner);
+  const {snapshot}=assertMediaProposal(root),actual=await checked('metadata.catalog.read',()=>readSchemaCatalog(client));
+  assert([15,16,17].includes(manifest.length));
+  if(manifest.length===17){const next=assertExamProposal(root).snapshot;assert(actual.tables.every(t=>t.owner===owner));check('metadata.catalog.structure',()=>assertSchemaCatalog({...actual,tables:actual.tables.map(t=>({...t,owner:policy.migrationRole}))},next));await checked('metadata.exam.details',()=>assertExamDetails(client,next));await checked('metadata.exam.privileges',()=>assertExamPrivileges(client));await checked('metadata.question.functions',()=>assertQuestionBankFunctions(client,root,12));await assertDeletionFunction(client,root,owner);}
+  else assertMediaCatalogStructure(actual,snapshot,owner);
   const ledger=(await client.query('SELECT id,hash,created_at FROM drizzle.__drizzle_migrations ORDER BY created_at,id')).rows;
   assertLedger(ledger,manifest);assert.deepEqual(ledger.map(r=>r.id),Array.from({length:manifest.length},(_,i)=>i+1));
   await assertMediaDetails(client,snapshot);await assertStudyPolicies(client);await assertStudyPrivileges(client,policy.appRole);await assertLessonRevisionGuard(client,root,owner);
-  return {ledgerEntries:manifest.length,tables:22,rlsPolicies:2,ownershipMatched:true};
+  return {ledgerEntries:manifest.length,tables:actual.tables.length,rlsPolicies:2,ownershipMatched:true};
 }
 export function assertMediaCatalogStructure(actual,snapshot,owner=policy.migrationRole) {
   assert.equal(actual.tables.length,22);assert(actual.tables.every(t=>t.owner===owner));

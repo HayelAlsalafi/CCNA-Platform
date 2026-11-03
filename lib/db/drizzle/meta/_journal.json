@@ -113,6 +113,13 @@
       "when": 1793145600002,
       "tag": "0016_safe_lesson_deletion",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793145600003,
+      "tag": "0017_exam_simulator",
+      "breakpoints": true
     }
   ]
 }

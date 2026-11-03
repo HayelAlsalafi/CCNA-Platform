@@ -82,7 +82,8 @@ export async function readSequences(client) {
 }
 // Read the *application* role's grants using the migrator's catalog access. Uses
 // the same strict flag validator as startup, without SET ROLE or a role grant.
-export async function checkExistingRuntime(client,root) {
+export async function checkExistingRuntime(client,root,questionIndex=10) {
+  assert([10,12].includes(questionIndex));
   assert.deepEqual((await client.query("SELECT nspname,pg_get_userbyid(nspowner) AS owner FROM pg_namespace WHERE nspname IN ('public','drizzle') ORDER BY nspname")).rows,[{nspname:'drizzle',owner:policy.migrationRole},{nspname:'public',owner:policy.migrationRole}],'Unexpected application schema ownership');
   const fields=[
     'r.rolsuper AS superuser','r.rolcreatedb AS createdb','r.rolcreaterole AS createrole','r.rolreplication AS replication','r.rolbypassrls AS bypassrls',
@@ -104,7 +105,7 @@ export async function checkExistingRuntime(client,root) {
   await assertNexusPrivileges(client);
   await assertLearningPrivileges(client);
   await assertNexusFunction(client,root,policy.migrationRole);
-  await assertQuestionBankFunctions(client,root,10);
+  await assertQuestionBankFunctions(client,root,questionIndex);
   await assertLessonPrivileges(client);
   await assertLessonRevisionGuard(client,root);
   assert.equal((await taxonomyPrivileges(client)).ready,true,'Existing taxonomy privileges differ');

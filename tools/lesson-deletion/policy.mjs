@@ -9,9 +9,9 @@ export function assertDeletionProposal(root){
  for(const [n,hash] of [['proposed/0016_safe_lesson_deletion.sql',deletionMigration[2]],['proposed/meta/0016_snapshot.json','e1adea7776037905d9b5b2528f3ac596fb368688fc062e918a66bee13514629a'],['proposed/meta/0016_journal.json','05bea46c44e9671d60939019602d6218e050052a15089e4dcc3a1e8b910274eb']])assert.equal(createHash('sha256').update(read(n)).digest('hex'),hash,'Lesson deletion source drift');
  const snapshot=JSON.parse(read('proposed/meta/0016_snapshot.json')),base=JSON.parse(read('meta/0015_snapshot.json')),journal=JSON.parse(read('proposed/meta/0016_journal.json')),official=JSON.parse(read('meta/_journal.json'));
  assert.equal(snapshot.prevId,base.id);assert.deepEqual({...snapshot,id:base.id,prevId:base.prevId},base,'Deletion must not change existing schema objects');
- assert([15,16].includes(official.entries.length));assert.deepEqual(journal.entries.slice(0,15),official.entries.slice(0,15));assert.equal(journal.entries.length,16);
+ assert([15,16,17].includes(official.entries.length));assert.deepEqual(journal.entries.slice(0,15),official.entries.slice(0,15));assert.equal(journal.entries.length,16);
  assert.deepEqual(journal.entries[15],{idx:15,version:'7',when:deletionMigration[1],tag:deletionMigration[0],breakpoints:true});
- if(official.entries.length===16){assert.deepEqual(official,journal);assert(read('0016_safe_lesson_deletion.sql').equals(read('proposed/0016_safe_lesson_deletion.sql')));assert(read('meta/0016_snapshot.json').equals(read('proposed/meta/0016_snapshot.json')));}
+ if(official.entries.length>=16){assert.deepEqual({...official,entries:official.entries.slice(0,16)},journal);assert(read('0016_safe_lesson_deletion.sql').equals(read('proposed/0016_safe_lesson_deletion.sql')));assert(read('meta/0016_snapshot.json').equals(read('proposed/meta/0016_snapshot.json')));}
  return {snapshot,journal};
 }
 export async function assertDeletionFunction(client,root,owner='ccna_phase6a_migrator',appRole='ccna_phase6a_app'){

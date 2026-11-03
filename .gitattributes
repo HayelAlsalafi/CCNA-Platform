@@ -55,3 +55,9 @@ tools/exam-guards.sql text eol=lf
 # Keep reproducible generator output, which ends with an extra blank line.
 /lib/api-client-react/src/**/api.ts whitespace=-blank-at-eof
 /lib/api-client-react/src/**/api.schemas.ts whitespace=-blank-at-eof
+
+# Preserve exact approved byte-level exam integrity manifests.
+/tools/exam-activation/pins.json -text
+/tools/exam-activation/baseline-manifest.json -text
+/tools/exam-activation/pins.json whitespace=cr-at-eol
+/tools/exam-activation/baseline-manifest.json whitespace=cr-at-eol

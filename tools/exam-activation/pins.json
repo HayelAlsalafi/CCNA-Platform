@@ -1,0 +1,7 @@
+{
+  "lib/db/drizzle/proposed/0017_exam_simulator.sql": "f7b14281a71a30dd9f61ae22b5be093ae8a7429e196ac01977182f48823ab481",
+  "lib/db/drizzle/proposed/meta/0017_snapshot.json": "2b11d5acfcf8e6f7e283e8baa4df1f23fb12b59c5b772635d6f02e2164bccab2",
+  "lib/db/drizzle/proposed/meta/0017_journal.json": "2ce37274b5dd34777b43daea3e75a579968899911b567fff9715b7eb77c70adf",
+  "tools/exam-activation/baseline-manifest.json": "e4a2ee76b0a66b430417625c2a84b8ffb4ce1156421887a3a7bd03306cf59346",
+  "lib/db/drizzle/meta/0016_snapshot.json": "e1adea7776037905d9b5b2528f3ac596fb368688fc062e918a66bee13514629a"
+}

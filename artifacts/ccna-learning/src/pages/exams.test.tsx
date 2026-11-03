@@ -20,7 +20,8 @@ let host: HTMLDivElement,
   calls: { url: string; body: any }[],
   available: number,
   ready: boolean,
-  saveFail: boolean;
+  saveFail: boolean,
+  availabilityFail: boolean;
 function question(multi = false) {
   return {
     deliveryId: multi
@@ -52,6 +53,7 @@ beforeEach(() => {
   available = 2;
   ready = true;
   saveFail = false;
+  availabilityFail = false;
   calls = [];
   Object.assign(auth, {
     isLoaded: true,
@@ -88,6 +90,7 @@ beforeEach(() => {
       const text = String(url),
         body = options.body ? JSON.parse(String(options.body)) : null;
       calls.push({ url: text, body });
+      if (text.includes("/availability") && availabilityFail) return response({ error: { message: "Availability unavailable" } }, 503);
       if (text.includes("/availability"))
         return response({
           ready,
@@ -211,7 +214,7 @@ it("empty and migration-pending banks provide honest states and no start action"
   ready = false;
   await render();
   expect(host.textContent).toContain("No published questions");
-  expect(host.textContent).toContain("reviewed exam migration");
+  expect(host.textContent).toContain("reviewed runtime permissions");
   expect(button("Start exam").disabled).toBe(true);
 });
 it("starts an owned configured exam and keeps the stable session deep link", async () => {
@@ -222,7 +225,7 @@ it("starts an owned configured exam and keeps the stable session deep link", asy
   expect(host.textContent).toContain("Select a transport protocol.");
   expect(calls.find((c) => c.body?.requestId)?.body).toMatchObject({
     questionCount: 2,
-    durationMinutes: 30,
+    durationMinutes: 5,
   });
 });
 it("resumes answers, review flags and question order from the server after refresh", async () => {
@@ -289,4 +292,91 @@ it("signed-out visitors see sign-in without leaking an existing run", async () =
   expect(host.textContent).toContain("Sign in to save exams");
   expect(host.textContent).not.toContain("Select a transport protocol");
   expect(calls).toHaveLength(0);
+});
+
+it("uses real availability, blocks oversized presets and never invents history statistics", async () => {
+  available = 16; ready = false;
+  await render();
+  const metrics = host.querySelector("[aria-label='Exam statistics']")!;
+  expect(metrics.textContent).toContain("16");
+  expect(metrics.textContent).toContain("History not available");
+  expect(metrics.querySelectorAll("strong")[1].textContent).toBe("\u2014");
+  expect(metrics.querySelectorAll("strong")[2].textContent).toBe("\u2014");
+  expect(button("Custom").disabled).toBe(false);
+  expect(button("30").disabled).toBe(true);
+  expect(button("100").disabled).toBe(true);
+  expect(button("Start exam").disabled).toBe(true);
+  expect(calls.some(c => c.url.includes("?page="))).toBe(false);
+  expect(host.textContent).toContain("No demo questions will be used");
+});
+it("updates configuration summary and preserves domain and chapter selection payloads", async () => {
+  available = 16;
+  await render();
+  await input(host.querySelector("#exam-question-count")!, "10");
+  await click(button("60 min"));
+  const summary = host.querySelector(".exam-summary")!;
+  expect(summary.textContent).toContain("6.0 min");
+  expect(summary.textContent).toContain("All Domains");
+  await click(host.querySelector(".exam-domain-card input"));
+  expect(summary.textContent).toContain("1 selected");
+  await click(host.querySelector(".exam-chapters summary"));
+  await click(host.querySelector(".exam-chapter-select input"));
+  await click(button("Start exam"));
+  expect(calls.find(c => c.body?.requestId)?.body).toMatchObject({ questionCount: 10, durationMinutes: 60, domainIds: [qid], chapterIds: [qid] });
+});
+it("availability failure is unavailable rather than zero and cannot start an exam", async () => {
+  availabilityFail = true;
+  await render();
+  expect(host.textContent).toContain("Availability unavailable");
+  expect(host.querySelector(".exam-metric strong")?.textContent).toBe("\u2014");
+  expect(button("Retry availability")).toBeTruthy();
+  expect(button("Start exam").disabled).toBe(true);
+  expect(calls.some(c => c.body?.requestId)).toBe(false);
+});
+it("invalid custom values have feedback and no misleading pace", async () => {
+  await render();
+  await input(host.querySelector("#exam-question-count")!, "101");
+  expect(host.querySelector("#exam-question-count")?.getAttribute("aria-invalid")).toBe("true");
+  expect(host.textContent).toContain("Choose a whole number from 1 to 2");
+  expect(button("Start exam").disabled).toBe(true);
+  expect(host.querySelector(".exam-summary dl > div:last-child dd")?.textContent).toBe("\u2014");
+});
+
+it("scales automatic practice timing for 30, 60 and 100 question presets", async () => {
+  available = 100;
+  await render();
+  for (const [count, minutes] of [[30, 36], [60, 72], [100, 120]]) {
+    await click(button(String(count)));
+    expect(host.querySelector<HTMLInputElement>("#exam-duration")!.value).toBe(String(minutes));
+    expect(host.querySelector(".exam-summary")!.textContent).toContain("1.2 min");
+  }
+  expect(host.textContent).toContain("Practice approximation");
+  expect(button("Automatic timing").getAttribute("aria-pressed")).toBe("true");
+});
+it("preserves manual timing until automatic timing is explicitly restored", async () => {
+  available = 100;
+  await render();
+  await input(host.querySelector("#exam-duration")!, "50");
+  await click(button("60"));
+  expect(host.querySelector<HTMLInputElement>("#exam-duration")!.value).toBe("50");
+  await click(button("Restore automatic timing"));
+  expect(host.querySelector<HTMLInputElement>("#exam-duration")!.value).toBe("72");
+  await click(button("Custom"));
+  expect(document.activeElement?.id).toBe("exam-question-count");
+  await input(host.querySelector("#exam-question-count")!, "16");
+  expect(host.querySelector<HTMLInputElement>("#exam-duration")!.value).toBe("19");
+  await input(host.querySelector("#exam-question-count")!, "1");
+  expect(host.querySelector<HTMLInputElement>("#exam-duration")!.value).toBe("5");
+  expect(host.textContent).toContain("Minimum duration is 5 minutes");
+});
+it("does not shrink a chosen exam when the eligible bank changes", async () => {
+  available = 100;
+  await render();
+  await click(button("60"));
+  available = 16;
+  await act(async () => { await client.invalidateQueries({ queryKey: ["/api/exams/availability"] }); });
+  await flush();
+  expect(host.querySelector<HTMLInputElement>("#exam-question-count")!.value).toBe("60");
+  expect(button("Start exam").disabled).toBe(true);
+  expect(button("60").disabled).toBe(true);
 });

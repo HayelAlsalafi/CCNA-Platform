@@ -1,3 +1,4 @@
+import {assertExamProposal} from '../exam-activation/proposal.mjs';
 import {assertDeletionProposal,assertDeletionFunction} from '../lesson-deletion/policy.mjs';
 import {assertMediaProposal} from '../media-activation/proposal.mjs';
 import {assertMediaRuntimeCatalog} from '../media-activation/runtime.mjs';
@@ -14,6 +15,7 @@ export const canonicalOwnerPolicy = (s) =>
 export function proposedStudyManifest(root) {
   const baseline = migrationManifest(root);
   assertStudyProposal(root);
+  if(baseline.length===17){assertExamProposal(root);return baseline;}
   if(baseline.length===16){assertDeletionProposal(root);return baseline;}
   if (baseline.length === 15) {assertMediaProposal(root);return baseline;}
   if (baseline.length === 14) {
@@ -29,7 +31,7 @@ export function proposedStudyManifest(root) {
 }
 export async function assertStudyRuntimeCatalog(client, root, owner) {
   const promoted=migrationManifest(root);
-  if(promoted.length>=15){const checked=await assertMediaRuntimeCatalog(client,root,promoted,owner);if(promoted.length===16)await assertDeletionFunction(client,root,owner);return checked;}
+  if(promoted.length>=15){const checked=await assertMediaRuntimeCatalog(client,root,promoted,owner);if(promoted.length>=16)await assertDeletionFunction(client,root,owner);return checked;}
   const { snapshot } = migrationManifest(root).length===15?assertMediaProposal(root):assertStudyProposal(root),
     actual = await readSchemaCatalog(client);
   assert(

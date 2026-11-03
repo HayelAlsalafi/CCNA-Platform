@@ -18,7 +18,7 @@ export function assertStudyProposal(root) {
   assert.equal(next.prevId,base.id);
   assert.deepEqual({...previous,id:base.id,prevId:base.prevId},base,'Existing schema metadata changed');
   const journal=read('proposed/meta/0014_journal.json'), official=read('meta/_journal.json');
-  assert([13,14,15,16].includes(official.entries.length));
+  assert([13,14,15,16,17].includes(official.entries.length));
   assert.equal(official.entries[12].tag,'0013_learning_lessons');
   assert.equal(journal.entries.length,14);
   assert.deepEqual(journal.entries.slice(0,Math.min(official.entries.length,14)),official.entries.slice(0,14),'Unrelated migration in study proposal');

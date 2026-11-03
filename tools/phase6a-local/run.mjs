@@ -51,8 +51,9 @@ async function runtimePrivileges(client) {
   const lessonOnly=isLessonChain(migrationManifest(root));
   if(count>=12)await assertCanonicalPrivileges(client);
   if(count===13){if(lessonOnly){await assertLessonPrivileges(client);await assertLessonRevisionGuard(client,root);}else await assertExamPrivileges(client);}
-  if(count===14||count===15||count===16){await assertLessonPrivileges(client);await assertLessonRevisionGuard(client,root);await assertStudyPrivileges(client,'ccna_phase6a_app');await assertStudyPolicies(client);}
-  if(count>=10)await assertQuestionBankFunctions(client,root,count===13&&!lessonOnly?12:count===10?9:10);
+  if(count===14||count===15||count===16||count===17){await assertLessonPrivileges(client);await assertLessonRevisionGuard(client,root);await assertStudyPrivileges(client,'ccna_phase6a_app');await assertStudyPolicies(client);}
+  if(count===17)await assertExamPrivileges(client);
+  if(count>=10)await assertQuestionBankFunctions(client,root,count===17||count===13&&!lessonOnly?12:count===10?9:10);
   else await assertControlledDeleteState(client);
   stage='runtime-catalog-privileges';
   const old = (await client.query(`SELECT
