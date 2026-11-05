@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n';
 import { useRef } from "react";
 import type { ExamAvailability } from "@workspace/api-client-react";
 import {
@@ -40,6 +41,7 @@ type Props = {
 
 // Presentation only: state, requests, readiness and session creation remain in ExamActor.
 export function ExamConfiguration(p: Props) {
+  const { t: translateUi, message, number, counted } = useI18n();
   const { availability: data, count, minutes, domains, chapters } = p;
   const customCount = useRef<HTMLInputElement>(null);
   const domainOptions = [
@@ -68,39 +70,39 @@ export function ExamConfiguration(p: Props) {
             : undefined;
   return (
     <>
-      <section className="exam-metrics" aria-label="Exam statistics">
+      <section className="exam-metrics" aria-label={translateUi("Exam statistics")}>
         <div className="exam-metric">
           <Layers aria-hidden="true" />
           <div>
-            <span>Available Questions</span>
+            <span>{translateUi("Available Questions")}</span>
             <strong>{loaded ? data.available : "—"}</strong>
             <small>
               {p.pending
-                ? "Checking question bank"
+                ? translateUi("Checking question bank")
                 : p.error
-                  ? "Availability unavailable"
-                  : "Eligible for your current filters"}
+                  ? translateUi("Availability unavailable")
+                  : translateUi("Eligible for your current filters")}
             </small>
           </div>
         </div>
         <div className="exam-metric">
           <ChartNoAxesColumnIncreasing aria-hidden="true" />
           <div>
-            <span>Exams Taken</span>
+            <span>{translateUi("Exams Taken")}</span>
             <strong>{p.historyTotal ?? "—"}</strong>
             <small>
               {p.historyTotal === undefined
-                ? "History not available"
-                : "Recorded exams, including active sessions"}
+                ? translateUi("History not available")
+                : translateUi("Recorded exams, including active sessions")}
             </small>
           </div>
         </div>
         <div className="exam-metric">
           <Trophy aria-hidden="true" />
           <div>
-            <span>Best Score</span>
+            <span>{translateUi("Best Score")}</span>
             <strong>—</strong>
-            <small>All-time best score is not available</small>
+            <small>{translateUi("All-time best score is not available")}</small>
           </div>
         </div>
       </section>
@@ -108,25 +110,23 @@ export function ExamConfiguration(p: Props) {
         <section className="nexus-panel exam-configuration" aria-labelledby="exam-config-title">
           <div className="exam-card-heading">
             <Settings2 size={20} aria-hidden="true" />
-            <h2 id="exam-config-title">Configure Your Exam</h2>
+            <h2 id="exam-config-title">{translateUi("Configure Your Exam")}</h2>
           </div>
           {p.pending ? (
-            <p role="status">Checking eligible published questions...</p>
+            <p role="status">{translateUi("Checking eligible published questions...")}</p>
           ) : p.error ? (
             <div role="alert" className="exam-availability-error">
-              <p>{p.error}</p>
+              <p>{message(p.error)}</p>
               <button className="nexus-button secondary" onClick={p.retry}>
-                Retry availability
-              </button>
+                {translateUi("Retry availability")}</button>
             </div>
           ) : (
             <>
               <div className="exam-control-section">
                 <label className="exam-control-label" htmlFor="exam-question-count">
-                  Number of questions
-                </label>
+                  {translateUi("Number of questions")}</label>
                 <div className="exam-value-controls">
-                  <div className="exam-presets" role="group" aria-label="Question count presets">
+                  <div className="exam-presets" role="group" aria-label={translateUi("Question count presets")}>
                     {[30, 60, 100].map((n) => (
                       <button
                         key={n}
@@ -136,8 +136,8 @@ export function ExamConfiguration(p: Props) {
                         aria-describedby="exam-count-help"
                         title={
                           n > maximum
-                            ? `Requires ${n} eligible questions; ${data?.available ?? 0} available`
-                            : `${n} questions`
+                            ? translateUi('Requires {required} eligible questions; {available} available', {required:number(n),available:number(data?.available ?? 0)})
+                            : counted('questions', n)
                         }
                         onClick={() => {
                           p.setCount(n);
@@ -152,11 +152,10 @@ export function ExamConfiguration(p: Props) {
                       aria-pressed={![30, 60, 100].includes(count)}
                       onClick={() => customCount.current?.focus()}
                     >
-                      Custom
-                    </button>
+                      {translateUi("Custom")}</button>
                   </div>
                   <div className="exam-custom-value">
-                    <span>Custom</span>
+                    <span>{translateUi("Custom")}</span>
                     <input
                       ref={customCount}
                       id="exam-question-count"
@@ -176,28 +175,27 @@ export function ExamConfiguration(p: Props) {
                 </div>
                 <p id="exam-count-help" className={!countValid ? "exam-field-error" : ""}>
                   {data?.available === 0
-                    ? "No published questions are available. An administrator can create, review and publish questions in the canonical chapters."
+                    ? translateUi("No published questions are available. An administrator can create, review and publish questions in the canonical chapters.")
                     : !countValid
-                      ? `Choose a whole number from 1 to ${maximum}. ${data?.available ?? 0} eligible published questions for these filters.`
-                      : `${data?.available ?? 0} eligible published questions for these filters. Maximum ${maximum} per exam. Presets above the available bank are disabled.`}
+                      ? translateUi('Choose a whole number from 1 to {maximum}. {available} eligible published questions for these filters.', {maximum:number(maximum),available:number(data?.available ?? 0)})
+                      : translateUi('{available} eligible published questions for these filters. Maximum {maximum} per exam. Presets above the available bank are disabled.', {maximum:number(maximum),available:number(data?.available ?? 0)})}
                 </p>
               </div>
               <div className="exam-control-section">
                 <div className="exam-duration-heading">
                   <label className="exam-control-label" htmlFor="exam-duration">
-                    Exam duration
-                  </label>
+                    {translateUi("Exam duration")}</label>
                   <button
                     type="button"
                     className="exam-timing-mode"
                     aria-pressed={p.automaticTiming}
                     onClick={p.restoreAutomaticTiming}
                   >
-                    {p.automaticTiming ? "Automatic timing" : "Restore automatic timing"}
+                    {p.automaticTiming ? translateUi("Automatic timing") : translateUi("Restore automatic timing")}
                   </button>
                 </div>
                 <div className="exam-value-controls">
-                  <div className="exam-presets" role="group" aria-label="Duration presets">
+                  <div className="exam-presets" role="group" aria-label={translateUi("Duration presets")}>
                     {[15, 30, 60].map((n) => (
                       <button
                         key={n}
@@ -209,12 +207,11 @@ export function ExamConfiguration(p: Props) {
                         }}
                       >
                         <Clock3 size={15} aria-hidden="true" />
-                        {n} min
-                      </button>
+                        {n} {translateUi("min")}</button>
                     ))}
                   </div>
                   <div className="exam-custom-value">
-                    <span>Custom (min)</span>
+                    <span>{translateUi("Custom (min)")}</span>
                     <input
                       id="exam-duration"
                       type="number"
@@ -233,21 +230,20 @@ export function ExamConfiguration(p: Props) {
                 </div>
                 <p id="exam-duration-help" className={!durationValid ? "exam-field-error" : ""}>
                   {p.automaticTiming
-                    ? "Automatic: 100 questions / 120 minutes, scaled to your count."
-                    : "Manual duration retained when question count changes."}{" "}
-                  Practice approximation, not official Cisco per-question timing.
-                  {p.automaticTiming &&
+                    ? translateUi("Automatic: 100 questions / 120 minutes, scaled to your count.")
+                    : translateUi("Manual duration retained when question count changes.")}{" "}
+                  {translateUi("Practice approximation, not official Cisco per-question timing.")}{p.automaticTiming &&
                   Number.isInteger(count) &&
                   count > 0 &&
                   Math.round(count * 1.2) < 5
-                    ? " Minimum duration is 5 minutes."
+                    ? translateUi("Minimum duration is 5 minutes.")
                     : ""}
-                  {!durationValid ? " Enter 5-180 whole minutes." : ""}
+                  {!durationValid ? translateUi("Enter 5-180 whole minutes.") : ""}
                 </p>
               </div>
               <fieldset className="exam-domains">
-                <legend>Exam domains</legend>
-                <p>No selected domains means all domains.</p>
+                <legend>{translateUi("Exam domains")}</legend>
+                <p>{translateUi("No selected domains means all domains.")}</p>
                 <div className="exam-domain-grid">
                   {domainOptions.map((d) => (
                     <label key={d.id} className="exam-domain-card">
@@ -268,7 +264,7 @@ export function ExamConfiguration(p: Props) {
                         <span className="exam-domain-name">
                           {d.code} {d.name}
                         </span>
-                        <small>{d.weight}% official blueprint weight</small>
+                        <small>{d.weight}{translateUi("% official blueprint weight")}</small>
                         <span className="exam-weight-track" aria-hidden="true">
                           <span style={{ width: `${d.weight}%` }} />
                         </span>
@@ -282,19 +278,18 @@ export function ExamConfiguration(p: Props) {
                 <summary>
                   <BookOpen size={18} aria-hidden="true" />
                   <span>
-                    Optional chapter selection
-                    {chapters.length ? ` · ${chapters.length} selected` : ""}
+                    {translateUi("Optional chapter selection")}{chapters.length ? translateUi(' · {value0} selected',{value0:number(chapters.length)}) : ""}
                   </span>
                   <ChevronDown size={16} aria-hidden="true" />
                 </summary>
-                <label htmlFor="exam-chapter-search">Search chapters</label>
+                <label htmlFor="exam-chapter-search">{translateUi("Search chapters")}</label>
                 <input
                   id="exam-chapter-search"
                   type="search"
                   value={p.filter}
                   onChange={(e) => p.setFilter(e.target.value)}
                 />
-                <p>No chapters selected means all chapters in the chosen domains.</p>
+                <p>{translateUi("No chapters selected means all chapters in the chosen domains.")}</p>
                 <div className="exam-chapter-select">
                   {data?.chapters
                     .filter(
@@ -323,7 +318,7 @@ export function ExamConfiguration(p: Props) {
                     (c) =>
                       (!domains.length || domains.includes(c.domainId)) &&
                       (c.title + " " + c.code).toLowerCase().includes(p.filter.toLowerCase()),
-                  ) && <p>No chapters match your search.</p>}
+                  ) && <p>{translateUi("No chapters match your search.")}</p>}
                 </div>
               </details>
             </>
@@ -332,24 +327,24 @@ export function ExamConfiguration(p: Props) {
         <aside className="nexus-panel exam-summary" aria-labelledby="exam-summary-title">
           <div className="exam-card-heading">
             <Layers size={20} aria-hidden="true" />
-            <h2 id="exam-summary-title">Exam Summary</h2>
+            <h2 id="exam-summary-title">{translateUi("Exam Summary")}</h2>
           </div>
           <dl>
             <div>
-              <dt>Questions</dt>
+              <dt>{translateUi("Questions")}</dt>
               <dd>{Number.isInteger(count) && count > 0 ? count : "—"}</dd>
             </div>
             <div>
-              <dt>Duration</dt>
-              <dd>{durationValid ? `${minutes} min` : "—"}</dd>
+              <dt>{translateUi("Duration")}</dt>
+              <dd>{durationValid ? translateUi('{count} min', {count:number(minutes)}) : "—"}</dd>
             </div>
             <div>
-              <dt>Domains</dt>
-              <dd>{!domains.length ? "All Domains" : `${domains.length} selected`}</dd>
+              <dt>{translateUi("Domains")}</dt>
+              <dd>{!domains.length ? translateUi("All Domains") : translateUi('{count} selected', {count:number(domains.length)})}</dd>
             </div>
             <div>
-              <dt>Average time / question</dt>
-              <dd>{p.numberValid ? `${(minutes / count).toFixed(1)} min` : "—"}</dd>
+              <dt>{translateUi("Average time / question")}</dt>
+              <dd>{p.numberValid ? translateUi('{count} min', {count:number(minutes/count,{minimumFractionDigits:1,maximumFractionDigits:1})}) : "—"}</dd>
             </div>
           </dl>
           {!!selectedDomains.length && (
@@ -361,11 +356,9 @@ export function ExamConfiguration(p: Props) {
             <div className="exam-backend-notice" role="status">
               <AlertCircle size={19} aria-hidden="true" />
               <div>
-                <strong>Exam backend NOT ACTIVATED</strong>
+                <strong>{translateUi("Exam backend NOT ACTIVATED")}</strong>
                 <p>
-                  The proposed exam migration and reviewed runtime permissions require separate
-                  approval. No demo questions will be used.
-                </p>
+                  {translateUi("The proposed exam migration and reviewed runtime permissions require separate approval. No demo questions will be used.")}</p>
               </div>
             </div>
           )}
@@ -376,16 +369,13 @@ export function ExamConfiguration(p: Props) {
             onClick={p.start}
           >
             <Play size={17} aria-hidden="true" />
-            {p.busy ? "Creating exam..." : "Start exam"}
+            {p.busy ? translateUi("Creating exam...") : translateUi("Start exam")}
           </button>
           <p id="exam-start-reason" className="exam-start-reason">
-            {blockedReason ?? "Ready to create your exam."}
+            {message(blockedReason ?? "Ready to create your exam.")}
           </p>
           <p className="exam-selection-note">
-            Selection is randomized once when the server creates the exam. Questions cannot exceed
-            the available bank; domain weights are learning context, not a promise of official exam
-            distribution.
-          </p>
+            {translateUi("Selection is randomized once when the server creates the exam. Questions cannot exceed the available bank; domain weights are learning context, not a promise of official exam distribution.")}</p>
         </aside>
       </div>
     </>

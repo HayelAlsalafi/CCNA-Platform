@@ -1,3 +1,5 @@
+import { UiMessage, DateText } from '../i18n';
+import { useI18n } from '../i18n';
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Download, FileSpreadsheet, Upload, CheckCircle2 } from "lucide-react";
@@ -42,6 +44,7 @@ function base64(buffer: ArrayBuffer) {
   return btoa(value);
 }
 export function AdminQuestionImport() {
+  const { t: translateUi } = useI18n();
   const session = useAdminSession(),
     client = useQueryClient(),
     catalog = useTaxonomyCatalog();
@@ -156,41 +159,36 @@ export function AdminQuestionImport() {
     ) ?? [];
   return (
     <>
-      <ol className="import-steps" aria-label="Question import progress">
+      <ol className="import-steps" aria-label={translateUi("Question import progress")}>
         {["Template", "Upload", "Review", "Import"].map((label, i) => (
           <li key={label} aria-current={step === i + 1 ? "step" : undefined}>
             <span aria-hidden="true">{step > i + 1 ? <CheckCircle2 size={16} /> : i + 1}</span>
-            {label}
-            {step > i + 1 && <span className="sr-only"> completed</span>}
+            <UiMessage text={String(label)}/>
+            {step > i + 1 && <span className="sr-only"> {translateUi("completed")}</span>}
           </li>
         ))}
       </ol>
       <AdminPanel
-        title="1. Start with a template"
-        description="CSV or Excel, one worksheet, up to 500 questions and 2 MiB per file."
+        title={translateUi("1. Start with a template")}
+        description={translateUi("CSV or Excel, one worksheet, up to 500 questions and 2 MiB per file.")}
       >
         <div className="admin-summary-actions">
           <AdminButton variant="outline" onClick={() => void download("csv")}>
             <Download aria-hidden="true" size={16} />
-            Download CSV template
-          </AdminButton>
+            {translateUi("Download CSV template")}</AdminButton>
           <AdminButton variant="outline" onClick={() => void download("xlsx")}>
             <FileSpreadsheet aria-hidden="true" size={16} />
-            Download XLSX template
-          </AdminButton>
+            {translateUi("Download XLSX template")}</AdminButton>
         </div>
         <details>
-          <summary>Template fields and formatting</summary>
+          <summary>{translateUi("Template fields and formatting")}</summary>
           <p>
-            Required: chapterCode (for example CCNA-V1-01), text, difficulty (EASY / MEDIUM / HARD), optionA, optionB and
-            correctOption (A-J; separate multiple correct answers with semicolons). Add optionC to optionJ as needed. Use questionType MULTIPLE_CHOICE_MULTIPLE for multiple answers; the default is MULTIPLE_CHOICE_SINGLE. Explanation and referenceNotes are optional for drafts.
-          </p>
+            {translateUi("Required: chapterCode (for example CCNA-V1-01), text, difficulty (EASY / MEDIUM / HARD), optionA, optionB and correctOption (A-J; separate multiple correct answers with semicolons). Add optionC to optionJ as needed. Use questionType MULTIPLE_CHOICE_MULTIPLE for multiple answers; the default is MULTIPLE_CHOICE_SINGLE. Explanation and referenceNotes are optional for drafts.")}</p>
           <p>
-            Use plain values; formulas and merged cells are unsupported. Every question belongs to one canonical chapter and inherits its primary domain. You may use its stable topicId instead of chapterCode; if both are supplied they must match. Legacy objective columns are retired.
-          </p>
+            {translateUi("Use plain values; formulas and merged cells are unsupported. Every question belongs to one canonical chapter and inherits its primary domain. You may use its stable topicId instead of chapterCode; if both are supplied they must match. Legacy objective columns are retired.")}</p>
         </details>
         <details>
-          <summary>Canonical chapter codes and stable IDs</summary>
+          <summary>{translateUi("Canonical chapter codes and stable IDs")}</summary>
           <div className="import-reference">
             {topics.isError && <AdminNotice tone="error">{contentError(topics.error)}</AdminNotice>}
             {topics.data?.map((t) => (
@@ -206,12 +204,12 @@ export function AdminQuestionImport() {
         </details>
       </AdminPanel>
       <AdminPanel
-        title="2. Upload and validate"
-        description="Previewing a file checks its contents without creating questions."
+        title={translateUi("2. Upload and validate")}
+        description={translateUi("Previewing a file checks its contents without creating questions.")}
       >
         <div className="import-upload">
           <Upload aria-hidden="true" size={24} />
-          <label htmlFor="question-import-file">Select CSV / XLSX file</label>
+          <label htmlFor="question-import-file">{translateUi("Select CSV / XLSX file")}</label>
           <input
             id="question-import-file"
             type="file"
@@ -230,9 +228,7 @@ export function AdminQuestionImport() {
             }}
           />
           <p className="admin-form-help" id="import-file-help">
-            Your file stays in this session. Choose a completed template with plain question and
-            answer values.
-          </p>
+            {translateUi("Your file stays in this session. Choose a completed template with plain question and answer values.")}</p>
           {file && (
             <p className="import-file-name">
               {file.name} / {(file.size / 1024).toFixed(1)} KiB
@@ -240,14 +236,14 @@ export function AdminQuestionImport() {
           )}
         </div>
         <AdminButton disabled={!file || busy} onClick={() => void inspect()}>
-          {busy ? "Working..." : "Validate and preview"}
+          {busy ? translateUi("Working...") : translateUi("Validate and preview")}
         </AdminButton>
-        {error && <AdminNotice tone="error">{error}</AdminNotice>}
+        {error && <AdminNotice tone="error"><UiMessage text={error}/></AdminNotice>}
       </AdminPanel>
       {preview && (
         <AdminPanel
-          title="3. Review before import"
-          description="Check each row, its answers and its explicit objective associations."
+          title={translateUi("3. Review before import")}
+          description={translateUi("Check each row, its answers and its explicit objective associations.")}
         >
           <div className="import-counts">
             {(["accepted", "rejected", "duplicate"] as const).map((status) => (
@@ -260,58 +256,51 @@ export function AdminQuestionImport() {
             ))}
           </div>
           <p role="status" className="admin-muted">
-            {preview.summary.accepted} accepted / {preview.summary.rejected} rejected /{" "}
-            {preview.summary.duplicates} duplicates. Preview expires{" "}
-            {new Date(preview.expiresAt).toLocaleTimeString()}.
+            {preview.summary.accepted} {translateUi("accepted /")}{" "}{preview.summary.rejected} {translateUi("rejected /")}{" "}
+            {preview.summary.duplicates} {translateUi("duplicates. Preview expires")}{" "}
+            <DateText value={preview.expiresAt} options={{timeStyle:'short'}}/>.
           </p>
           <p className="admin-form-help">
-            No questions have been written. Rejected and duplicate rows will be skipped; existing
-            questions will not be updated.
-          </p>
+            {translateUi("No questions have been written. Rejected and duplicate rows will be skipped; existing questions will not be updated.")}</p>
           {expired && (
             <AdminNotice tone="error">
-              This preview expired. Select Validate and preview again before confirming an import.
-            </AdminNotice>
+              {translateUi("This preview expired. Select Validate and preview again before confirming an import.")}</AdminNotice>
           )}
           <div className="admin-toolbar">
             <AdminSearch
-              label="Search preview rows"
+              label={translateUi("Search preview rows")}
               value={search}
               onChange={setSearch}
-              placeholder="Search questions or errors"
+              placeholder={translateUi("Search questions or errors")}
             />
             <label>
-              <span className="sr-only">Preview row status</span>
+              <span className="sr-only">{translateUi("Preview row status")}</span>
               <select value={rowFilter} onChange={(e) => setRowFilter(e.target.value)}>
-                <option value="all">All rows</option>
-                <option value="accepted">Ready</option>
-                <option value="rejected">Needs attention</option>
-                <option value="duplicate">Duplicates</option>
+                <option value="all">{translateUi("All rows")}</option>
+                <option value="accepted">{translateUi("Ready")}</option>
+                <option value="rejected">{translateUi("Needs attention")}</option>
+                <option value="duplicate">{translateUi("Duplicates")}</option>
               </select>
             </label>
           </div>
           {!rows.length ? (
             <AdminEmptyState
-              title="No rows match this view"
-              description="Change your search or status filter to see more preview rows."
+              title={translateUi("No rows match this view")}
+              description={translateUi("Change your search or status filter to see more preview rows.")}
             />
           ) : (
             <div className="admin-table-wrap">
-              <table role="table" className="admin-table" aria-label="Question import preview">
+              <table role="table" className="admin-table" aria-label={translateUi("Question import preview")}>
                 <thead role="rowgroup">
                   <tr role="row">
                     <th role="columnheader" scope="col">
-                      Row
-                    </th>
+                      {translateUi("Row")}</th>
                     <th role="columnheader" scope="col">
-                      Status
-                    </th>
+                      {translateUi("Status")}</th>
                     <th role="columnheader" scope="col">
-                      Question / review
-                    </th>
+                      {translateUi("Question / review")}</th>
                     <th role="columnheader" scope="col">
-                      Errors
-                    </th>
+                      {translateUi("Errors")}</th>
                   </tr>
                 </thead>
                 <tbody role="rowgroup">
@@ -325,20 +314,20 @@ export function AdminQuestionImport() {
                       </td>
                       <td role="cell" data-label="Question / review">
                         <details>
-                          <summary>{row.text.slice(0, 150) || "Empty question"}</summary>
+                          <summary>{row.text.slice(0, 150) || translateUi("Empty question")}</summary>
                           {row.question && (
                             <>
                               <p>{row.question.text}</p>
-                              <p>Difficulty: {row.question.difficulty}</p>
+                              <p>{translateUi("Difficulty:")}{" "}<UiMessage text={row.question.difficulty}/></p>
                               {row.question.options.map((o) => (
                                 <p key={o.optionKey}>
-                                  {o.optionKey}. {o.text} {o.isCorrect ? "(correct)" : ""}
+                                  {o.optionKey}. {o.text} {o.isCorrect ? translateUi("(correct)") : ""}
                                 </p>
                               ))}
-                              <p>Explanation: {row.question.explanation || "None"}</p>
+                              <p>{translateUi("Explanation:")}{" "}{row.question.explanation || translateUi("None")}</p>
                             </>
                           )}
-                          <p>Chapter: {catalog.data?.chapters?.find(c=>c.id===row.question?.topicId)?.code??row.question?.topicId??"Invalid chapter"}</p>
+                          <p>{translateUi("Chapter:")}{" "}{catalog.data?.chapters?.find(c=>c.id===row.question?.topicId)?.code??row.question?.topicId??translateUi("Invalid chapter")}</p>
                         </details>
                       </td>
                       <td role="cell" data-label="Errors" className="import-row-errors">
@@ -349,7 +338,7 @@ export function AdminQuestionImport() {
                             </p>
                           ))
                         ) : (
-                          <span className="admin-muted">No validation errors</span>
+                          <span className="admin-muted">{translateUi("No validation errors")}</span>
                         )}
                       </td>
                     </tr>
@@ -366,55 +355,44 @@ export function AdminQuestionImport() {
               onChange={(e) => setConfirmed(e.target.checked)}
             />
             <span>
-              I confirm importing {preview.summary.accepted} accepted rows as unpublished drafts.
-              Rejected and duplicate rows will be skipped.
-            </span>
+              {translateUi("I confirm importing")}{" "}{preview.summary.accepted} {translateUi("accepted rows as unpublished drafts. Rejected and duplicate rows will be skipped.")}</span>
           </label>
           <AdminButton
             disabled={!confirmed || busy || expired || !preview.summary.accepted}
             onClick={() => setConfirmOpen(true)}
           >
-            Import accepted rows as drafts
-          </AdminButton>
+            {translateUi("Import accepted rows as drafts")}</AdminButton>
         </AdminPanel>
       )}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Import {preview?.summary.accepted ?? 0} draft questions?
-            </AlertDialogTitle>
+              {translateUi("Import")}{" "}{preview?.summary.accepted ?? 0} {translateUi("draft questions?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Only accepted rows will be created. They remain unpublished and disabled until you
-              review and activate them. Existing questions are preserved.
-            </AlertDialogDescription>
+              {translateUi("Only accepted rows will be created. They remain unpublished and disabled until you review and activate them. Existing questions are preserved.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Back to preview</AlertDialogCancel>
+            <AlertDialogCancel>{translateUi("Back to preview")}</AlertDialogCancel>
             <AlertDialogAction
               disabled={busy || expired || !confirmed || !preview}
               onClick={() => void commit()}
             >
-              Confirm draft import
-            </AlertDialogAction>
+              {translateUi("Confirm draft import")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
       {result && (
-        <AdminPanel title="Import complete" className="import-success">
+        <AdminPanel title={translateUi("Import complete")} className="import-success">
           <div role="status">
             <p>
-              <strong>{result.imported}</strong> questions imported as unpublished drafts
-              (DISABLED). {result.rejected} rejected rows and {result.duplicates} duplicates were
-              skipped.
-            </p>
+              <strong>{result.imported}</strong> {translateUi("questions imported as unpublished drafts (DISABLED).")}{" "}{result.rejected} {translateUi("rejected rows and")}{" "}{result.duplicates} {translateUi("duplicates were skipped.")}</p>
             <p className="admin-muted">
-              Review and publish individual questions from Manage questions when ready.
-            </p>
+              {translateUi("Review and publish individual questions from Manage questions when ready.")}</p>
           </div>
           <div className="admin-summary-actions">
             <AdminButton asChild>
-              <Link href="/admin/questions">Manage questions</Link>
+              <Link href="/admin/questions">{translateUi("Manage questions")}</Link>
             </AdminButton>
             <AdminButton
               variant="outline"
@@ -429,12 +407,11 @@ export function AdminQuestionImport() {
                 if (input) input.value = "";
               }}
             >
-              Import another file
-            </AdminButton>
+              {translateUi("Import another file")}</AdminButton>
           </div>
           {result.questionIds?.length > 0 && (
             <details>
-              <summary>Imported question IDs</summary>
+              <summary>{translateUi("Imported question IDs")}</summary>
               {result.questionIds.map((id) => (
                 <p key={id}>
                   <code>{id}</code>

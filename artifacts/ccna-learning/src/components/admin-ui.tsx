@@ -1,3 +1,5 @@
+import { useI18n } from '../i18n';
+import { UiMessage } from '../i18n';
 import { type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { AlertCircle, CheckCircle2, Info, TriangleAlert, FileQuestion, Search, X } from "lucide-react";
@@ -51,10 +53,11 @@ export function AdminPageHeader({
   description: string;
   action?: ReactNode;
 }) {
+  const { t: translateUi } = useI18n();
   return (
     <header className="admin-page-header">
       <div>
-        <span className="admin-eyebrow">Content administration</span>
+        <span className="admin-eyebrow">{translateUi("Content administration")}</span>
         <h1>{title}</h1>
         <p>{description}</p>
       </div>
@@ -63,13 +66,14 @@ export function AdminPageHeader({
   );
 }
 export function AdminNavigation() {
+  const { t: translateUi, message } = useI18n();
   const [location] = useLocation(),
     path = location.split("?")[0];
   return (
-    <nav className="admin-module-nav" aria-label="Administration modules">
+    <nav className="admin-module-nav" aria-label={translateUi("Administration modules")}>
       {adminModules.map((m) => (
         <Link key={m.href} href={m.href} aria-current={path === m.href ? "page" : undefined}>
-          {m.title}
+          {message(m.title)}
         </Link>
       ))}
     </nav>
@@ -104,6 +108,7 @@ export function AdminPanel({
   );
 }
 export function StatusIndicator({ status }: { status: string }) {
+  const {message} = useI18n();
   const labels: Record<string, string> = {
     ACTIVE: "Active",
     DRAFT: "Draft",
@@ -116,14 +121,15 @@ export function StatusIndicator({ status }: { status: string }) {
   return (
     <span className={`admin-status status-${status.toLowerCase()}`}>
       <span aria-hidden="true" />
-      {labels[status] ?? status}
+      {message(labels[status] ?? status)}
     </span>
   );
 }
 export function AdminLoading({ label = "Loading content" }: { label?: string }) {
+  const {message} = useI18n();
   return (
-    <div className="admin-loading" role="status" aria-label={label}>
-      <span className="sr-only">{label}…</span>
+    <div className="admin-loading" role="status" aria-label={message(label)}>
+      <span className="sr-only">{message(label)}…</span>
       {[1, 2, 3].map((i) => (
         <Skeleton aria-hidden="true" className="admin-skeleton-row" key={i} />
       ))}
@@ -157,6 +163,7 @@ export function AdminNotice({
   tone?: "success" | "error";
   onDismiss?: () => void;
 }) {
+  const { t: translateUi } = useI18n();
   const Icon = tone === "error" ? AlertCircle : CheckCircle2;
   return (
     <div
@@ -166,7 +173,7 @@ export function AdminNotice({
       <Icon aria-hidden="true" />
       <div>{children}</div>
       {onDismiss && (
-        <button type="button" aria-label="Dismiss notification" onClick={onDismiss}>
+        <button type="button" aria-label={translateUi("Dismiss notification")} onClick={onDismiss}>
           <X aria-hidden="true" size={16} />
         </button>
       )}
@@ -175,6 +182,7 @@ export function AdminNotice({
 }
 // Owned by the page/session boundary, so account switches remove private notices.
 export function AdminToast({ message, onDismiss, tone = "success" }: { message: string; onDismiss: () => void; tone?: "success" | "error" | "warning" | "info" }) {
+  const { t: translateUi } = useI18n();
   const Icon=tone === "success" ? CheckCircle2 : tone === "info" ? Info : tone === "warning" ? TriangleAlert : AlertCircle;
   return (
     <ToastProvider duration={7000}>
@@ -186,8 +194,8 @@ export function AdminToast({ message, onDismiss, tone = "success" }: { message: 
         className={`admin-local-toast admin-notice-${tone}`}
       >
         <Icon size={20} aria-hidden="true" />
-        <ToastDescription>{message}</ToastDescription>
-        <ToastClose aria-label="Dismiss notification" />
+        <ToastDescription><UiMessage text={message}/></ToastDescription>
+        <ToastClose aria-label={translateUi("Dismiss notification")} />
       </Toast>
       <ToastViewport className="admin-toast-viewport" />
     </ToastProvider>

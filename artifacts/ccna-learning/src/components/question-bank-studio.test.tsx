@@ -6,6 +6,7 @@ import { beforeEach, afterEach, it, expect, vi } from "vitest";
 import { AdminQuestionManager } from "./question-bank-studio";
 import { AdminSessionBoundary } from "./admin-session-boundary";
 import { newStudioForm, validateStudioForm, studioCsv } from "../lib/question-studio-form";
+import {LocaleProvider,LanguageSelect,languagePreferenceKey} from '../i18n';
 const identity = { userId: "admin-a", sessionId: "session-a" },
   id = "11111111-1111-4111-8111-111111111111",
   other = "22222222-2222-4222-8222-222222222222",
@@ -247,6 +248,7 @@ afterEach(async () => {
   client.clear();
   host.remove();
   vi.unstubAllGlobals();
+  localStorage.removeItem(languagePreferenceKey);document.documentElement.dir='ltr';document.documentElement.lang='en';
   notifyManager.setScheduler((cb) => setTimeout(cb, 0));
   delete (globalThis as any).IS_REACT_ACT_ENVIRONMENT;
 });
@@ -261,7 +263,11 @@ it("creates an unpublished question with four validated options and verified ses
   await button("Create Question");
   await fill();
   await click('[data-testid="button-save-question"]');
-  const write = calls.find((c) => c.options.method === "POST")!;
+  // Readiness is a read-only POST and may precede Save depending on debounce
+  // scheduling. Every actual persistence request must still be accounted for.
+  const writes = calls.filter((c) => ["POST","PUT","PATCH","DELETE"].includes(c.options.method ?? "") && c.url !== "/api/admin/questions/studio/readiness");
+  expect(writes).toHaveLength(1);
+  const write = writes[0];
   const body = JSON.parse(String(write.options.body));
   expect(body.question.status).toBe("DISABLED");
   expect(body.question.options).toHaveLength(4);
@@ -365,7 +371,9 @@ it("duplicates into a new unpublished identity rather than overwriting the sourc
   );
   await click('.studio-duplicate-warning input[type="checkbox"]');
   await click('[data-testid="button-save-question"]');
-  const write = calls.find((c) => c.options.method === "POST")!;
+  const writes = calls.filter((c) => ["POST","PUT","PATCH","DELETE"].includes(c.options.method ?? "") && c.url !== "/api/admin/questions/studio/readiness");
+  expect(writes).toHaveLength(1);
+  const write = writes[0];
   expect(write.url).toBe("/api/admin/questions/studio");
   expect(JSON.parse(String(write.options.body)).question.status).toBe("DISABLED");
   expect(calls.some((c) => c.options.method === "PATCH")).toBe(false);
@@ -524,4 +532,18 @@ it("uses compact server-backed readiness and does not claim Ready on failed serv
  expect(document.body.textContent).toContain('Needs Attention');expect(document.body.textContent).not.toContain('Ready to Publish');
  expect((find('.studio-publish-checklist') as HTMLDetailsElement).open).toBe(true);
  expect(document.body.textContent).toContain('Enable the topic before publishing this question.');
+});
+
+it('localizes Studio enum labels without changing values, draft state, or publication permissions',async()=>{
+  localStorage.removeItem(languagePreferenceKey);
+  await act(async()=>root.render(<LocaleProvider><LanguageSelect/><QueryClientProvider client={client}><AdminSessionBoundary identity={identity}><AdminQuestionManager/></AdminSessionBoundary></QueryClientProvider></LocaleProvider>));
+  await edit();const difficulty=document.querySelector<HTMLSelectElement>('#question-difficulty')!;
+  expect(difficulty).not.toBeNull();
+  await input('#question-difficulty','HARD');const text=document.querySelector<HTMLTextAreaElement>('#question-text')!.value;
+  await act(async()=>{const select=host.querySelector<HTMLSelectElement>('select[aria-label="Language"]')!;select.value='ar';select.dispatchEvent(new Event('change',{bubbles:true}));});
+  expect(document.querySelector('#question-difficulty')).toBe(difficulty);expect(difficulty.value).toBe('HARD');
+  expect([...difficulty.options].map(o=>o.value)).toEqual(['EASY','MEDIUM','HARD']);
+  expect([...difficulty.options].map(o=>o.textContent)).not.toEqual(['EASY','MEDIUM','HARD']);
+  expect(document.querySelector<HTMLTextAreaElement>('#question-text')!.value).toBe(text);
+  expect(calls.filter(c=>['POST','PUT','PATCH','DELETE'].includes(c.options.method??'')&&!c.url.endsWith('/readiness'))).toHaveLength(0);
 });

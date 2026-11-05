@@ -1,3 +1,6 @@
+import { useI18n } from './i18n';
+import { LanguageSelect } from './i18n';
+import { clerkArabic, clerkEnglish } from './i18n/clerk';
 import { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ClerkProvider, SignIn, SignUp, useAuth } from '@clerk/react';
@@ -45,14 +48,13 @@ const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 // No bypass: without a publishable key the app shows a configuration screen
 // instead of crashing or rendering unauthenticated "fake" access.
 function MissingClerkConfig() {
+  const { t: translateUi } = useI18n();
   return (
     <main role="alert" style={{ maxWidth: 560, margin: '15vh auto', padding: 24, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>Authentication is not configured</h1>
+      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>{translateUi("Authentication is not configured")}</h1>
       <p style={{ marginBottom: 12 }}>
-        This app uses Clerk for sign-in. Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> for the web app, and
-        <code> CLERK_PUBLISHABLE_KEY</code> and <code>CLERK_SECRET_KEY</code> for the API server, then restart.
-      </p>
-      <p>See <code>docs/development/clerk-setup.md</code>.</p>
+        {translateUi("This app uses Clerk for sign-in. Set")}{" "}<code>VITE_CLERK_PUBLISHABLE_KEY</code> {translateUi("for the web app, and")}<code> CLERK_PUBLISHABLE_KEY</code> {translateUi("and")}{" "}<code>CLERK_SECRET_KEY</code> {translateUi("for the API server, then restart.")}</p>
+      <p>{translateUi("See")}{" "}<code>docs/development/clerk-setup.md</code>.</p>
     </main>
   );
 }
@@ -93,21 +95,22 @@ function PageHeader({ eyebrow, title, lead, action }: { eyebrow: string; title: 
 }
 
 function PracticePage() {
+  const { t: translateUi } = useI18n();
   const { isLoaded, isSignedIn } = useAuth();
   return (
     <div className="page-wrap">
-      <PageHeader eyebrow="Practice / foundation mode" title="Practice with a clean signal." lead="Bring one question into focus. Choose deliberately, submit for server-checked feedback, then move on when you are ready." />
+      <PageHeader eyebrow={translateUi("Practice / foundation mode")} title={translateUi("Practice with a clean signal.")} lead={translateUi("Bring one question into focus. Choose deliberately, submit for server-checked feedback, then move on when you are ready.")} />
       <div className="practice-frame">
         <section className="practice-hero reveal reveal-1">
-          <div className="eyebrow" style={{ color: '#f5916f' }}>Recall / in sequence</div>
-          <h2>Make the concept answer back.</h2>
-          <p>Work through active CCNA topics one prompt at a time. The question stays neutral until you submit; the answer service returns the result and explanation.</p>
-          <a href="#practice-session" className="button-primary" data-testid="link-enter-practice"><Target size={15} /> Choose a topic <ArrowRight size={15} /></a>
+          <div className="eyebrow" style={{ color: '#f5916f' }}>{translateUi("Recall / in sequence")}</div>
+          <h2>{translateUi("Make the concept answer back.")}</h2>
+          <p>{translateUi("Work through active CCNA topics one prompt at a time. The question stays neutral until you submit; the answer service returns the result and explanation.")}</p>
+          <a href="#practice-session" className="button-primary" data-testid="link-enter-practice"><Target size={15} /> {translateUi("Choose a topic")}{" "}<ArrowRight size={15} /></a>
         </section>
         <div className="practice-info reveal reveal-2">
-          <div className="practice-info-card"><div className="practice-info-number">01</div><div className="practice-info-title">Select a domain</div><p className="practice-info-copy">Stay with one active topic long enough to retrieve what you know.</p></div>
-          <div className="practice-info-card"><div className="practice-info-number">02</div><div className="practice-info-title">Commit an answer</div><p className="practice-info-copy">No correctness hints appear before the answer is checked.</p></div>
-          <div className="practice-info-card"><div className="practice-info-number">03</div><div className="practice-info-title">Read the reasoning</div><p className="practice-info-copy">Use the server-returned explanation to close the loop.</p></div>
+          <div className="practice-info-card"><div className="practice-info-number">01</div><div className="practice-info-title">{translateUi("Select a domain")}</div><p className="practice-info-copy">{translateUi("Stay with one active topic long enough to retrieve what you know.")}</p></div>
+          <div className="practice-info-card"><div className="practice-info-number">02</div><div className="practice-info-title">{translateUi("Commit an answer")}</div><p className="practice-info-copy">{translateUi("No correctness hints appear before the answer is checked.")}</p></div>
+          <div className="practice-info-card"><div className="practice-info-number">03</div><div className="practice-info-title">{translateUi("Read the reasoning")}</div><p className="practice-info-copy">{translateUi("Use the server-returned explanation to close the loop.")}</p></div>
         </div>
         <div id="practice-session"><PracticeWorkspace isAuthLoaded={isLoaded} isSignedIn={Boolean(isSignedIn)} /></div>
       </div>
@@ -118,6 +121,7 @@ function PracticePage() {
 function SignInPage() {
   return (
     <div className="auth-page">
+      <LanguageSelect />
       <SignIn
         routing="path"
         path={`${basePath}/sign-in`}
@@ -131,6 +135,7 @@ function SignInPage() {
 function SignUpPage() {
   return (
     <div className="auth-page">
+      <LanguageSelect />
       <SignUp
         routing="path"
         path={`${basePath}/sign-up`}
@@ -142,6 +147,7 @@ function SignUpPage() {
 }
 
 export function AdminPage() {
+  const { t: translateUi } = useI18n();
   const [location] = useLocation();
   const path = location.split('?')[0];
   const questionsPage = path === '/admin/questions';
@@ -174,7 +180,7 @@ export function AdminPage() {
   if (!isLoaded || (isSignedIn && (!identity || currentUserQuery.isLoading))) {
     return (
       <div className="page-wrap admin-page">
-        <PageHeader eyebrow="Boundary / restricted surface" title="Checking access." lead="The server is verifying your authentication and application role before showing this surface." />
+        <PageHeader eyebrow={translateUi("Boundary / restricted surface")} title={translateUi("Checking access.")} lead={translateUi("The server is verifying your authentication and application role before showing this surface.")} />
         <div className="empty-card" data-testid="loading-admin-access"><div className="skeleton" style={{ height: 14, width: 180, margin: '0 auto' }} /></div>
       </div>
     );
@@ -183,15 +189,15 @@ export function AdminPage() {
   if (!isSignedIn) {
     return (
       <div className="page-wrap admin-page">
-        <PageHeader eyebrow="Boundary / sign in required" title="Admin tools are restricted." lead="Sign in first. The server will verify your application role before granting access." />
+        <PageHeader eyebrow={translateUi("Boundary / sign in required")} title={translateUi("Admin tools are restricted.")} lead={translateUi("Sign in first. The server will verify your application role before granting access.")} />
         <section className="admin-boundary">
           <div className="admin-message reveal reveal-1">
             <LockKeyhole color="var(--signal)" size={23} />
-            <h2>Authentication required.</h2>
-            <p>Sign in to access content management. Your account must have administrator access.</p>
-            <Link href="/sign-in" className="button-primary" data-testid="link-admin-sign-in"><LogIn size={15} /> Sign in</Link>
+            <h2>{translateUi("Authentication required.")}</h2>
+            <p>{translateUi("Sign in to access content management. Your account must have administrator access.")}</p>
+            <Link href="/sign-in" className="button-primary" data-testid="link-admin-sign-in"><LogIn size={15} /> {translateUi("Sign in")}</Link>
           </div>
-          <div className="boundary-mark reveal reveal-2" aria-label="Admin tools placeholder" data-testid="panel-admin-placeholder">
+          <div className="boundary-mark reveal reveal-2" aria-label={translateUi("Admin tools placeholder")} data-testid="panel-admin-placeholder">
             <div className="boundary-diagram" aria-hidden="true"><span className="orbit-dot one" /><span className="orbit-dot two" /><span className="orbit-dot three" /><div className="boundary-circle"><div className="boundary-core"><LockKeyhole /></div></div></div>
           </div>
         </section>
@@ -202,8 +208,8 @@ export function AdminPage() {
   if (currentUserQuery.isError || !currentUser) {
     return (
       <div className="page-wrap admin-page">
-        <PageHeader eyebrow="Boundary / session issue" title="We could not verify your account." lead="Your session may have expired. Retry, or sign in again." />
-        <div className="error-card" data-testid="error-admin-session"><CircleAlert size={26} color="var(--signal)" aria-hidden="true" /><h2 className="error-title">Session verification failed</h2><p className="error-copy">Sign out and sign in again to retry the server-side check.</p></div>
+        <PageHeader eyebrow={translateUi("Boundary / session issue")} title={translateUi("We could not verify your account.")} lead={translateUi("Your session may have expired. Retry, or sign in again.")} />
+        <div className="error-card" data-testid="error-admin-session"><CircleAlert size={26} color="var(--signal)" aria-hidden="true" /><h2 className="error-title">{translateUi("Session verification failed")}</h2><p className="error-copy">{translateUi("Sign out and sign in again to retry the server-side check.")}</p></div>
       </div>
     );
   }
@@ -211,15 +217,15 @@ export function AdminPage() {
   if (currentUser.role !== 'ADMIN') {
     return (
       <div className="page-wrap admin-page">
-        <PageHeader eyebrow="Boundary / forbidden" title="This surface is for administrators." lead="Your account does not have administrator access." />
+        <PageHeader eyebrow={translateUi("Boundary / forbidden")} title={translateUi("This surface is for administrators.")} lead={translateUi("Your account does not have administrator access.")} />
         <section className="admin-boundary">
           <div className="admin-message reveal reveal-1">
             <ShieldCheck color="var(--signal)" size={23} />
-            <h2>Access denied.</h2>
-            <p>Contact your administrator if you need access to content management.</p>
-            <Link href="/" className="button-primary" data-testid="link-return-dashboard"><ArrowRight size={15} style={{ transform: 'rotate(180deg)' }} /> Return to overview</Link>
+            <h2>{translateUi("Access denied.")}</h2>
+            <p>{translateUi("Contact your administrator if you need access to content management.")}</p>
+            <Link href="/" className="button-primary" data-testid="link-return-dashboard"><ArrowRight size={15} style={{ transform: 'rotate(180deg)' }} /> {translateUi("Return to overview")}</Link>
           </div>
-          <div className="boundary-mark reveal reveal-2" aria-label="Forbidden admin tools placeholder" data-testid="panel-admin-forbidden">
+          <div className="boundary-mark reveal reveal-2" aria-label={translateUi("Forbidden admin tools placeholder")} data-testid="panel-admin-forbidden">
             <div className="boundary-diagram" aria-hidden="true"><span className="orbit-dot one" /><span className="orbit-dot two" /><span className="orbit-dot three" /><div className="boundary-circle"><div className="boundary-core"><LockKeyhole /></div></div></div>
           </div>
         </section>
@@ -230,7 +236,7 @@ export function AdminPage() {
   if (!identity || adminAccessQuery.isPending) {
     return (
       <div className="page-wrap admin-page">
-        <PageHeader eyebrow="Boundary / restricted surface" title="Checking administrator access." lead="The server is confirming the ADMIN policy for this authenticated account." />
+        <PageHeader eyebrow={translateUi("Boundary / restricted surface")} title={translateUi("Checking administrator access.")} lead={translateUi("The server is confirming the ADMIN policy for this authenticated account.")} />
         <div className="empty-card" data-testid="loading-admin-policy"><div className="skeleton" style={{ height: 14, width: 220, margin: '0 auto' }} /></div>
       </div>
     );
@@ -239,28 +245,29 @@ export function AdminPage() {
   if (adminAccessQuery.isError || adminAccessQuery.data?.allowed !== true) {
     return (
       <div className="page-wrap admin-page">
-        <PageHeader eyebrow="Boundary / authorization error" title="The server did not grant admin access." lead="We could not confirm administrator access. Check your connection and try again." />
-        <div className="error-card" data-testid="error-admin-policy"><CircleAlert size={26} color="var(--signal)" aria-hidden="true" /><h2 className="error-title">Authorization check failed</h2><p className="error-copy">Try again after confirming your account is active.</p><button className="button-quiet" onClick={() => void adminAccessQuery.refetch()} data-testid="button-retry-admin"><Radar size={15} /> Retry access check</button></div>
+        <PageHeader eyebrow={translateUi("Boundary / authorization error")} title={translateUi("The server did not grant admin access.")} lead={translateUi("We could not confirm administrator access. Check your connection and try again.")} />
+        <div className="error-card" data-testid="error-admin-policy"><CircleAlert size={26} color="var(--signal)" aria-hidden="true" /><h2 className="error-title">{translateUi("Authorization check failed")}</h2><p className="error-copy">{translateUi("Try again after confirming your account is active.")}</p><button className="button-quiet" onClick={() => void adminAccessQuery.refetch()} data-testid="button-retry-admin"><Radar size={15} /> {translateUi("Retry access check")}</button></div>
       </div>
     );
   }
 
   return (
     <div className="page-wrap admin-page">
-      {!questionsPage&&!lessonsPage&&<AdminPageHeader title={taxonomyPage?'Exam taxonomy':importPage?'Import questions':topicsPage?'Curriculum topics':'Administration'} description={taxonomyPage?'Organize blueprint versions, domains and objectives. Associate questions through explicit review.':importPage?'Download a template, validate your file and review every row before importing drafts.':topicsPage?'Organize learning content and control topic visibility.':'A clear view of your learning content and the tools to manage it.'}/>}
+      {!questionsPage&&!lessonsPage&&<AdminPageHeader title={taxonomyPage?translateUi("Exam taxonomy"):importPage?translateUi("Import questions"):topicsPage?translateUi("Curriculum topics"):translateUi("Administration")} description={taxonomyPage?translateUi("Organize blueprint versions, domains and objectives. Associate questions through explicit review."):importPage?translateUi("Download a template, validate your file and review every row before importing drafts."):topicsPage?translateUi("Organize learning content and control topic visibility."):translateUi("A clear view of your learning content and the tools to manage it.")}/>}
       <AdminSessionBoundary key={path} identity={identity}>{lessonsPage?<AdminLessonManager/>:taxonomyPage?<AdminTaxonomyManager/>:importPage?<AdminQuestionImport/>:questionsPage?<AdminQuestionManager/>:topicsPage?<AdminTopicManager/>:<AdminOverview/>}</AdminSessionBoundary>
     </div>
   );
 }
 
 function NotFound() {
+  const { t: translateUi } = useI18n();
   return (
     <div className="route-not-found">
       <div>
-        <div className="eyebrow">404 / route not found</div>
-        <h1>That path is not in the map.</h1>
-        <p>Return to the learning workspace and pick a known route.</p>
-        <Link href="/" className="button-primary" data-testid="link-not-found-home"><ArrowRight size={15} style={{ transform: 'rotate(180deg)' }} /> Back to overview</Link>
+        <div className="eyebrow">{translateUi("404 / route not found")}</div>
+        <h1>{translateUi("That path is not in the map.")}</h1>
+        <p>{translateUi("Return to the learning workspace and pick a known route.")}</p>
+        <Link href="/" className="button-primary" data-testid="link-not-found-home"><ArrowRight size={15} style={{ transform: 'rotate(180deg)' }} /> {translateUi("Back to overview")}</Link>
       </div>
     </div>
   );
@@ -302,10 +309,12 @@ export function ApplicationRoutes() {
 }
 
 function Router() {
+  const {locale} = useI18n();
   const [location, setLocation] = useLocation();
   const stripBase = (to: string) => (basePath && to.startsWith(basePath) ? to.slice(basePath.length) || '/' : to);
   return (
     <ClerkProvider
+      localization={locale==='ar'?clerkArabic:clerkEnglish}
       publishableKey={clerkPubKey!}
       proxyUrl={clerkProxyUrl || undefined}
       appearance={clerkAppearance}

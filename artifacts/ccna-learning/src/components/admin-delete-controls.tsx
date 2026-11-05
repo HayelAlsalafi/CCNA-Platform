@@ -1,3 +1,5 @@
+import { UiMessage } from '../i18n';
+import { useI18n } from '../i18n';
 import { useEffect, useRef, useState } from "react";
 import "../practice-run.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -43,6 +45,9 @@ export function useAdminDeleteControls(
     preview?: (ids: string[]) => Promise<React.ReactNode>;
   } = {},
 ) {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   const session = useAdminSession(),
     client = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]),
@@ -70,7 +75,7 @@ export function useAdminDeleteControls(
         if(kind==="questions") {
           const preview=await adminContentRequest<HistoryPreview>("/api/admin/questions/history-delete/preview",{...adminMutationOptions("preview-question-delete",session.identity).request,method:"POST",headers:{"Content-Type":"application/json","X-Admin-Session":session.identity.sessionId},body:JSON.stringify({ids})});
           assertPreview(preview,ids);
-          if(current()) {setQuestionPreview(preview);setDeletePreview(<div>{preview.records.map(r=><p key={r.id}><strong>{r.questionCode??r.id}</strong>: {r.attempts.length} attempts, {r.deliveries.length} deliveries, {r.revisions.length} revisions, {r.sessionItems??0} practice positions, {r.examItems??0} exam deliveries across {r.examSessions??0} exams.</p>)}</div>);}
+          if(current()) {setQuestionPreview(preview);setDeletePreview(<div>{preview.records.map(r=><p key={r.id}><strong>{r.questionCode??r.id}</strong>: {r.attempts.length} {translateUi("attempts,")}{" "}{r.deliveries.length} {translateUi("deliveries,")}{" "}{r.revisions.length} {translateUi("revisions,")}{" "}{r.sessionItems??0} {translateUi("practice positions,")}{" "}{r.examItems??0} {translateUi("exam deliveries across")}{" "}{r.examSessions??0} {translateUi("exams.")}</p>)}</div>);}
         } else {const content=await options.preview!(ids);if(current())setDeletePreview(content);}
       } catch(e) {
         if (current()) {
@@ -234,7 +239,7 @@ export function useAdminDeleteControls(
   const checkbox = (id: string) => (
     <input
       type="checkbox"
-      aria-label={`Select ${kind.slice(0, -1)} ${id}`}
+      aria-label={translateUi("Select {value0} {value1}", {value0: localizeUiLabel(String(kind.slice(0, -1))), value1: String(id)})}
       checked={selected.includes(id)}
       disabled={mutation.isPending}
       onChange={() => toggle(id)}
@@ -249,17 +254,16 @@ export function useAdminDeleteControls(
         if (session.isCurrent()) void requestDelete([id]);
       }}
     >
-      Delete
-    </button>
+      {translateUi("Delete")}</button>
   );
   const controls = (
     <>
-      <div className="admin-bulk-controls" aria-label={`Bulk ${kind} deletion`}>
+      <div className="admin-bulk-controls" aria-label={translateUi("Bulk {value0} deletion", {value0: localizeUiLabel(String(kind))})}>
         <label>
           <input
             type="checkbox"
             aria-label={
-              paginated ? "Select all on current filtered page" : "Select all filtered results"
+              paginated ? translateUi("Select all on current filtered page") : translateUi("Select all filtered results")
             }
             disabled={mutation.isPending || !visibleIds.length || visibleIds.length > 500}
             checked={visibleIds.length > 0 && visibleIds.every((id) => selected.includes(id))}
@@ -271,43 +275,39 @@ export function useAdminDeleteControls(
               )
             }
           />{" "}
-          {paginated ? "Select all on this page" : "Select all filtered results"}
+          {paginated ? translateUi("Select all on this page") : translateUi("Select all filtered results")}
         </label>
-        <strong aria-live="polite">{selected.length} selected</strong>
+        <strong aria-live="polite">{selected.length} {translateUi("selected")}</strong>
         <button
           type="button"
           className="button-quiet"
           disabled={!selected.length || mutation.isPending}
           onClick={() => void requestDelete(selected)}
         >
-          Delete Selected
-        </button>
+          {translateUi("Delete Selected")}</button>
         <button
           type="button"
           className="button-quiet"
           disabled={!selected.length || mutation.isPending}
           onClick={() => setSelected([])}
         >
-          Clear Selection
-        </button>
+          {translateUi("Clear Selection")}</button>
         <small>
           {options.retainAcrossPages
-            ? "Selection persists across pages; changing filters clears it. Select all applies to this page."
+            ? translateUi("Selection persists across pages; changing filters clears it. Select all applies to this page.")
             : paginated
-              ? "Changing page or filters clears selection."
-              : "Changing filters clears selection."}{" "}
-          Maximum 500 per batch.
-        </small>
+              ? translateUi("Changing page or filters clears selection.")
+              : translateUi("Changing filters clears selection.")}{" "}
+          {translateUi("Maximum 500 per batch.")}</small>
       </div>
       {notice && <AdminToast message={notice.message} tone={notice.tone} onDismiss={()=>setNotice(null)}/>}
-      {error && <p role="alert">FAILED: {error}</p>}
+      {error && <p role="alert">{translateUi("FAILED:")}{" "}<UiMessage text={error}/></p>}
       {result && (
         <div role="status" className="admin-delete-results">
           <strong>
-            {result.deleted} DELETED · {result.blocked} BLOCKED
-          </strong>
+            {result.deleted} {translateUi("DELETED ·")}{" "}{result.blocked} {translateUi("BLOCKED")}</strong>
           <details>
-            <summary>Individual outcomes</summary>
+            <summary>{translateUi("Individual outcomes")}</summary>
             <ul>
               {result.items.map((item) => (
                 <li key={item.id}>
@@ -328,17 +328,17 @@ export function useAdminDeleteControls(
         <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Delete {confirmation?.length} {kind}?
+              {translateUi("Delete")}{" "}{confirmation?.length} {kind}?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {kind==="questions" ? questionPreview?.records.length===1 ? `Are you sure you want to permanently delete question ${questionPreview.records[0].questionCode??questionPreview.records[0].id}? This action cannot be undone.` : "Permanently delete exactly the listed selected questions? This action cannot be undone." : "Permanently delete selected empty topics? Referenced topics remain BLOCKED; questions are never deleted implicitly."}
+              {kind==="questions" ? questionPreview?.records.length===1 ? translateUi("Are you sure you want to permanently delete question {value0}? This action cannot be undone.", {value0: String(questionPreview.records[0].questionCode??questionPreview.records[0].id)}) : translateUi("Permanently delete exactly the listed selected questions? This action cannot be undone.") : translateUi("Permanently delete selected empty topics? Referenced topics remain BLOCKED; questions are never deleted implicitly.")}
               {questionPreview?.requiresHistory && " Learner history exists. Continue to the separate destructive confirmation to review its exact consequences."}
             </AlertDialogDescription>
-            {error && <p role="alert">FAILED: {error}</p>}
-            {previewPending ? <p role="status">Checking dependencies…</p> : deletePreview}
+            {error && <p role="alert">{translateUi("FAILED:")}{" "}<UiMessage text={error}/></p>}
+            {previewPending ? <p role="status">{translateUi("Checking dependencies…")}</p> : deletePreview}
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={mutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={mutation.isPending}>{translateUi("Cancel")}</AlertDialogCancel>
             {kind === "questions" && (
               <button
                 type="button"
@@ -346,8 +346,7 @@ export function useAdminDeleteControls(
                 disabled={mutation.isPending || historyBusy || previewPending || previewFailed}
                 onClick={() => void historyRequest()}
               >
-                Preview deletion including history
-              </button>
+                {translateUi("Preview deletion including history")}</button>
             )}
             <button
               type="button"
@@ -355,7 +354,7 @@ export function useAdminDeleteControls(
               disabled={mutation.isPending || previewPending || previewFailed || (kind==="questions" && (!questionPreview || !!questionPreview.requiresHistory))}
               onClick={() => void confirm()}
             >
-              {mutation.isPending ? "Processing…" : "Confirm deletion"}
+              {mutation.isPending ? translateUi("Processing…") : translateUi("Confirm deletion")}
             </button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -368,22 +367,19 @@ export function useAdminDeleteControls(
       >
         <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
-            <AlertDialogTitle>Permanently delete questions and history?</AlertDialogTitle>
+            <AlertDialogTitle>{translateUi("Permanently delete questions and history?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {historyPreview?.warning} The preview expires after five minutes. Any change requires
-              a new preview.
-            </AlertDialogDescription>
+              {historyPreview?.warning} {translateUi("The preview expires after five minutes. Any change requires a new preview.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <div style={{ maxHeight: "35vh", overflowY: "auto" }}>
             {historyPreview?.records.map((record) => (
               <details key={record.id}>
                 <summary>
-                  {record.questionCode??record.id}: {record.revisions.length} revisions, {record.deliveries.length}{" "}
-                  deliveries, {record.attempts.length} learner attempts, {record.sessionItems??0} positions across {record.sessions??0} preserved practice sessions; {record.examItems??0} exam deliveries across {record.examSessions??0} preserved exams
-                </summary>
+                  {record.questionCode??record.id}: {record.revisions.length} {translateUi("revisions,")}{" "}{record.deliveries.length}{" "}
+                  {translateUi("deliveries,")}{" "}{record.attempts.length} {translateUi("learner attempts,")}{" "}{record.sessionItems??0} {translateUi("positions across")}{" "}{record.sessions??0} {translateUi("preserved practice sessions;")}{" "}{record.examItems??0} {translateUi("exam deliveries across")}{" "}{record.examSessions??0} {translateUi("preserved exams")}</summary>
                 {(["revisions", "deliveries", "attempts"] as const).map((kind) => (
                   <p key={kind}>
-                    {kind}: {record[kind].join(", ") || "none"}
+                    {kind}: {record[kind].join(", ") || translateUi("none")}
                   </p>
                 ))}
               </details>
@@ -396,20 +392,19 @@ export function useAdminDeleteControls(
               disabled={historyBusy}
               onChange={(e) => setHistoryLoss(e.target.checked)}
             />{" "}
-            I authorize permanent loss of the listed learner history.
-          </label>
+            {translateUi("I authorize permanent loss of the listed learner history.")}</label>
           <label>
-            Type {historyPreview?.confirmation}
+            {translateUi("Type")}{" "}{historyPreview?.confirmation}
             <input
-              aria-label="History deletion confirmation phrase"
+              aria-label={translateUi("History deletion confirmation phrase")}
               value={historyPhrase}
               disabled={historyBusy}
               onChange={(e) => setHistoryPhrase(e.target.value)}
             />
           </label>
-          {error && <p role="alert">{error}</p>}
+          {error && <p role="alert"><UiMessage text={error}/></p>}
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={historyBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={historyBusy}>{translateUi("Cancel")}</AlertDialogCancel>
             <button
               type="button"
               className="button-primary"
@@ -418,8 +413,7 @@ export function useAdminDeleteControls(
               }
               onClick={() => void historyRequest(true)}
             >
-              Permanently delete listed questions and history
-            </button>
+              {translateUi("Permanently delete listed questions and history")}</button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

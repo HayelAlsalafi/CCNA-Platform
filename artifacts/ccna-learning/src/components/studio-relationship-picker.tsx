@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n';
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -31,6 +32,7 @@ export function StudioRelationshipPicker({
   onSelect: (item: StudioLookupItem | null) => void;
   disabled?: boolean;
 }) {
+  const { t: translateUi, message } = useI18n();
   const session = useAdminSession();
   const [open, setOpen] = useState(false),
     [search, setSearch] = useState(""),
@@ -65,29 +67,28 @@ export function StudioRelationshipPicker({
           type="button"
           variant="outline"
           role="combobox"
-          aria-label={label}
+          aria-label={message(label)}
           aria-expanded={open}
           disabled={disabled}
           className="studio-picker"
         >
           {selectedLabel ||
             query.data?.items.find((i) => i.id === value)?.label ||
-            (value ? "Selected " + kind.slice(0, -1) : label)}
+            (value ? translateUi('Selected {value0}',{value0:message(kind.slice(0,-1))}) : message(label))}
           <ChevronsUpDown size={16} />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[min(90vw,440px)]">
         <Command shouldFilter={false}>
-          <CommandInput value={search} onValueChange={setSearch} placeholder={"Search " + kind} />
+          <CommandInput value={search} onValueChange={setSearch} placeholder={translateUi('Search {value0}',{value0:message(kind)})} />
           <CommandList>
             {query.isPending ? (
               <p className="p-3" role="status">
-                Loading…
-              </p>
+                {translateUi("Loading…")}</p>
             ) : query.isError ? (
               <p className="p-3" role="alert">
-                Could not load relationships.{" "}
-                <button onClick={() => void query.refetch()}>Retry</button>
+                {translateUi("Could not load relationships.")}{" "}
+                <button onClick={() => void query.refetch()}>{translateUi("Retry")}</button>
               </p>
             ) : (
               <>
@@ -99,9 +100,8 @@ export function StudioRelationshipPicker({
                     setOpen(false);
                   }}
                 >
-                  Clear selection
-                </CommandItem>
-                {!query.data?.items.length && <CommandEmpty>No matches.</CommandEmpty>}
+                  {translateUi("Clear selection")}</CommandItem>
+                {!query.data?.items.length && <CommandEmpty>{translateUi("No matches.")}</CommandEmpty>}
                 {query.data?.items.map((item) => (
                   <CommandItem
                     key={item.id}
@@ -114,7 +114,7 @@ export function StudioRelationshipPicker({
                   >
                     <Check size={14} className={value === item.id ? "opacity-100" : "opacity-0"} />
                     {item.label}
-                    {item.status === "DISABLED" ? " (disabled)" : ""}
+                    {item.status === "DISABLED" ? translateUi("(disabled)") : ""}
                   </CommandItem>
                 ))}
               </>
@@ -129,8 +129,7 @@ export function StudioRelationshipPicker({
             disabled={page === 1 || query.isFetching}
             onClick={() => setPage((p) => p - 1)}
           >
-            Previous
-          </Button>
+            {translateUi("Previous")}</Button>
           <span>{page}</span>
           <Button
             type="button"
@@ -139,8 +138,7 @@ export function StudioRelationshipPicker({
             disabled={!query.data?.hasMore || query.isFetching}
             onClick={() => setPage((p) => p + 1)}
           >
-            More
-          </Button>
+            {translateUi("More")}</Button>
         </div>
       </PopoverContent>
     </Popover>

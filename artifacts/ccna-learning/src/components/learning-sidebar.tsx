@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n';
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -46,6 +47,7 @@ function ChapterActivities({
   onNavigate: () => void;
   enabled: boolean;
 }) {
+  const { t: translateUi } = useI18n();
   const identity = useNexusIdentity();
   const query = useQuery({
     queryKey: sessionQueryKey(["/api/chapters", chapterId, "lessons"], identity),
@@ -59,17 +61,16 @@ function ChapterActivities({
   if (query.isPending)
     return (
       <p role="status" className="learning-nav-message">
-        Loading published lessons…
-      </p>
+        {translateUi("Loading published lessons…")}</p>
     );
   if (query.isError)
     return (
       <div className="learning-nav-message" role="alert">
-        <p>Lessons could not load.</p>
-        <button onClick={() => void query.refetch()}>Retry lessons</button>
+        <p>{translateUi("Lessons could not load.")}</p>
+        <button onClick={() => void query.refetch()}>{translateUi("Retry lessons")}</button>
       </div>
     );
-  if (!query.data.items.length) return <p className="learning-nav-message">Lessons coming soon</p>;
+  if (!query.data.items.length) return <p className="learning-nav-message">{translateUi("Lessons coming soon")}</p>;
   return (
     <ol className="learning-activities">
       {query.data.items.map((item, index) => (
@@ -83,7 +84,7 @@ function ChapterActivities({
             <BookOpen size={15} aria-hidden="true" />
             <span>
               {item.title}
-              <small>{item.estimatedMinutes} min read</small>
+              <small>{item.estimatedMinutes} {translateUi("min read")}</small>
             </span>
           </Link>
           {selectedId === item.id && lesson?.id === item.id && (
@@ -103,10 +104,10 @@ function ChapterActivities({
                         {index + 1}.{i + 1} {activity.title}
                         <small>
                           {activity.kind === "reference"
-                            ? "External lab reference"
+                            ? translateUi("External lab reference")
                             : activity.kind === "quiz"
-                              ? "Local self-check"
-                              : "Cisco CLI example"}
+                              ? translateUi("Local self-check")
+                              : translateUi("Cisco CLI example")}
                         </small>
                       </span>
                     </a>
@@ -127,6 +128,7 @@ function NavigationTree({
   lesson,
   onNavigate,
 }: SidebarProps & { onNavigate: () => void }) {
+  const { t: translateUi } = useI18n();
   const activeDomain = curriculum.domains.find((d) =>
     d.sections.some((s) => s.chapters.some((c) => c.id === chapterId)),
   )?.id;
@@ -162,7 +164,7 @@ function NavigationTree({
     open ? [...new Set([...list, id])] : list.filter((value) => value !== id);
   return (
     <div className="learning-nav-scroll" ref={scroll}>
-      <nav aria-label="Learning activities">
+      <nav aria-label={translateUi("Learning activities")}>
         {curriculum.domains.map((domain) => (
           <details
             className="learning-domain"
@@ -215,8 +217,7 @@ function NavigationTree({
         ))}
       </nav>
       <p className="learning-nav-footnote">
-        Only published lessons. Completion is never inferred from navigation.
-      </p>
+        {translateUi("Only published lessons. Completion is never inferred from navigation.")}</p>
     </div>
   );
 }
@@ -227,14 +228,15 @@ type SidebarProps = {
   lesson?: LessonPublished;
 };
 export function LearningSidebar(props: SidebarProps) {
+  const { t: translateUi, dir } = useI18n();
   const [open, setOpen] = useState(false);
   return (
     <>
-      <aside className="learning-sidebar" aria-label="Curriculum navigation">
+      <aside className="learning-sidebar" aria-label={translateUi("Curriculum navigation")}>
         <header>
           <BookOpen size={18} aria-hidden="true" />
           <div>
-            <h2>Learning path</h2>
+            <h2>{translateUi("Learning path")}</h2>
             <small>CCNA 200-301 · {props.curriculum.version}</small>
           </div>
         </header>
@@ -244,13 +246,12 @@ export function LearningSidebar(props: SidebarProps) {
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <button type="button">
-              <PanelLeft size={18} aria-hidden="true" /> Browse learning activities
-            </button>
+              <PanelLeft size={18} aria-hidden="true" /> {translateUi("Browse learning activities")}</button>
           </SheetTrigger>
-          <SheetContent side="left" className="learning-mobile-sheet">
+          <SheetContent side={dir==='rtl'?'right':'left'} className="learning-mobile-sheet">
             <SheetHeader>
-              <SheetTitle>Learning path</SheetTitle>
-              <SheetDescription>Choose a chapter and published lesson.</SheetDescription>
+              <SheetTitle>{translateUi("Learning path")}</SheetTitle>
+              <SheetDescription>{translateUi("Choose a chapter and published lesson.")}</SheetDescription>
             </SheetHeader>
             <NavigationTree {...props} onNavigate={() => setOpen(false)} />
           </SheetContent>

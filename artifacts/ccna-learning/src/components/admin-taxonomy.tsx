@@ -1,3 +1,5 @@
+import {UiMessage} from "../i18n";
+import { useI18n } from '../i18n';
 import { useState, type FormEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -42,6 +44,7 @@ export function useTaxonomyCatalog() {
 }
 
 export function AdminTaxonomyManager() {
+  const { t: translateUi } = useI18n();
   const catalog = useTaxonomyCatalog(),
     session = useAdminSession(),
     cache = useQueryClient();
@@ -115,41 +118,34 @@ export function AdminTaxonomyManager() {
   return (
     <section aria-labelledby="chapter-heading" className="space-y-6">
       <header>
-        <h1 id="chapter-heading">Chapters &amp; domains</h1>
+        <h1 id="chapter-heading">{translateUi("Chapters & domains")}</h1>
         <p>
-          CCNA 200-301 v1.1 / 6 domains / 48 canonical book chapters. Questions and progress use the
-          same stable chapter IDs.
-        </p>
+          {translateUi("CCNA 200-301 v1.1 / 6 domains / 48 canonical book chapters. Questions and progress use the same stable chapter IDs.")}</p>
       </header>
       <p>
         <a className="underline" href="/admin/questions">
-          Assign chapters in question management
-        </a>
+          {translateUi("Assign chapters in question management")}</a>
       </p>
       <div className="flex flex-wrap gap-3">
         <Button variant={reference ? "outline" : "default"} onClick={() => setReference(false)}>
-          Manage chapters
-        </Button>
+          {translateUi("Manage chapters")}</Button>
         <Button variant={reference ? "default" : "outline"} onClick={() => setReference(true)}>
-          Book chapters
-        </Button>
+          {translateUi("Book chapters")}</Button>
       </div>
       {reference ? (
         <TaxonomyBookChapters />
       ) : (
         <>
-          {catalog.isLoading && <p role="status">Loading chapters...</p>}
+          {catalog.isLoading && <p role="status">{translateUi("Loading chapters...")}</p>}
           {catalog.isError && (
             <div role="alert">
               {contentError(catalog.error)}{" "}
-              <Button onClick={() => void catalog.refetch()}>Retry</Button>
+              <Button onClick={() => void catalog.refetch()}>{translateUi("Retry")}</Button>
             </div>
           )}
           {catalog.data && !catalog.data.canonicalReady && (
             <p role="status">
-              Canonical chapters are awaiting the separately confirmed development reset. No
-              database changes have been made by this page.
-            </p>
+              {translateUi("Canonical chapters are awaiting the separately confirmed development reset. No database changes have been made by this page.")}</p>
           )}
           <div className="grid gap-3 sm:grid-cols-3">
             {ccnaBookDomains.map((d) => (
@@ -159,15 +155,13 @@ export function AdminTaxonomyManager() {
                 </strong>
                 <p>
                   {d.examWeight}% / {rows.filter((c) => c.domainCode === d.code).length}/
-                  {d.chapters.length} chapters
-                </p>
+                  {d.chapters.length} {translateUi("chapters")}</p>
               </article>
             ))}
           </div>
           <div className="flex flex-wrap gap-3">
             <label>
-              Search chapters
-              <input
+              {translateUi("Search chapters")}<input
                 type="search"
                 style={inputStyle}
                 value={search}
@@ -175,9 +169,8 @@ export function AdminTaxonomyManager() {
               />
             </label>
             <label>
-              Domain
-              <select style={inputStyle} value={domain} onChange={(e) => setDomain(e.target.value)}>
-                <option value="">All domains</option>
+              {translateUi("Domain")}<select style={inputStyle} value={domain} onChange={(e) => setDomain(e.target.value)}>
+                <option value="">{translateUi("All domains")}</option>
                 {ccnaBookDomains.map((d) => (
                   <option key={d.code} value={d.code}>
                     {d.name}
@@ -186,33 +179,28 @@ export function AdminTaxonomyManager() {
               </select>
             </label>
             <label>
-              Book
-              <select style={inputStyle} value={volume} onChange={(e) => setVolume(e.target.value)}>
-                <option value="">All volumes</option>
+              {translateUi("Book")}<select style={inputStyle} value={volume} onChange={(e) => setVolume(e.target.value)}>
+                <option value="">{translateUi("All volumes")}</option>
                 <option>V1</option>
                 <option>V2</option>
               </select>
             </label>
             <label>
-              Status
-              <select style={inputStyle} value={status} onChange={(e) => setStatus(e.target.value)}>
-                <option value="">All statuses</option>
-                <option value="ACTIVE">Enabled</option>
-                <option value="DISABLED">Disabled</option>
+              {translateUi("Status")}<select style={inputStyle} value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="">{translateUi("All statuses")}</option>
+                <option value="ACTIVE">{translateUi("Enabled")}</option>
+                <option value="DISABLED">{translateUi("Disabled")}</option>
               </select>
             </label>
             <Button
               disabled={!catalog.data?.canonicalReady || !missing.length}
               onClick={() => open(null)}
             >
-              Create missing chapter
-            </Button>
+              {translateUi("Create missing chapter")}</Button>
           </div>
-          {message && <p role="status">{message}</p>}
+          {message && <p role="status"><UiMessage text={message}/></p>}
           <p>
-            {visible.length} chapters shown. Titles, V1/V2 numbering and primary domains follow the
-            canonical book catalog.
-          </p>
+            {visible.length} {translateUi("chapters shown. Titles, V1/V2 numbering and primary domains follow the canonical book catalog.")}</p>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -232,7 +220,7 @@ export function AdminTaxonomyManager() {
                     <td className="p-3">
                       {ccnaBookDomains.find((d) => d.code === c.domainCode)?.name}
                     </td>
-                    <td className="p-3">{c.status}</td>
+                    <td className="p-3"><UiMessage text={c.status}/></td>
                     <td className="p-3">
                       <a className="underline" href={`/admin/questions?topicId=${c.id}`}>
                         {c.questionCount}
@@ -240,7 +228,7 @@ export function AdminTaxonomyManager() {
                     </td>
                     <td className="p-3">
                       <Button variant="outline" onClick={() => open(c)}>
-                        Edit {c.code}
+                        {translateUi("Edit")}{" "}{c.code}
                       </Button>
                     </td>
                   </tr>
@@ -248,7 +236,7 @@ export function AdminTaxonomyManager() {
               </tbody>
             </table>
           </div>
-          {!visible.length && !catalog.isLoading && <p>No chapters match these filters.</p>}
+          {!visible.length && !catalog.isLoading && <p>{translateUi("No chapters match these filters.")}</p>}
         </>
       )}
       <Dialog
@@ -258,11 +246,9 @@ export function AdminTaxonomyManager() {
         }}
       >
         <DialogContent>
-          <DialogTitle>{editing ? "Edit chapter" : "Create missing canonical chapter"}</DialogTitle>
+          <DialogTitle>{editing ? translateUi("Edit chapter") : translateUi("Create missing canonical chapter")}</DialogTitle>
           <DialogDescription>
-            Stable identity, title and primary domain remain fixed. Changes affect question
-            availability; existing history is retained.
-          </DialogDescription>
+            {translateUi("Stable identity, title and primary domain remain fixed. Changes affect question availability; existing history is retained.")}</DialogDescription>
           <form onSubmit={submit} className="space-y-4" onChange={() => setDirty(true)}>
             {editing ? (
               <p>
@@ -270,8 +256,7 @@ export function AdminTaxonomyManager() {
               </p>
             ) : (
               <label>
-                Chapter
-                <select style={inputStyle} value={code} onChange={(e) => setCode(e.target.value)}>
+                {translateUi("Chapter")}<select style={inputStyle} value={code} onChange={(e) => setCode(e.target.value)}>
                   {missing.map((c) => (
                     <option key={c.code} value={c.code}>
                       {c.code} / {c.title}
@@ -281,8 +266,7 @@ export function AdminTaxonomyManager() {
               </label>
             )}
             <label>
-              Description
-              <textarea
+              {translateUi("Description")}<textarea
                 style={inputStyle}
                 maxLength={2000}
                 value={description}
@@ -290,8 +274,7 @@ export function AdminTaxonomyManager() {
               />
             </label>
             <label>
-              Display order
-              <input
+              {translateUi("Display order")}<input
                 style={inputStyle}
                 type="number"
                 min={0}
@@ -306,15 +289,13 @@ export function AdminTaxonomyManager() {
                 checked={enabled}
                 onChange={(e) => setEnabled(e.target.checked)}
               />
-              Enabled for learning
-            </label>
+              {translateUi("Enabled for learning")}</label>
             {save.isError && <p role="alert">{contentError(save.error)}</p>}
             <div className="flex gap-3">
               <Button type="button" variant="outline" disabled={save.isPending} onClick={close}>
-                Cancel
-              </Button>
+                {translateUi("Cancel")}</Button>
               <Button disabled={save.isPending || !session.isCurrent()}>
-                {save.isPending ? "Saving..." : "Save chapter"}
+                {save.isPending ? translateUi("Saving...") : translateUi("Save chapter")}
               </Button>
             </div>
           </form>

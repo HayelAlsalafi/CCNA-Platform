@@ -1,3 +1,5 @@
+import { UiMessage } from '../i18n';
+import { useI18n } from '../i18n';
 import { useAuth } from '@clerk/react';
 import { CurriculumExplorer } from './curriculum';
 import {
@@ -53,6 +55,7 @@ function TopicCard({
   index: number;
   count: number;
 }) {
+  const { t: translateUi } = useI18n();
   const available = topic.status === 'ACTIVE' && topic.availableQuestionCount > 0;
   return (
     <article id={metadata?.slug} className="topic-card" data-testid={'card-topic-' + topic.topicId}>
@@ -61,57 +64,55 @@ function TopicCard({
           {String(index + 1).padStart(2, '0')} / {count}
         </span>
         <span className="topic-accuracy">
-          {topic.status === 'DISABLED' ? 'Historical / disabled' : 'Active topic'}
+          {topic.status === 'DISABLED' ? translateUi("Historical / disabled") : translateUi("Active topic")}
         </span>
       </div>
       <h3 className="topic-name">{topic.topicName}</h3>
       <p className="topic-description">
         {metadata?.description ||
           (topic.status === 'DISABLED'
-            ? 'Your historical attempts are retained for this disabled topic.'
-            : 'Practice available questions and follow your current coverage.')}
+            ? translateUi("Your historical attempts are retained for this disabled topic.")
+            : translateUi("Practice available questions and follow your current coverage."))}
       </p>
       <dl className="topic-progress-metrics">
         <div>
-          <dt>Attempts</dt>
+          <dt>{translateUi("Attempts")}</dt>
           <dd>{topic.totalAttempts}</dd>
         </div>
         <div>
-          <dt>Correct attempts</dt>
+          <dt>{translateUi("Correct attempts")}</dt>
           <dd>{topic.correctAttempts}</dd>
         </div>
         <div>
-          <dt>Unique historical questions</dt>
+          <dt>{translateUi("Unique historical questions")}</dt>
           <dd>{topic.uniqueQuestionsAttempted}</dd>
         </div>
         <div>
-          <dt>Answer accuracy</dt>
+          <dt>{translateUi("Answer accuracy")}</dt>
           <dd>{percent(topic.accuracy)}</dd>
         </div>
       </dl>
       <div className="topic-bottom">
         <div className="topic-stats">
-          <span>Current coverage</span>
+          <span>{translateUi("Current coverage")}</span>
           <strong>{percent(topic.coveragePercent)}</strong>
         </div>
         <CoverageBar topic={topic} />
         <p className="topic-coverage-count">
-          {topic.coveredQuestionCount} of {topic.availableQuestionCount} currently available
-          questions covered
-        </p>
+          {topic.coveredQuestionCount} {translateUi("of")}{" "}{topic.availableQuestionCount} {translateUi("currently available questions covered")}</p>
         {available ? (
           <Link
             href={'/practice?topicId=' + encodeURIComponent(topic.topicId)}
             className="topic-practice-link"
             data-testid={'link-practice-topic-' + topic.topicId}
           >
-            Start practice <ArrowRight size={13} />
+            {translateUi("Start practice")}{" "}<ArrowRight size={13} />
           </Link>
         ) : (
           <p className="topic-unavailable">
             {topic.status === 'DISABLED'
-              ? 'Practice unavailable for this disabled topic.'
-              : 'No available questions in this topic.'}
+              ? translateUi("Practice unavailable for this disabled topic.")
+              : translateUi("No available questions in this topic.")}
           </p>
         )}
       </div>
@@ -144,7 +145,7 @@ function TopicGrid({
 function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className="quick-row" data-testid={'metric-' + label.toLowerCase().replace(/\s+/g, '-')}>
-      <span className="quick-label">{label}</span>
+      <span className="quick-label"><UiMessage text={String(label)}/></span>
       <span className="quick-value">{value}</span>
     </div>
   );
@@ -157,6 +158,7 @@ function ProgressContents({
   identity: ProgressIdentity;
   view: 'dashboard' | 'topics';
 }) {
+  const { t: translateUi } = useI18n();
   const query = useGetLearningProgress(learningProgressOptions(identity));
   // Catalog statistics are deliberately ignored; this query supplies only
   // public descriptions/slugs, and a failure never replaces real progress.
@@ -184,33 +186,32 @@ function ProgressContents({
         )}
         <h2 className="error-title">
           {status === 401
-            ? 'Your session could not be verified.'
+            ? translateUi("Your session could not be verified.")
             : status === 403
-              ? 'Access to learning progress was denied.'
-              : 'Learning progress could not be loaded.'}
+              ? translateUi("Access to learning progress was denied.")
+              : translateUi("Learning progress could not be loaded.")}
         </h2>
         <p className="error-copy">
           {status === 401
-            ? 'Sign in again to load your own progress.'
+            ? translateUi("Sign in again to load your own progress.")
             : status === 403
-              ? 'Ask an administrator to check your account access.'
-              : 'Check your connection, then try again.'}
+              ? translateUi("Ask an administrator to check your account access.")
+              : translateUi("Check your connection, then try again.")}
         </p>
         {status === 401 ? (
           <Link href="/sign-in" className="button-primary">
-            Return to sign in <ArrowRight size={15} />
+            {translateUi("Return to sign in")}{" "}<ArrowRight size={15} />
           </Link>
         ) : null}
         <button type="button" className="button-quiet" disabled={query.isFetching} onClick={retry}>
-          <Radar size={15} /> Retry progress
-        </button>
+          <Radar size={15} /> {translateUi("Retry progress")}</button>
       </div>
     );
   }
   if (query.isPending || !query.data) {
     return (
       <div className="loading-grid" role="status" data-testid="loading-learning-progress">
-        <p>Loading your learning progress…</p>
+        <p>{translateUi("Loading your learning progress…")}</p>
         {[1, 2, 3].map((item) => (
           <div className="loading-card" key={item}>
             <div className="skeleton" style={{ height: 100 }} />
@@ -229,103 +230,96 @@ function ProgressContents({
     <div aria-busy={query.isFetching}>
       {query.isFetching ? (
         <p className="progress-refresh-note" role="status">
-          Updating your learning progress…
-        </p>
+          {translateUi("Updating your learning progress…")}</p>
       ) : null}
       {summary.totalAttempts === 0 ? (
         <div className="progress-notice" data-testid="empty-learning-attempts">
           <BookOpen size={20} aria-hidden="true" />
           <div>
-            <h2>No practice attempts yet.</h2>
+            <h2>{translateUi("No practice attempts yet.")}</h2>
             <p>
-              Submit an answer in Practice to start your learning record. Coverage includes correct
-              and incorrect answers.
-            </p>
+              {translateUi("Submit an answer in Practice to start your learning record. Coverage includes correct and incorrect answers.")}</p>
           </div>
         </div>
       ) : null}
       {summary.availableQuestionCount === 0 ? (
         <p className="progress-notice" data-testid="empty-available-questions">
-          No questions are currently available. Historical attempts and accuracy are retained.
-        </p>
+          {translateUi("No questions are currently available. Historical attempts and accuracy are retained.")}</p>
       ) : null}
       {view === 'dashboard' ? (
         <>
-          <section className="dashboard-grid reveal reveal-1" aria-label="Learning summary">
+          <section className="dashboard-grid reveal reveal-1" aria-label={translateUi("Learning summary")}>
             <div className="summary-banner" data-testid="panel-dashboard-summary">
-              <div className="summary-kicker">Your historical learning record</div>
+              <div className="summary-kicker">{translateUi("Your historical learning record")}</div>
               <h2 className="summary-title">
-                <em>{summary.totalAttempts}</em> practice attempts recorded.
-              </h2>
+                <em>{summary.totalAttempts}</em> {translateUi("practice attempts recorded.")}</h2>
               <div className="summary-meta">
                 <div className="summary-meta-item">
-                  <span className="summary-meta-label">Overall answer accuracy</span>
+                  <span className="summary-meta-label">{translateUi("Overall answer accuracy")}</span>
                   <span className="summary-meta-value">{percent(summary.overallAccuracy)}</span>
                 </div>
                 <div className="summary-meta-item">
-                  <span className="summary-meta-label">Current coverage</span>
+                  <span className="summary-meta-label">{translateUi("Current coverage")}</span>
                   <span className="summary-meta-value">{percent(summary.coveragePercent)}</span>
                 </div>
                 <div className="summary-meta-item">
-                  <span className="summary-meta-label">Active topics</span>
+                  <span className="summary-meta-label">{translateUi("Active topics")}</span>
                   <span className="summary-meta-value">{active.length}</span>
                 </div>
               </div>
               <p className="summary-coverage-note">
-                {summary.coveredQuestionCount} of {summary.availableQuestionCount} currently
-                available questions covered. Coverage measures practice, not correctness.
-              </p>
+                {summary.coveredQuestionCount} {translateUi("of")}{" "}{summary.availableQuestionCount} {translateUi("currently available questions covered. Coverage measures practice, not correctness.")}</p>
             </div>
-            <div className="quick-card progress-totals" aria-label="Practice totals">
-              <h2 className="card-kicker">Practice totals</h2>
-              <Metric label="Total attempts" value={summary.totalAttempts} />
-              <Metric label="Correct attempts" value={summary.correctAttempts} />
+            <div className="quick-card progress-totals" aria-label={translateUi("Practice totals")}>
+              <h2 className="card-kicker">{translateUi("Practice totals")}</h2>
+              <Metric label={translateUi("Total attempts")} value={summary.totalAttempts} />
+              <Metric label={translateUi("Correct attempts")} value={summary.correctAttempts} />
               <Metric
-                label="Unique historical questions"
+                label={translateUi("Unique historical questions")}
                 value={summary.uniqueQuestionsAttempted}
               />
               <Metric
-                label="Currently available questions"
+                label={translateUi("Currently available questions")}
                 value={summary.availableQuestionCount}
               />
             </div>
           </section>
           <div className="section-head reveal reveal-2">
-            <h2 className="section-title">Next practice topic</h2>
+            <h2 className="section-title">{translateUi("Next practice topic")}</h2>
             <Link href="/topics" className="section-link" data-testid="link-view-all-topics">
-              View curriculum <ChevronRight size={14} />
+              {translateUi("View curriculum")}{" "}<ChevronRight size={14} />
             </Link>
           </div>
           {focus ? (
             <section className="focus-layout reveal reveal-2">
               <div className="focus-card" data-testid="panel-focus-topic">
                 <div className="focus-copy">
-                  <div className="focus-label">Continue practicing</div>
+                  <div className="focus-label">{translateUi("Continue practicing")}</div>
                   <h3 className="focus-name">{focus.topicName}</h3>
                   <p className="focus-desc">
                     {catalog.find((item) => item.id === focus.topicId)?.description ||
-                      'Practice the questions currently available in this topic.'}
+                      translateUi("Practice the questions currently available in this topic.")}
                   </p>
                   <Link
                     href={'/practice?topicId=' + encodeURIComponent(focus.topicId)}
                     className="topic-practice-link"
                   >
-                    Start practice <ArrowRight size={13} />
+                    {translateUi("Start practice")}{" "}<ArrowRight size={13} />
                   </Link>
                 </div>
                 <div className="focus-progress">
                   <div className="progress-label">
-                    <span>Current coverage</span>
+                    <span>{translateUi("Current coverage")}</span>
                     <span>{percent(focus.coveragePercent)}</span>
                   </div>
                   <CoverageBar topic={focus} />
                 </div>
               </div>
               <div className="quick-card">
-                <Metric label="Topic attempts" value={focus.totalAttempts} />
-                <Metric label="Topic correct attempts" value={focus.correctAttempts} />
+                <Metric label={translateUi("Topic attempts")} value={focus.totalAttempts} />
+                <Metric label={translateUi("Topic correct attempts")} value={focus.correctAttempts} />
                 <div className="quick-row">
-                  <span className="quick-label">Topic answer accuracy</span>
+                  <span className="quick-label">{translateUi("Topic answer accuracy")}</span>
                   <span className="quick-value">{percent(focus.accuracy)}</span>
                 </div>
               </div>
@@ -335,29 +329,28 @@ function ProgressContents({
       ) : (
         <div className="topics-toolbar">
           <span className="catalog-count">
-            {String(active.length).padStart(2, '0')} ACTIVE TOPICS · FOUNDATION SCOPE
-          </span>
-          <span className="filter-note">Coverage and answer accuracy measure different things</span>
+            {String(active.length).padStart(2, '0')} {translateUi("ACTIVE TOPICS · FOUNDATION SCOPE")}</span>
+          <span className="filter-note">{translateUi("Coverage and answer accuracy measure different things")}</span>
         </div>
       )}
       <div className="section-head">
-        <h2 className="section-title">Active topics</h2>
-        <span className="filter-note">{active.length} mapped</span>
+        <h2 className="section-title">{translateUi("Active topics")}</h2>
+        <span className="filter-note">{active.length} {translateUi("mapped")}</span>
       </div>
       {active.length ? (
         <TopicGrid topics={active} catalog={catalog} />
       ) : (
         <div className="empty-card" data-testid="empty-active-topics">
           <Layers3 size={26} aria-hidden="true" />
-          <h2 className="empty-title">No active topics.</h2>
-          <p className="empty-copy">The current curriculum has no active topics.</p>
+          <h2 className="empty-title">{translateUi("No active topics.")}</h2>
+          <p className="empty-copy">{translateUi("The current curriculum has no active topics.")}</p>
         </div>
       )}
       {historical.length ? (
-        <section aria-label="Historical topics">
+        <section aria-label={translateUi("Historical topics")}>
           <div className="section-head">
-            <h2 className="section-title">Historical topics</h2>
-            <span className="filter-note">Disabled · your history only</span>
+            <h2 className="section-title">{translateUi("Historical topics")}</h2>
+            <span className="filter-note">{translateUi("Disabled · your history only")}</span>
           </div>
           <TopicGrid topics={historical} catalog={catalog} />
         </section>
@@ -367,6 +360,7 @@ function ProgressContents({
 }
 
 function LearningPage({ view }: { view: 'dashboard' | 'topics' }) {
+  const { t: translateUi } = useI18n();
   const auth = useAuth();
   const identity = progressIdentity(auth);
   const checking = !auth.isLoaded || Boolean(auth.isSignedIn && !identity);
@@ -375,25 +369,22 @@ function LearningPage({ view }: { view: 'dashboard' | 'topics' }) {
       <header className="page-head reveal">
         <div>
           <div className="eyebrow">
-            {view === 'dashboard' ? 'Learning / your progress' : 'Curriculum / your topic map'}
+            {view === 'dashboard' ? translateUi("Learning / your progress") : translateUi("Curriculum / your topic map")}
           </div>
           <h1 className="page-heading">
-            {view === 'dashboard' ? 'See the next right move.' : 'Topic map'}
+            {view === 'dashboard' ? translateUi("See the next right move.") : translateUi("Topic map")}
           </h1>
           <p className="page-lead">
-            Your historical attempts and accuracy, alongside coverage of the questions available
-            now.
-          </p>
+            {translateUi("Your historical attempts and accuracy, alongside coverage of the questions available now.")}</p>
         </div>
         <Link href="/practice" className="button-primary" data-testid="link-start-practice">
-          <Target size={15} /> Start practice <ArrowRight size={15} />
+          <Target size={15} /> {translateUi("Start practice")}{" "}<ArrowRight size={15} />
         </Link>
       </header>
       <div className="header-rule" />
       {checking ? (
         <div className="practice-state-card" role="status" data-testid="loading-progress-auth">
-          Checking your identity…
-        </div>
+          {translateUi("Checking your identity…")}</div>
       ) : !identity ? (
         <div
           className="practice-state-card practice-access-card"
@@ -401,10 +392,10 @@ function LearningPage({ view }: { view: 'dashboard' | 'topics' }) {
         >
           <LockKeyhole size={24} aria-hidden="true" />
           <div>
-            <h2>Sign in to see your learning progress.</h2>
-            <p>Your dashboard and topic coverage are private to your account.</p>
+            <h2>{translateUi("Sign in to see your learning progress.")}</h2>
+            <p>{translateUi("Your dashboard and topic coverage are private to your account.")}</p>
             <Link href="/sign-in" className="button-primary">
-              Sign in <ArrowRight size={15} />
+              {translateUi("Sign in")}{" "}<ArrowRight size={15} />
             </Link>
           </div>
         </div>

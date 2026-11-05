@@ -1,3 +1,5 @@
+import { UiMessage } from '../i18n';
+import { useI18n } from '../i18n';
 ﻿import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -73,6 +75,7 @@ export function lessonError(error: unknown, context: "read" | "admin" | "library
   return value?.data?.error?.message || "Lessons could not load. Please retry.";
 }
 export function LessonReader({ chapterId, lessonId }: { chapterId: string; lessonId?: string }) {
+  const { t: translateUi } = useI18n();
   const auth = useAuth();
   const identity = useNexusIdentity(),
     content = useRef<HTMLElement>(null);
@@ -162,8 +165,8 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
         } as React.CSSProperties
       }
     >
-      <nav className="lesson-breadcrumb" aria-label="Breadcrumb">
-        <Link href="/topics">Learning curriculum</Link>
+      <nav className="lesson-breadcrumb" aria-label={translateUi("Breadcrumb")}>
+        <Link href="/topics">{translateUi("Learning curriculum")}</Link>
         <span>/</span>
         {chapter?.domain && (
           <>
@@ -172,14 +175,14 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
           </>
         )}
         {lessonId ? (
-          <Link href={`/learn/chapters/${chapterId}`}>{chapter?.title || "Chapter lessons"}</Link>
+          <Link href={`/learn/chapters/${chapterId}`}>{chapter?.title || translateUi("Chapter lessons")}</Link>
         ) : (
-          <span>{chapter?.title || "Chapter lessons"}</span>
+          <span>{chapter?.title || translateUi("Chapter lessons")}</span>
         )}
         {lessonId && (
           <>
             <span>/</span>
-            <span aria-current="page">{lesson?.title || "Lesson"}</span>
+            <span aria-current="page">{lesson?.title || translateUi("Lesson")}</span>
           </>
         )}
       </nav>
@@ -190,7 +193,7 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
           aria-expanded={pathOpen}
           onClick={() => setPathOpen(!pathOpen)}
         >
-          {pathOpen ? "Collapse learning path" : "Show learning path"}
+          {pathOpen ? translateUi("Collapse learning path") : translateUi("Show learning path")}
         </button>
 
       </div>
@@ -203,15 +206,15 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
             lesson={mismatch ? undefined : lesson}
           />
         )}
-        <section className="lesson-main-content" id="lesson-main" aria-label="Lesson content">
+        <section className="lesson-main-content" id="lesson-main" aria-label={translateUi("Lesson content")}>
           {!auth.isLoaded ? (
-            <p role="status">Loading your learning session…</p>
+            <p role="status">{translateUi("Loading your learning session…")}</p>
           ) : !identity ? (
-            <p role="status">Sign in to read published lessons.</p>
+            <p role="status">{translateUi("Sign in to read published lessons.")}</p>
           ) : problem ? (
             <div role="alert" className="lesson-state">
-              <h1>Learning could not load</h1>
-              <p>{lessonError(problem)}</p>
+              <h1>{translateUi("Learning could not load")}</h1>
+              <p><UiMessage text={lessonError(problem)}/></p>
               <button
                 onClick={() => {
                   void curriculum.refetch();
@@ -219,33 +222,30 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
                   if (lessonId) void detail.refetch();
                 }}
               >
-                Retry
-              </button>
+                {translateUi("Retry")}</button>
             </div>
           ) : list.isPending || curriculum.isPending || (lessonId && detail.isPending) ? (
             <div role="status" className="lesson-state">
-              Loading lessons…
-            </div>
+              {translateUi("Loading lessons…")}</div>
           ) : mismatch ? (
             <div role="alert">
-              This lesson does not belong to this chapter.{" "}
-              <Link href={`/learn/chapters/${chapterId}`}>Return to chapter</Link>
+              {translateUi("This lesson does not belong to this chapter.")}{" "}
+              <Link href={`/learn/chapters/${chapterId}`}>{translateUi("Return to chapter")}</Link>
             </div>
           ) : !lessonId ? (
             <>
               <header className="lesson-heading">
-                <p className="eyebrow">{chapter?.domain || "Learning curriculum"}</p>
-                <h1>{chapter?.title || "Chapter lessons"}</h1>
+                <p className="eyebrow">{chapter?.domain || translateUi("Learning curriculum")}</p>
+                <h1>{chapter?.title || translateUi("Chapter lessons")}</h1>
                 <p>{chapter?.description}</p>
                 <p>
-                  Explore published lessons in reading order. Practice remains a separate activity.
-                </p>
+                  {translateUi("Explore published lessons in reading order. Practice remains a separate activity.")}</p>
               </header>
               {!list.data?.items.length ? (
                 <section className="lesson-state">
-                  <h2>Lessons coming soon</h2>
-                  <p>No published lessons are available for this chapter yet.</p>
-                  <Link href="/topics">Return to curriculum and practice</Link>
+                  <h2>{translateUi("Lessons coming soon")}</h2>
+                  <p>{translateUi("No published lessons are available for this chapter yet.")}</p>
+                  <Link href="/topics">{translateUi("Return to curriculum and practice")}</Link>
                 </section>
               ) : (
                 <ol className="lesson-catalog">
@@ -259,7 +259,7 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
                           </Link>
                         </h2>
                         <p>{item.description}</p>
-                        <small>{item.estimatedMinutes} min read</small>
+                        <small>{item.estimatedMinutes} {translateUi("min read")}</small>
                       </div>
                     </li>
                   ))}
@@ -269,72 +269,68 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
           ) : (
             lesson && (
               <>
-                <div className="lesson-reading-tools" role="group" aria-label="Reading controls">
+                <div className="lesson-reading-tools" role="group" aria-label={translateUi("Reading controls")}>
                   <button type="button" aria-pressed={focus} onClick={toggleFocus}>
-                    {focus ? "Exit focus reading" : "Focus reading"}
+                    {focus ? translateUi("Exit focus reading") : translateUi("Focus reading")}
                   </button>
                   <button type="button" disabled={!study.ready || study.busy || !position.blockId}
                     onClick={() => void savePosition()} aria-describedby="reading-save-status">
-                    {study.busy ? "Saving..." : "Save Position"}
+                    {study.busy ? translateUi("Saving...") : translateUi("Save Position")}
                   </button>
                   <button type="button" disabled={!study.ready || study.busy || !hasSavedPosition}
                     onClick={resumePosition} aria-describedby="reading-save-status">
-                    Resume Saved Position
-                  </button>
+                    {translateUi("Resume Saved Position")}</button>
                   <details className="lesson-reading-settings">
-                    <summary>Reading settings</summary>
+                    <summary>{translateUi("Reading settings")}</summary>
                     <div className="lesson-settings-options">
                       <label>
-                        Text size{" "}
+                        {translateUi("Text size")}{" "}
                         <select value={size} onChange={(e) => setSize(Number(e.target.value))}>
-                          <option value={16}>Compact</option>
-                          <option value={18}>Comfortable</option>
-                          <option value={21}>Large</option>
+                          <option value={16}>{translateUi("Compact")}</option>
+                          <option value={18}>{translateUi("Comfortable")}</option>
+                          <option value={21}>{translateUi("Large")}</option>
                         </select>
                       </label>
                       <button type="button" aria-pressed={dark} onClick={() => setDark(!dark)}>
-                        {dark ? "Light reading" : "Dark reading"}
+                        {dark ? translateUi("Light reading") : translateUi("Dark reading")}
                       </button>
                       <label>
-                        Line spacing
-                        <select
+                        {translateUi("Line spacing")}<select
                           value={lineHeight}
                           onChange={(e) => setLineHeight(Number(e.target.value))}
                         >
-                          <option value={1.65}>Compact</option>
-                          <option value={1.85}>Comfortable</option>
-                          <option value={2.1}>Relaxed</option>
+                          <option value={1.65}>{translateUi("Compact")}</option>
+                          <option value={1.85}>{translateUi("Comfortable")}</option>
+                          <option value={2.1}>{translateUi("Relaxed")}</option>
                         </select>
                       </label>
                       {focus ? (
                         <label>
-                          Focus reading width
-                          <select value={focusWidth} onChange={(event) => {
+                          {translateUi("Focus reading width")}<select value={focusWidth} onChange={(event) => {
                             const anchor = captureReadingAnchor(content.current);
                             setFocusWidth(event.target.value as typeof focusWidth);
                             requestAnimationFrame(() => restoreReadingAnchor(content.current, anchor));
                           }}>
-                            <option value="comfortable">Comfortable (800px)</option>
-                            <option value="wide">Wide (1120px)</option>
-                            <option value="full">Full available width</option>
+                            <option value="comfortable">{translateUi("Comfortable (800px)")}</option>
+                            <option value="wide">{translateUi("Wide (1120px)")}</option>
+                            <option value="full">{translateUi("Full available width")}</option>
                           </select>
                         </label>
                       ) : (
                       <label>
-                        Reading width
-                        <select value={width} onChange={(e) => setWidth(e.target.value)}>
-                          <option value="comfortable">Comfortable</option>
-                          <option value="wide">Wide</option>
+                        {translateUi("Reading width")}<select value={width} onChange={(e) => setWidth(e.target.value)}>
+                          <option value="comfortable">{translateUi("Comfortable")}</option>
+                          <option value="wide">{translateUi("Wide")}</option>
                         </select>
                       </label>
                       )}
                     </div>
                   </details>
-                  <span>Reading position {Math.round(progress)}%</span>
+                  <span>{translateUi("Reading position")}{" "}{Math.round(progress)}%</span>
                   <span id="reading-save-status" className="lesson-text-muted" role="status">
-                    {study.message || (study.query.isPending ? "Loading saved position..." : study.query.isError ? "Study tools unavailable; retry below." : !study.ready ? "Sign in and load study tools to save." : hasSavedPosition ? "Position saved. Resume returns to its section." : "No saved position. Save explicitly; completion is separate.")}
+                    {study.message || (study.query.isPending ? translateUi("Loading saved position...") : study.query.isError ? translateUi("Study tools unavailable; retry below.") : !study.ready ? translateUi("Sign in and load study tools to save.") : hasSavedPosition ? translateUi("Position saved. Resume returns to its section.") : translateUi("No saved position. Save explicitly; completion is separate."))}
                   </span>
-                  <progress aria-label="Reading position" value={progress} max={100} />
+                  <progress aria-label={translateUi("Reading position")} value={progress} max={100} />
                 </div>
                 <div className="lesson-reading-layout">
                   <aside className="lesson-toc">
@@ -346,8 +342,8 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
                       currentPosition={position}
                       outline={<>
                     <details open className="lesson-outline-group">
-                      <summary>Lesson outline</summary>
-                      <nav aria-label="Lesson table of contents">
+                      <summary>{translateUi("Lesson outline")}</summary>
+                      <nav aria-label={translateUi("Lesson table of contents")}>
                         {lesson.blocks
                           .filter((block) => block.type === "heading")
                           .map((block) => (
@@ -361,7 +357,7 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
                                 paddingInlineStart: `${Math.max(0, (block.type === "heading" ? block.level : 2) - 2) * 10 + 8}px`,
                               }}
                             >
-                              {"text" in block ? block.text : "Section"}
+                              {"text" in block ? block.text : translateUi("Section")}
                             </a>
                           ))}
                       </nav>
@@ -386,17 +382,17 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
                     <header className="lesson-heading">
                       <p className="eyebrow">
                         {lesson.chapter.domainName} ·{" "}
-                        {lesson.chapter.bookReference || "Book chapter"}
+                        {lesson.chapter.bookReference || translateUi("Book chapter")}
                       </p>
                       <h1>{lesson.title}</h1>
                       <p>{lesson.description}</p>
                       <small>
-                        {lesson.estimatedMinutes} min read · Published revision{" "}
+                        {lesson.estimatedMinutes} {translateUi("min read · Published revision")}{" "}
                         {lesson.revisionNumber}
                       </small>
                       {lesson.objectives.length > 0 && (
                         <section className="lesson-objectives">
-                          <h2>What you will learn</h2>
+                          <h2>{translateUi("What you will learn")}</h2>
                           <ul>
                             {lesson.objectives.map((objective, index) => (
                               <li key={index}>{objective}</li>
@@ -410,7 +406,7 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
                       highlights={study.highlights}
                       onBookmarkSection={study.ready ? study.bookmarkSection : undefined}
                     />
-                    <nav className="lesson-pagination" aria-label="Lesson navigation">
+                    <nav className="lesson-pagination" aria-label={translateUi("Lesson navigation")}>
                       {result.previous ? (
                         <Link href={`/learn/chapters/${chapterId}/lessons/${result.previous.id}`}>
                           ← {result.previous.title}
@@ -423,7 +419,7 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
                           {result.next.title} →
                         </Link>
                       ) : (
-                        <Link href={`/learn/chapters/${chapterId}`}>Back to chapter</Link>
+                        <Link href={`/learn/chapters/${chapterId}`}>{translateUi("Back to chapter")}</Link>
                       )}
                     </nav>
                   </article>

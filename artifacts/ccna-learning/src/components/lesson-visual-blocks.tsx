@@ -1,3 +1,5 @@
+import {UiMessage} from "../i18n";
+import { useI18n } from '../i18n';
 import { lazy, Suspense, useState } from "react";
 import type { LessonBlock } from "@workspace/api-client-react";
 const LessonRichEditor = lazy(() =>
@@ -13,54 +15,51 @@ export function BlockAppearance({
   block: Extract<LessonBlock, { type: "richText" | "paragraph" | "heading" | "quote" | "callout" }>;
   update: (b: LessonBlock) => void;
 }) {
+  const { t: translateUi } = useI18n();
   const appearance = block.appearance ?? { version: 1 as const };
   const set = (patch: Partial<typeof appearance>) =>
     update({ ...block, appearance: { ...appearance, ...patch } });
   return (
     <details className="visual-style-panel">
-      <summary>Block style · safe presets</summary>
+      <summary>{translateUi("Block style · safe presets")}</summary>
       <div className="visual-style-grid">
         <label>
-          Background
-          <select
+          {translateUi("Background")}<select
             value={appearance.background ?? "paper"}
             onChange={(e) => set({ background: e.target.value as typeof appearance.background })}
           >
             {["paper", "blue", "green", "yellow", "pink"].map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}><UiMessage text={String(v)}/></option>
             ))}
           </select>
         </label>
         <label>
-          Border / accent
-          <select
+          {translateUi("Border / accent")}<select
             value={appearance.accent ?? "accent"}
             onChange={(e) => set({ accent: e.target.value as typeof appearance.accent })}
           >
             {["default", "muted", "accent", "danger"].map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}><UiMessage text={String(v)}/></option>
             ))}
           </select>
         </label>
         <label>
-          Padding
-          <select
+          {translateUi("Padding")}<select
             value={appearance.padding ?? "cozy"}
             onChange={(e) => set({ padding: e.target.value as typeof appearance.padding })}
           >
             {["compact", "cozy", "roomy"].map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}><UiMessage text={String(v)}/></option>
             ))}
           </select>
         </label>
         <label>
-          Spacing
-          <select
+          {translateUi("Spacing")}<select
             value={appearance.spacing ?? "normal"}
             onChange={(e) => set({ spacing: e.target.value as typeof appearance.spacing })}
           >
             {["compact", "normal", "airy"].map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}><UiMessage text={String(v)}/></option>
             ))}
           </select>
         </label>
@@ -70,8 +69,7 @@ export function BlockAppearance({
             checked={appearance.card ?? false}
             onChange={(e) => set({ card: e.target.checked })}
           />
-          Card presentation
-        </label>
+          {translateUi("Card presentation")}</label>
         {block.type === "quote" && (
           <label>
             <input
@@ -79,14 +77,11 @@ export function BlockAppearance({
               checked={appearance.decoration ?? false}
               onChange={(e) => set({ decoration: e.target.checked })}
             />
-            Quotation mark decoration
-          </label>
+            {translateUi("Quotation mark decoration")}</label>
         )}
       </div>
       <small>
-        Preset foreground/background pairs meet normal-text contrast. Inline colors use the same
-        approved palette.
-      </small>
+        {translateUi("Preset foreground/background pairs meet normal-text contrast. Inline colors use the same approved palette.")}</small>
     </details>
   );
 }
@@ -99,6 +94,9 @@ export function VisualListEditor({
   update: (b: LessonBlock) => void;
   continueAt?: number;
 }) {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   const levels = block.levels ?? block.items.map(() => 0);
   const commit = (items: string[], depths: number[], itemRuns = block.itemRuns) => {
     for (let i = 0; i < depths.length; i++)
@@ -132,8 +130,7 @@ export function VisualListEditor({
     <div>
       <div className="visual-style-grid">
         <label>
-          List type
-          <select
+          {translateUi("List type")}<select
             value={block.ordered ? "ordered" : "bullet"}
             onChange={(e) =>
               update({
@@ -143,13 +140,12 @@ export function VisualListEditor({
               })
             }
           >
-            <option value="ordered">Numbered</option>
-            <option value="bullet">Bullets</option>
+            <option value="ordered">{translateUi("Numbered")}</option>
+            <option value="bullet">{translateUi("Bullets")}</option>
           </select>
         </label>
         <label>
-          Marker style
-          <select
+          {translateUi("Marker style")}<select
             value={block.numbering ?? (block.ordered ? "decimal" : "disc")}
             onChange={(e) =>
               update({ ...block, numbering: e.target.value as typeof block.numbering })
@@ -159,14 +155,13 @@ export function VisualListEditor({
               ? ["decimal", "upper-alpha", "lower-alpha", "upper-roman", "lower-roman"]
               : ["disc", "circle", "square"]
             ).map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}><UiMessage text={String(v)}/></option>
             ))}
           </select>
         </label>
         {block.ordered && (
           <label>
-            Start / continue at
-            <input
+            {translateUi("Start / continue at")}<input
               type="number"
               min={1}
               max={100000}
@@ -174,16 +169,14 @@ export function VisualListEditor({
               onChange={(e) => update({ ...block, start: Number(e.target.value) })}
             />
             <button type="button" onClick={() => update({ ...block, start: 1 })}>
-              Restart at 1
-            </button>
+              {translateUi("Restart at 1")}</button>
             {continueAt !== undefined && (
               <button
                 type="button"
                 disabled={continueAt > 100000}
                 onClick={() => update({ ...block, start: continueAt })}
               >
-                Continue previous numbered list
-              </button>
+                {translateUi("Continue previous numbered list")}</button>
             )}
           </label>
         )}
@@ -210,9 +203,9 @@ export function VisualListEditor({
               }
             }}
           >
-            <Suspense fallback={<p>Loading list text...</p>}>
+            <Suspense fallback={<p>{translateUi("Loading list text...")}</p>}>
               <LessonRichEditor
-                label={`List item ${i + 1}`}
+                label={translateUi("List item {value0}", {value0: String(i + 1)})}
                 runs={block.itemRuns?.[i] ?? [{ text: item }]}
                 listControls={{
                   ordered: block.ordered,
@@ -239,24 +232,22 @@ export function VisualListEditor({
           </div>
           <button
             type="button"
-            aria-label={`Indent item ${i + 1}`}
+            aria-label={translateUi("Indent item {value0}", {value0: String(i + 1)})}
             disabled={!i || levels[i] >= Math.min(4, levels[i - 1] + 1)}
             onClick={() => indent(i, 1)}
           >
-            Indent
-          </button>
+            {translateUi("Indent")}</button>
           <button
             type="button"
-            aria-label={`Outdent item ${i + 1}`}
+            aria-label={translateUi("Outdent item {value0}", {value0: String(i + 1)})}
             disabled={!levels[i]}
             onClick={() => indent(i, -1)}
           >
-            Outdent
-          </button>
+            {translateUi("Outdent")}</button>
           <button
             type="button"
             disabled={block.items.length <= 1}
-            aria-label={`Remove item ${i + 1}`}
+            aria-label={translateUi("Remove item {value0}", {value0: String(i + 1)})}
             onClick={() =>
               commit(
                 block.items.filter((_, n) => n !== i),
@@ -265,8 +256,7 @@ export function VisualListEditor({
               )
             }
           >
-            Remove
-          </button>
+            {translateUi("Remove")}</button>
         </div>
       ))}
       <button
@@ -274,12 +264,9 @@ export function VisualListEditor({
         disabled={block.items.length >= 100}
         onClick={() => insert(block.items.length - 1)}
       >
-        Add list item
-      </button>
+        {translateUi("Add list item")}</button>
       <small>
-        Enter adds an item. Tab moves between controls; Alt+Right / Alt+Left adjusts nesting. Indent
-        buttons are always available.
-      </small>
+        {translateUi("Enter adds an item. Tab moves between controls; Alt+Right / Alt+Left adjusts nesting. Indent buttons are always available.")}</small>
     </div>
   );
 }
@@ -290,6 +277,9 @@ export function VisualTableEditor({
   block: TableBlock;
   update: (b: LessonBlock) => void;
 }) {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   const [selected, setSelected] = useState({ row: 0, column: 0 }),
     [rowCount, setRowCount] = useState(3),
     [columnCount, setColumnCount] = useState(3);
@@ -311,10 +301,9 @@ export function VisualTableEditor({
   return (
     <div className="visual-table-editor">
       <details>
-        <summary>Insert / resize grid</summary>
+        <summary>{translateUi("Insert / resize grid")}</summary>
         <label>
-          Rows
-          <input
+          {translateUi("Rows")}<input
             type="number"
             min={1}
             max={100}
@@ -323,8 +312,7 @@ export function VisualTableEditor({
           />
         </label>
         <label>
-          Columns
-          <input
+          {translateUi("Columns")}<input
             type="number"
             min={1}
             max={12}
@@ -352,13 +340,10 @@ export function VisualTableEditor({
               });
           }}
         >
-          Create grid
-        </button>
+          {translateUi("Create grid")}</button>
       </details>
       <small>
-        Cells store plain text. Tab moves between controls; Alt + arrow keys move between cells. Use
-        selected-cell controls for alignment and background.
-      </small>
+        {translateUi("Cells store plain text. Tab moves between controls; Alt + arrow keys move between cells. Use selected-cell controls for alignment and background.")}</small>
       <div
         className="visual-table-scroll"
         onKeyDown={(event) => {
@@ -388,8 +373,7 @@ export function VisualTableEditor({
       >
         <table>
           <caption>
-            Editable reference table · select a cell for row, column and style actions
-          </caption>
+            {translateUi("Editable reference table · select a cell for row, column and style actions")}</caption>
           <thead>
             <tr>
               {block.headers.map((v, c) => (
@@ -402,7 +386,7 @@ export function VisualTableEditor({
                   }}
                 >
                   <input
-                    aria-label={`Column ${c + 1} heading`}
+                    aria-label={translateUi("Column {value0} heading", {value0: String(c + 1)})}
                     value={v}
                     onFocus={() => setSelected({ row: 0, column: c })}
                     onChange={(e) =>
@@ -430,7 +414,7 @@ export function VisualTableEditor({
                   >
                     <textarea
                       rows={2}
-                      aria-label={`Row ${r + 1}, column ${c + 1}`}
+                      aria-label={translateUi("Row {value0}, column {value1}", {value0: String(r + 1), value1: String(c + 1)})}
                       dir="auto"
                       value={v}
                       onFocus={() => setSelected({ row: r + 1, column: c })}
@@ -451,7 +435,7 @@ export function VisualTableEditor({
         </table>
       </div>
       <p>
-        Selected: {selected.row === 0 ? "heading" : `row ${selected.row}`}, column{" "}
+        {translateUi("Selected:")}{" "}{selected.row === 0 ? translateUi("heading") : translateUi("row {value0}", {value0: String(selected.row)})}{translateUi(", column")}{" "}
         {selected.column + 1}
       </p>
       <div className="lesson-row-actions">
@@ -460,57 +444,49 @@ export function VisualTableEditor({
           disabled={block.rows.length >= 100}
           onClick={() => change(tableStructure(block, "row", Math.max(0, selected.row - 1)))}
         >
-          Row above
-        </button>
+          {translateUi("Row above")}</button>
         <button
           type="button"
           disabled={block.rows.length >= 100}
           onClick={() => change(tableStructure(block, "row", selected.row))}
         >
-          Row below
-        </button>
+          {translateUi("Row below")}</button>
         <button
           type="button"
           disabled={selected.row === 0 || block.rows.length <= 1}
           onClick={() => change(tableStructure(block, "row", selected.row - 1, true))}
         >
-          Delete row
-        </button>
+          {translateUi("Delete row")}</button>
         <button
           type="button"
           disabled={selected.row <= 1}
           onClick={() => change(moveTableRow(block, selected.row - 1, -1))}
         >
-          Move row up
-        </button>
+          {translateUi("Move row up")}</button>
         <button
           type="button"
           disabled={selected.row === 0 || selected.row >= block.rows.length}
           onClick={() => change(moveTableRow(block, selected.row - 1, 1))}
         >
-          Move row down
-        </button>
+          {translateUi("Move row down")}</button>
         <button
           type="button"
           disabled={block.headers.length >= 12}
           onClick={() => change(tableStructure(block, "column", selected.column))}
         >
-          Column left
-        </button>
+          {translateUi("Column left")}</button>
         <button
           type="button"
           disabled={block.headers.length >= 12}
           onClick={() => change(tableStructure(block, "column", selected.column + 1))}
         >
-          Column right
-        </button>
+          {translateUi("Column right")}</button>
         <button
           type="button"
           disabled={block.headers.length <= 1}
           onClick={() => change(tableStructure(block, "column", selected.column, true))}
         >
-          Delete column
-        </button>
+          {translateUi("Delete column")}</button>
       </div>
       <div className="visual-style-grid">
         <label>
@@ -519,19 +495,16 @@ export function VisualTableEditor({
             checked={block.headerRow !== false}
             onChange={(e) => update({ ...block, headerRow: e.target.checked })}
           />
-          Header row
-        </label>
+          {translateUi("Header row")}</label>
         <label>
           <input
             type="checkbox"
             checked={block.headerColumn ?? false}
             onChange={(e) => update({ ...block, headerColumn: e.target.checked })}
           />
-          Header column
-        </label>
+          {translateUi("Header column")}</label>
         <label>
-          Selected cell background
-          <select
+          {translateUi("Selected cell background")}<select
             value={cell?.background ?? "paper"}
             onChange={(e) =>
               style({
@@ -540,31 +513,29 @@ export function VisualTableEditor({
             }
           >
             {["paper", "blue", "green", "yellow", "pink"].map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}><UiMessage text={String(v)}/></option>
             ))}
           </select>
         </label>
         <label>
-          Selected cell alignment
-          <select
+          {translateUi("Selected cell alignment")}<select
             value={cell?.alignment ?? "left"}
             onChange={(e) => style({ alignment: e.target.value as "left" | "center" | "right" })}
           >
             {["left", "center", "right"].map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}><UiMessage text={String(v)}/></option>
             ))}
           </select>
         </label>
         <label>
-          Column widths
-          <select
+          {translateUi("Column widths")}<select
             value={block.columnWidth ?? "auto"}
             onChange={(e) =>
               update({ ...block, columnWidth: e.target.value as typeof block.columnWidth })
             }
           >
             {["auto", "equal", "wide-first"].map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}><UiMessage text={String(v)}/></option>
             ))}
           </select>
         </label>
@@ -579,23 +550,21 @@ export function VisualImageEditor({
   block: Extract<LessonBlock, { type: "image" | "diagram" }>;
   update: (b: LessonBlock) => void;
 }) {
+  const { t: translateUi } = useI18n();
   const safe = safeLessonImageUrl(block.url),
     legacy = block.url.startsWith("http:");
   return (
     <div className="visual-image-editor">
-      <Suspense fallback={<p role="status">Loading Media Library...</p>}><LessonMediaLibrary onInsert={image=>update({...block,url:image.url,caption:image.caption??block.caption,pixelWidth:image.width,pixelHeight:image.height})}/></Suspense>
+      <Suspense fallback={<p role="status">{translateUi("Loading Media Library...")}</p>}><LessonMediaLibrary onInsert={image=>update({...block,url:image.url,caption:image.caption??block.caption,pixelWidth:image.width,pixelHeight:image.height})}/></Suspense>
       {safe && (
         <div className="visual-image-preview">
           <LessonContent blocks={[block]} />
         </div>
       )}
       <p>
-        Upload or reuse an image through Media Library when storage is activated, or use a persistent HTTPS image URL. file:, data: and blob:
-        URLs cannot be saved.
-      </p>
+        {translateUi("Upload or reuse an image through Media Library when storage is activated, or use a persistent HTTPS image URL. file:, data: and blob: URLs cannot be saved.")}</p>
       <label>
-        Image source URL
-        <input
+        {translateUi("Image source URL")}<input
           type="text"
           inputMode="url"
           dir="ltr"
@@ -608,18 +577,14 @@ export function VisualImageEditor({
       </label>
       {block.url && !safe && (
         <p role="alert">
-          Use an absolute HTTPS image URL without credentials or an existing approved lesson-media
-          reference. A chapter link is not an image.
-        </p>
+          {translateUi("Use an absolute HTTPS image URL without credentials or an existing approved lesson-media reference. A chapter link is not an image.")}</p>
       )}
       {legacy && (
         <p role="note">
-          Legacy HTTP image: use HTTPS when replacing it to avoid mixed-content blocking.
-        </p>
+          {translateUi("Legacy HTTP image: use HTTPS when replacing it to avoid mixed-content blocking.")}</p>
       )}
       <label>
-        Alt text
-        <input
+        {translateUi("Alt text")}<input
           dir="auto"
           value={block.alt}
           maxLength={500}
@@ -628,11 +593,10 @@ export function VisualImageEditor({
         />
       </label>
       {!block.decorative && !block.alt.trim() && (
-        <small role="note">Describe the technical information conveyed by the image.</small>
+        <small role="note">{translateUi("Describe the technical information conveyed by the image.")}</small>
       )}
       <label>
-        Caption
-        <input
+        {translateUi("Caption")}<input
           dir="auto"
           value={block.caption ?? ""}
           maxLength={1000}
@@ -641,26 +605,24 @@ export function VisualImageEditor({
       </label>
       <div className="visual-style-grid">
         <label>
-          Alignment
-          <select
+          {translateUi("Alignment")}<select
             value={block.alignment ?? "center"}
             onChange={(e) =>
               update({ ...block, alignment: e.target.value as typeof block.alignment })
             }
           >
             {["left", "center", "right"].map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}><UiMessage text={String(v)}/></option>
             ))}
           </select>
         </label>
         <label>
-          Width
-          <select
+          {translateUi("Width")}<select
             value={block.width ?? "full"}
             onChange={(e) => update({ ...block, width: e.target.value as typeof block.width })}
           >
             {["small", "medium", "wide", "full"].map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}><UiMessage text={String(v)}/></option>
             ))}
           </select>
         </label>
@@ -670,13 +632,10 @@ export function VisualImageEditor({
             checked={block.decorative ?? false}
             onChange={(e) => update({ ...block, decorative: e.target.checked })}
           />
-          Decorative image
-        </label>
+          {translateUi("Decorative image")}</label>
       </div>
       <small>
-        Replace the URL above to replace the image. Remove the block through Section actions.
-        Caption and alt text remain plain text so saved formatting is never lost.
-      </small>
+        {translateUi("Replace the URL above to replace the image. Remove the block through Section actions. Caption and alt text remain plain text so saved formatting is never lost.")}</small>
     </div>
   );
 }
@@ -689,9 +648,12 @@ export function VisualBlockEditor({
   update: (b: LessonBlock) => void;
   previousBlocks?: LessonBlock[];
 }) {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   const field = (key: string, label: string, multiline = false) => (
     <label>
-      {label}
+      <UiMessage text={label}/>
       {multiline ? (
         <textarea
           rows={4}
@@ -733,16 +695,13 @@ export function VisualBlockEditor({
       <div className="lesson-fields">
         {b.type === "callout" && b.text.includes("[IMAGE PLACEHOLDER]") && (
           <p className="lesson-figure-placeholder-help">
-            Planned figure: add an Image block immediately after this placeholder. Copy its figure
-            number and source reference into the caption; remove the placeholder only in an
-            explicitly saved draft. Published revisions stay unchanged until you publish.
-          </p>
+            {translateUi("Planned figure: add an Image block immediately after this placeholder. Copy its figure number and source reference into the caption; remove the placeholder only in an explicitly saved draft. Published revisions stay unchanged until you publish.")}</p>
         )}
-        <Suspense fallback={<p role="status">Loading visual text editor…</p>}>
+        <Suspense fallback={<p role="status">{translateUi("Loading visual text editor…")}</p>}>
           <LessonRichEditor
             block={b}
             update={update}
-            label={`${b.type} content`}
+            label={translateUi("{value0} content", {value0: localizeUiLabel(String(b.type))})}
             runs={b.runs ?? [{ text: "text" in b ? b.text : "" }]}
             onChange={(runs) =>
               update(
@@ -755,21 +714,18 @@ export function VisualBlockEditor({
         </Suspense>
         {b.type === "heading" && (
           <small>
-            The lesson title is the primary heading. Prefer H2 for sections; H1-H6 are available in
-            the shared toolbar.
-          </small>
+            {translateUi("The lesson title is the primary heading. Prefer H2 for sections; H1-H6 are available in the shared toolbar.")}</small>
         )}
         {b.type === "quote" && field("attribution", "Attribution")}
         {b.type === "callout" && (
           <>
             <label>
-              Callout type
-              <select
+              {translateUi("Callout type")}<select
                 value={b.tone}
                 onChange={(e) => update({ ...b, tone: e.target.value as typeof b.tone })}
               >
                 {["note", "info", "tip", "important", "warning", "example"].map((v) => (
-                  <option key={v}>{v}</option>
+                  <option key={v} value={v}><UiMessage text={String(v)}/></option>
                 ))}
               </select>
             </label>
@@ -780,8 +736,7 @@ export function VisualBlockEditor({
                 checked={b.showIcon !== false}
                 onChange={(e) => update({ ...b, showIcon: e.target.checked })}
               />
-              Semantic icon
-            </label>
+              {translateUi("Semantic icon")}</label>
           </>
         )}
         <BlockAppearance block={b} update={update} />
@@ -812,9 +767,8 @@ export function VisualBlockEditor({
             checked={block.lineNumbers ?? false}
             onChange={(e) => update({ ...block, lineNumbers: e.target.checked })}
           />
-          Show line numbers
-        </label>
-        <small>Plain code is preserved exactly; no emulator is run.</small>
+          {translateUi("Show line numbers")}</label>
+        <small>{translateUi("Plain code is preserved exactly; no emulator is run.")}</small>
       </div>
     );
   if (block.type === "knowledgeCheck")
@@ -824,14 +778,14 @@ export function VisualBlockEditor({
         {block.choices.map((choice, i) => (
           <div className="visual-list-row" key={i}>
             <input
-              aria-label={`Correct choice ${i + 1}`}
+              aria-label={translateUi("Correct choice {value0}", {value0: String(i + 1)})}
               type="radio"
               name={`correct-${block.id}`}
               checked={block.correctIndex === i}
               onChange={() => update({ ...block, correctIndex: i })}
             />
             <input
-              aria-label={`Choice ${i + 1}`}
+              aria-label={translateUi("Choice {value0}", {value0: String(i + 1)})}
               value={choice}
               onChange={(e) =>
                 update({
@@ -853,8 +807,7 @@ export function VisualBlockEditor({
                 });
               }}
             >
-              Move up
-            </button>
+              {translateUi("Move up")}</button>
             <button
               type="button"
               disabled={block.choices.length <= 2}
@@ -871,8 +824,7 @@ export function VisualBlockEditor({
                 })
               }
             >
-              Remove choice
-            </button>
+              {translateUi("Remove choice")}</button>
           </div>
         ))}
         <button
@@ -880,10 +832,9 @@ export function VisualBlockEditor({
           disabled={block.choices.length >= 8}
           onClick={() => update({ ...block, choices: [...block.choices, ""] })}
         >
-          Add choice
-        </button>
+          {translateUi("Add choice")}</button>
         {field("explanation", "Feedback explanation", true)}
-        <small>Single-answer, local self-check only; no learner score is persisted.</small>
+        <small>{translateUi("Single-answer, local self-check only; no learner score is persisted.")}</small>
       </div>
     );
   if (block.type !== "labReference") return null;
@@ -894,11 +845,11 @@ export function VisualBlockEditor({
       {field("description", "Lab introduction", true)}
       {(["objectives", "requirements", "steps"] as const).map((key) => (
         <fieldset key={key}>
-          <legend>{key}</legend>
+          <legend><UiMessage text={key}/></legend>
           {(block[key] ?? []).map((v, i) => (
             <div className="visual-list-row" key={i}>
               <input
-                aria-label={`${key} ${i + 1}`}
+                aria-label={translateUi("{value0} {value1}", {value0: localizeUiLabel(String(key)), value1: String(i + 1)})}
                 value={v}
                 onChange={(e) =>
                   update({
@@ -913,8 +864,7 @@ export function VisualBlockEditor({
                   update({ ...block, [key]: (block[key] ?? []).filter((_, n) => n !== i) })
                 }
               >
-                Remove
-              </button>
+                {translateUi("Remove")}</button>
             </div>
           ))}
           <button
@@ -922,7 +872,7 @@ export function VisualBlockEditor({
             disabled={(block[key]?.length ?? 0) >= (key === "steps" ? 50 : 30)}
             onClick={() => update({ ...block, [key]: [...(block[key] ?? []), ""] })}
           >
-            Add {key === "steps" ? "step" : key === "objectives" ? "objective" : "requirement"}
+            {translateUi("Add")}{" "}{key === "steps" ? translateUi("step") : key === "objectives" ? translateUi("objective") : translateUi("requirement")}
           </button>
         </fieldset>
       ))}

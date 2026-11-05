@@ -1,3 +1,5 @@
+import { UiMessage } from '../i18n';
+import { useI18n } from '../i18n';
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,6 +31,9 @@ export function ExamSimulatorPage() {
 export const ExamSimulator = ExamSimulatorPage;
 export default ExamSimulatorPage;
 function ExamActor() {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi, message, number, date } = useI18n();
   const life = useNexusLifetime(),
     identity = life.identity,
     cache = useQueryClient();
@@ -230,29 +235,26 @@ function ExamActor() {
   if (!identity)
     return (
       <div className="nexus-page">
-        <h1>Exam Simulator</h1>
+        <h1>{translateUi("Exam Simulator")}</h1>
         <section className="nexus-panel">
-          <h2>Sign in to save exams</h2>
-          <p>Your exam, answers and results belong to your authenticated account.</p>
+          <h2>{translateUi("Sign in to save exams")}</h2>
+          <p>{translateUi("Your exam, answers and results belong to your authenticated account.")}</p>
           <Link href="/sign-in" className="nexus-button">
-            Sign in
-          </Link>
+            {translateUi("Sign in")}</Link>
         </section>
       </div>
     );
   return (
     <div className="nexus-page exam-workspace">
       <header className="exam-page-header">
-        <span className="nexus-eyebrow">CCNA 200-301 / EXAM WORKSPACE</span>
-        <h1>Exam Simulator</h1>
+        <span className="nexus-eyebrow">{translateUi("CCNA 200-301 / EXAM WORKSPACE")}</span>
+        <h1>{translateUi("Exam Simulator")}</h1>
         <p>
-          Equal-weight practice scoring. Complete correct-answer sets earn one point. This is not
-          Cisco exam scoring.
-        </p>
+          {translateUi("Equal-weight practice scoring. Complete correct-answer sets earn one point. This is not Cisco exam scoring.")}</p>
       </header>
       {error && (
         <div role="alert" className="nexus-panel exam-error">
-          {error}{" "}
+          {message(error)}{" "}
           {id && (
             <button
               disabled={busy}
@@ -261,25 +263,21 @@ function ExamActor() {
                 void runQuery.refetch();
               }}
             >
-              Refresh recorded exam
-            </button>
+              {translateUi("Refresh recorded exam")}</button>
           )}
         </div>
       )}
       {id && runQuery.isPending ? (
         <section role="status" className="nexus-panel">
-          Loading your recorded exam...
-        </section>
+          {translateUi("Loading your recorded exam...")}</section>
       ) : id && runQuery.isError ? (
         <section className="nexus-panel" role="alert">
-          <h2>Exam could not load</h2>
-          <p>{nexusError(runQuery.error)}</p>
+          <h2>{translateUi("Exam could not load")}</h2>
+          <p>{message(nexusError(runQuery.error))}</p>
           <button className="nexus-button" onClick={() => void runQuery.refetch()}>
-            Retry
-          </button>
+            {translateUi("Retry")}</button>
           <button className="nexus-button secondary" onClick={newExam}>
-            Exam setup
-          </button>
+            {translateUi("Exam setup")}</button>
         </section>
       ) : !run || !id ? (
         <ExamConfiguration
@@ -302,49 +300,44 @@ function ExamActor() {
         <section className="nexus-panel">
           <div className="exam-session-toolbar">
             <h2>
-              Question {index + 1} of {run.questionCount}
+              {translateUi('Question {current} of {total}', {current:number(index+1),total:number(run.questionCount)})}
             </h2>
-            <span role="timer" aria-label="Time remaining">
+            <span role="timer" aria-label={translateUi("Time remaining")}>
               {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, "0")}
             </span>
             <span role="status">
               {busy
-                ? "Saving..."
+                ? translateUi("Saving...")
                 : draft
-                  ? "Answer not saved — retry or refresh"
-                  : "Recorded on server"}
+                  ? translateUi("Answer not saved — retry or refresh")
+                  : translateUi("Recorded on server")}
             </span>
           </div>
           {run.contentRemoved ? (
             <div role="alert">
-              <h3>Exam content removed</h3>
+              <h3>{translateUi("Exam content removed")}</h3>
               <p>
-                An administrator permanently removed selected content. This exam cannot be graded.
-                Other records remain intact.
-              </p>
+                {translateUi("An administrator permanently removed selected content. This exam cannot be graded. Other records remain intact.")}</p>
               <button className="nexus-button" onClick={newExam}>
-                Set up another exam
-              </button>
+                {translateUi("Set up another exam")}</button>
             </div>
           ) : (
             <>
               {(remaining === 0 || run.needsFinalization) && (
                 <p role="alert">
-                  Time has expired. Answers are locked. Only answers already saved on the server
-                  will be graded.{" "}
+                  {translateUi("Time has expired. Answers are locked. Only answers already saved on the server will be graded.")}{" "}
                   <button disabled={busy} onClick={() => void submit()}>
-                    Finalize expired exam
-                  </button>
+                    {translateUi("Finalize expired exam")}</button>
                 </p>
               )}
               <div className="exam-taking-grid">
-                <nav aria-label="Exam question navigation" className="exam-position-grid">
+                <nav aria-label={translateUi("Exam question navigation")} className="exam-position-grid">
                   {run.questions.map((q, n) => (
                     <button
                       key={q.deliveryId}
                       disabled={busy || !!draft}
                       aria-current={index === n ? "step" : undefined}
-                      aria-label={`Question ${n + 1}${q.selectedOptionKeys?.length ? ", answered" : ", unanswered"}${q.flagged ? ", marked for review" : ""}`}
+                      aria-label={translateUi("Question {value0}{value1}{value2}", {value0: String(n + 1), value1: String(q.selectedOptionKeys?.length ? translateUi(", answered") : translateUi(", unanswered")), value2: String(q.flagged ? translateUi(", marked for review") : "")})}
                       onClick={() => chooseIndex(n)}
                     >
                       {n + 1}
@@ -365,8 +358,8 @@ function ExamActor() {
                     <fieldset disabled={frozen}>
                       <legend>
                         {current.type === "MULTIPLE_CHOICE_MULTIPLE"
-                          ? `Choose ${current.requiredSelectionCount} answers`
-                          : "Choose one answer"}
+                          ? translateUi('Choose {count} answers', {count:number(current.requiredSelectionCount ?? 0)})
+                          : translateUi("Choose one answer")}
                       </legend>
                       {current.options?.map((o) => (
                         <label className="exam-option" key={o.optionKey}>
@@ -404,26 +397,24 @@ function ExamActor() {
                         aria-pressed={flagged}
                         onClick={() => void save(selections, !flagged)}
                       >
-                        {flagged ? "Unmark review" : "Mark for review"}
+                        {flagged ? translateUi("Unmark review") : translateUi("Mark for review")}
                       </button>
                       <button
                         className="nexus-button secondary"
                         disabled={frozen || !!draft || !selections.length}
                         onClick={() => void save([], flagged)}
                       >
-                        Clear answer
-                      </button>
+                        {translateUi("Clear answer")}</button>
                     </div>
                     {draft && (
                       <div role="alert">
-                        <p>Your local selection is retained but not confirmed saved.</p>
+                        <p>{translateUi("Your local selection is retained but not confirmed saved.")}</p>
                         <button
                           disabled={frozen}
                           className="nexus-button"
                           onClick={() => void save(draft.keys, draft.flagged)}
                         >
-                          Retry saving
-                        </button>
+                          {translateUi("Retry saving")}</button>
                         <button
                           disabled={busy}
                           className="nexus-button secondary"
@@ -432,8 +423,7 @@ function ExamActor() {
                             void runQuery.refetch();
                           }}
                         >
-                          Discard local change and reload
-                        </button>
+                          {translateUi("Discard local change and reload")}</button>
                       </div>
                     )}
                     <div className="exam-actions-row">
@@ -441,36 +431,31 @@ function ExamActor() {
                         disabled={index === 0 || busy || !!draft}
                         onClick={() => chooseIndex(index - 1)}
                       >
-                        Previous
-                      </button>
+                        {translateUi("Previous")}</button>
                       <button
                         disabled={index === run.questions.length - 1 || busy || !!draft}
                         onClick={() => chooseIndex(index + 1)}
                       >
-                        Next
-                      </button>
+                        {translateUi("Next")}</button>
                     </div>
                   </article>
                 )}
               </div>
               <div className="exam-actions-row">
                 <span>
-                  {answered} answered / {run.questionCount - answered} unanswered
-                </span>
+                  {answered} {translateUi("answered /")}{" "}{run.questionCount - answered} {translateUi("unanswered")}</span>
                 <button
                   className="nexus-button"
                   disabled={busy || !!draft}
                   onClick={() => setConfirm(true)}
                 >
-                  Submit exam
-                </button>
+                  {translateUi("Submit exam")}</button>
                 <button
                   className="nexus-button secondary"
                   disabled={busy || !!draft}
                   onClick={newExam}
                 >
-                  Leave and resume later
-                </button>
+                  {translateUi("Leave and resume later")}</button>
               </div>
             </>
           )}
@@ -478,12 +463,10 @@ function ExamActor() {
       )}
       {run && id && !active && (
         <section className="nexus-panel">
-          <h2>{run.status === "EXPIRED" ? "Expired exam results" : "Exam results"}</h2>
+          <h2>{run.status === "EXPIRED" ? translateUi("Expired exam results") : translateUi("Exam results")}</h2>
           {run.contentRemoved && (
             <p role="status">
-              Review is partially redacted after controlled content deletion. Original aggregate
-              score is retained.
-            </p>
+              {translateUi("Review is partially redacted after controlled content deletion. Original aggregate score is retained.")}</p>
           )}
           <div className="exam-score-grid">
             {[
@@ -503,31 +486,31 @@ function ExamActor() {
               ],
             ].map(([label, value]) => (
               <div key={label}>
-                <span>{label}</span>
+                <span><UiMessage text={String(label)}/></span>
                 <strong>{value}</strong>
               </div>
             ))}
           </div>
-          <h3>Results by domain</h3>
+          <h3>{translateUi("Results by domain")}</h3>
           <Breakdown rows={run.result?.domains ?? []} />
-          <h3>Results by chapter</h3>
+          <h3>{translateUi("Results by chapter")}</h3>
           <Breakdown rows={run.result?.chapters ?? []} />
-          <h3>Answer review</h3>
+          <h3>{translateUi("Answer review")}</h3>
           {run.questions.map((q) => (
             <details key={q.deliveryId}>
               <summary>
-                {q.position + 1}. {q.questionCode} — {q.removed ? "Removed" : q.result?.outcome}
+                {q.position + 1}. {q.questionCode} — {q.removed ? translateUi("Removed") : q.result?.outcome}
               </summary>
               {q.removed ? (
-                <p>This content was removed through the controlled Admin workflow.</p>
+                <p>{translateUi("This content was removed through the controlled Admin workflow.")}</p>
               ) : (
                 <>
                   <h4>
                     <QuestionContent text={q.text ?? ""} />
                   </h4>
-                  <p>Your answer: {q.selectedOptionKeys?.join(", ") || "Unanswered"}</p>
+                  <p>{translateUi("Your answer:")}{" "}{q.selectedOptionKeys?.join(", ") || translateUi("Unanswered")}</p>
                   <p>
-                    Correct:{" "}
+                    {translateUi("Correct:")}{" "}
                     {(
                       q.review?.correctOptions ??
                       (q.review?.correctOption ? [q.review.correctOption] : [])
@@ -541,51 +524,50 @@ function ExamActor() {
             </details>
           ))}
           <button className="nexus-button" onClick={newExam}>
-            Set up another exam
-          </button>
+            {translateUi("Set up another exam")}</button>
         </section>
       )}
       <section className="nexus-panel exam-history" aria-labelledby="exam-history-title">
-        <h2 id="exam-history-title"><History size={20} aria-hidden="true" /> Your exam history</h2>
+        <h2 id="exam-history-title"><History size={20} aria-hidden="true" /> {translateUi("Your exam history")}</h2>
         {history.isPending ? (
           <div className="exam-history-empty" role="status">
             <ClipboardList size={28} aria-hidden="true" />
-            <h3>{availability.data?.ready ? "Loading your exam history" : "Your exam history will appear here"}</h3>
-            <p>{availability.data?.ready ? "Retrieving your saved exams..." : "History is available after the exam migration."}</p>
+            <h3>{availability.data?.ready ? translateUi("Loading your exam history") : translateUi("Your exam history will appear here")}</h3>
+            <p>{availability.data?.ready ? translateUi("Retrieving your saved exams...") : translateUi("History is available after the exam migration.")}</p>
           </div>
         ) : history.isError ? (
           <p role="alert">
-            {nexusError(history.error)}{" "}
-            <button onClick={() => void history.refetch()}>Retry history</button>
+            <UiMessage text={nexusError(history.error)}/>{" "}
+            <button onClick={() => void history.refetch()}>{translateUi("Retry history")}</button>
           </p>
         ) : !history.data?.items.length ? (
-          <div className="exam-history-empty"><ClipboardList size={28} aria-hidden="true" /><h3>No exams yet</h3><p>Your submitted and active exams will appear here.</p></div>
+          <div className="exam-history-empty"><ClipboardList size={28} aria-hidden="true" /><h3>{translateUi("No exams yet")}</h3><p>{translateUi("Your submitted and active exams will appear here.")}</p></div>
         ) : (
           <>
             <div className="exam-history-scroll">
               <table>
                 <thead>
                   <tr>
-                    <th>Started</th>
-                    <th>Status</th>
-                    <th>Questions</th>
-                    <th>Score</th>
-                    <th>Action</th>
+                    <th>{translateUi("Started")}</th>
+                    <th>{translateUi("Status")}</th>
+                    <th>{translateUi("Questions")}</th>
+                    <th>{translateUi("Score")}</th>
+                    <th>{translateUi("Action")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {history.data.items.map((s) => (
                     <tr key={s.id}>
-                      <td>{new Date(s.startedAt).toLocaleString()}</td>
+                      <td>{date(s.startedAt,{dateStyle:'medium',timeStyle:'short'})}</td>
                       <td>
-                        {s.status}
-                        {s.contentRemoved ? " / content removed" : ""}
+                        <UiMessage text={s.status}/>
+                        {s.contentRemoved ? translateUi("/ content removed") : ""}
                       </td>
                       <td>{s.questionCount}</td>
-                      <td>{s.result ? s.result.percentage.toFixed(1) + "%" : "Not submitted"}</td>
+                      <td>{s.result ? s.result.percentage.toFixed(1) + "%" : translateUi("Not submitted")}</td>
                       <td>
                         <Link href={"/exam?session=" + s.id}>
-                          {s.status === "ACTIVE" ? "Resume" : "Review"}
+                          {s.status === "ACTIVE" ? translateUi("Resume") : translateUi("Review")}
                         </Link>
                       </td>
                     </tr>
@@ -595,30 +577,25 @@ function ExamActor() {
             </div>
             <div className="exam-actions-row">
               <button disabled={page === 1} onClick={() => setPage(page - 1)}>
-                Previous history page
-              </button>
+                {translateUi("Previous history page")}</button>
               <span>
-                Page {history.data.page} of {history.data.totalPages}
+                {translateUi("Page")}{" "}{history.data.page} {translateUi("of")}{" "}{history.data.totalPages}
               </span>
               <button disabled={page >= history.data.totalPages} onClick={() => setPage(page + 1)}>
-                Next history page
-              </button>
+                {translateUi("Next history page")}</button>
             </div>
           </>
         )}
       </section>
       <AlertDialog open={confirm} onOpenChange={setConfirm}>
         <AlertDialogContent>
-          <AlertDialogTitle>Submit this exam permanently?</AlertDialogTitle>
+          <AlertDialogTitle>{translateUi("Submit this exam permanently?")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {run ? run.questionCount - answered : 0} questions have no saved answer. Nonempty
-            incomplete answer sets earn no credit. Answers cannot be changed after submission.
-          </AlertDialogDescription>
+            {run ? run.questionCount - answered : 0} {translateUi("questions have no saved answer. Nonempty incomplete answer sets earn no credit. Answers cannot be changed after submission.")}</AlertDialogDescription>
           <AlertDialogFooter>
-            <AlertDialogCancel>Continue exam</AlertDialogCancel>
+            <AlertDialogCancel>{translateUi("Continue exam")}</AlertDialogCancel>
             <AlertDialogAction onClick={() => void submit()}>
-              Submit and grade saved answers
-            </AlertDialogAction>
+              {translateUi("Submit and grade saved answers")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -638,13 +615,13 @@ function Breakdown({
     unanswered: number;
   }[];
 }) {
+  const { t: translateUi } = useI18n();
   return (
     <ul>
       {rows.map((r) => (
         <li key={r.id}>
-          {r.name ?? r.title}: {r.correct}/{r.total} correct; {r.incorrect} incorrect;{" "}
-          {r.unanswered} unanswered
-        </li>
+          {r.name ?? r.title}: {r.correct}/{r.total} {translateUi("correct;")}{" "}{r.incorrect} {translateUi("incorrect;")}{" "}
+          {r.unanswered} {translateUi("unanswered")}</li>
       ))}
     </ul>
   );

@@ -1,3 +1,5 @@
+import {UiMessage} from "../i18n";
+import { useI18n } from '../i18n';
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/react";
 import { useQuery } from "@tanstack/react-query";
@@ -32,6 +34,7 @@ export function CurriculumView({
   admin?: boolean;
   onSelectChapter?: () => void;
 }) {
+  const { t: translateUi } = useI18n();
   const [domainId, setDomainId] = useState<string | null>(null);
   const [chapterId, setChapterId] = useState<string | null>(null);
   const selectedButton = useRef<HTMLButtonElement | null>(null);
@@ -64,29 +67,29 @@ export function CurriculumView({
       <section className="curriculum-map" aria-labelledby="curriculum-map-title">
         <div className="curriculum-map-heading">
           <div>
-            <span className="curriculum-kicker">THE DOMAIN REGISTER</span>
-            <h2 id="curriculum-map-title">Six domains. One field guide.</h2>
+            <span className="curriculum-kicker">{translateUi("THE DOMAIN REGISTER")}</span>
+            <h2 id="curriculum-map-title">{translateUi("Six domains. One field guide.")}</h2>
           </div>
-          <p>Choose a domain to trace its sections, chapters and active learning topics.</p>
+          <p>{translateUi("Choose a domain to trace its sections, chapters and active learning topics.")}</p>
         </div>
-        <div className="curriculum-register" role="group" aria-label="Curriculum at a glance">
+        <div className="curriculum-register" role="group" aria-label={translateUi("Curriculum at a glance")}>
           <div className="curriculum-register-item">
-            <span className="curriculum-register-index">01 / SCOPE</span>
+            <span className="curriculum-register-index">{translateUi("01 / SCOPE")}</span>
             <strong>{String(data.domains.length).padStart(2, "0")}</strong>
-            <span className="curriculum-register-label">CCNA domains</span>
+            <span className="curriculum-register-label">{translateUi("CCNA domains")}</span>
           </div>
           <div className="curriculum-register-item">
-            <span className="curriculum-register-index">02 / STRUCTURE</span>
+            <span className="curriculum-register-index">{translateUi("02 / STRUCTURE")}</span>
             <strong>{chapterTotal}</strong>
-            <span className="curriculum-register-label">chapters</span>
+            <span className="curriculum-register-label">{translateUi("chapters")}</span>
           </div>
           <div className="curriculum-register-item">
-            <span className="curriculum-register-index">03 / CATALOG</span>
+            <span className="curriculum-register-index">{translateUi("03 / CATALOG")}</span>
             <strong>{activeTopicTotal}</strong>
-            <span className="curriculum-register-label">active topics</span>
+            <span className="curriculum-register-label">{translateUi("active topics")}</span>
           </div>
         </div>
-        <div className="curriculum-grid" role="group" aria-label="Six CCNA domains">
+        <div className="curriculum-grid" role="group" aria-label={translateUi("Six CCNA domains")}>
           {data.domains.map((d) => {
             const domainChapters = d.sections.flatMap((s) => s.chapters);
             const domainTopics = data.topics.filter(
@@ -111,7 +114,7 @@ export function CurriculumView({
                 }}
               >
                 <span className="curriculum-domain-top">
-                  <span className="curriculum-domain-label">DOMAIN {d.number}</span>
+                  <span className="curriculum-domain-label">{translateUi("DOMAIN")}{" "}{d.number}</span>
                   <span className="curriculum-domain-mark" aria-hidden="true">
                     {String(d.number).padStart(2, "0")}
                   </span>
@@ -120,18 +123,15 @@ export function CurriculumView({
                 <span className="curriculum-domain-description">{d.description}</span>
                 <span className="curriculum-domain-meta">
                   <span>
-                    <strong>{domainChapters.length}</strong> chapters
-                  </span>
+                    <strong>{domainChapters.length}</strong> {translateUi("chapters")}</span>
                   <span>
-                    <strong>{domainTopics.length}</strong> active topics
-                  </span>
+                    <strong>{domainTopics.length}</strong> {translateUi("active topics")}</span>
                   <span>
                     <strong>{domainTopics.reduce((n, t) => n + t.questionCount, 0)}</strong>{" "}
-                    published questions
-                  </span>
+                    {translateUi("published questions")}</span>
                 </span>
                 <span className="curriculum-domain-open">
-                  {domainId === d.id ? "Domain open" : "Explore domain"}
+                  {domainId === d.id ? translateUi("Domain open") : translateUi("Explore domain")}
                   <ChevronRight size={15} aria-hidden="true" />
                 </span>
               </button>
@@ -147,23 +147,23 @@ export function CurriculumView({
         >
           <header className="curriculum-panel-header">
             <div className="curriculum-panel-title">
-              <span className="curriculum-kicker">DOMAIN {domain.number} / CHAPTER INDEX</span>
+              <span className="curriculum-kicker">{translateUi("DOMAIN")}{" "}{domain.number} {translateUi("/ CHAPTER INDEX")}</span>
               <h2>{domain.title}</h2>
             </div>
             <button
               type="button"
               className="curriculum-collapse"
-              aria-label="Collapse domain"
+              aria-label={translateUi("Collapse domain")}
               onClick={close}
             >
-              <X size={15} aria-hidden="true" /> <span>Collapse</span>
+              <X size={15} aria-hidden="true" /> <span>{translateUi("Collapse")}</span>
             </button>
           </header>
           <div className="curriculum-panel-body">
-            <nav className="curriculum-chapters" aria-label="Sections and chapters">
+            <nav className="curriculum-chapters" aria-label={translateUi("Sections and chapters")}>
               <div className="curriculum-chapter-index">
-                <span>CONTENTS</span>
-                <span>{chapters.length} CHAPTERS</span>
+                <span>{translateUi("CONTENTS")}</span>
+                <span>{chapters.length} {translateUi("CHAPTERS")}</span>
               </div>
               {domain.sections.map((s) => (
                 <section key={s.id} className="curriculum-section">
@@ -195,26 +195,24 @@ export function CurriculumView({
               {chapter ? (
                 <>
                   <div className="curriculum-detail-heading">
-                    <span className="curriculum-kicker">CHAPTER / LEARNING NAVIGATION</span>
+                    <span className="curriculum-kicker">{translateUi("CHAPTER / LEARNING NAVIGATION")}</span>
                     <h3>{chapter.title}</h3>
                     <p>{chapter.description}</p>
                   </div>
                   <div className="curriculum-detail-summary">
                     <span>
                       <BookOpen size={15} aria-hidden="true" />
-                      {topics.reduce((n, t) => n + t.questionCount, 0)} published questions
-                    </span>
-                    <span className="curriculum-labs-status">Labs coming soon</span>
+                      {topics.reduce((n, t) => n + t.questionCount, 0)} {translateUi("published questions")}</span>
+                    <span className="curriculum-labs-status">{translateUi("Labs coming soon")}</span>
                   </div>
                   <ChapterLearningAction key={chapter.id} chapterId={chapter.id} />
                   {!topics.length ? (
                     <div className="curriculum-empty curriculum-empty-topics">
-                      <span className="curriculum-empty-index">NO ACTIVE TOPICS</span>
-                      <h4>No topics available yet</h4>
-                      <p>No questions available yet</p>
+                      <span className="curriculum-empty-index">{translateUi("NO ACTIVE TOPICS")}</span>
+                      <h4>{translateUi("No topics available yet")}</h4>
+                      <p>{translateUi("No questions available yet")}</p>
                       <button disabled className="curriculum-action-quiet">
-                        Start Practice
-                      </button>
+                        {translateUi("Start Practice")}</button>
                     </div>
                   ) : (
                     <ul className="curriculum-topic-list">
@@ -224,16 +222,15 @@ export function CurriculumView({
                           <li key={t.id}>
                             <div className="curriculum-topic-head">
                               <span className="curriculum-topic-index">
-                                TOPIC {String(index + 1).padStart(2, "0")}
+                                {translateUi("TOPIC")}{" "}{String(index + 1).padStart(2, "0")}
                               </span>
                               <span className="curriculum-topic-question-count">
-                                {t.questionCount} published questions
-                              </span>
+                                {t.questionCount} {translateUi("published questions")}</span>
                             </div>
                             <h4>{t.name}</h4>
                             <p>{t.description}</p>
                             <div className="curriculum-topic-meta">
-                              <span className="curriculum-coverage-label">QUESTION COVERAGE</span>
+                              <span className="curriculum-coverage-label">{translateUi("QUESTION COVERAGE")}</span>
                               <span>
                                 {metric ? (
                                   <span className="curriculum-coverage-readout">
@@ -245,12 +242,11 @@ export function CurriculumView({
                                       aria-label={"Question coverage for " + t.name}
                                     />
                                     <span>
-                                      {metric.coveredQuestionCount} of {metric.availableQuestionCount}{" "}
-                                      available questions attempted ({metric.coveragePercent}% coverage)
-                                    </span>
+                                      {metric.coveredQuestionCount} {translateUi("of")}{" "}{metric.availableQuestionCount}{" "}
+                                      {translateUi("available questions attempted (")}{metric.coveragePercent}{translateUi("% coverage)")}</span>
                                   </span>
                                 ) : (
-                                  "Learning progress unavailable"
+                                  translateUi("Learning progress unavailable")
                                 )}
                               </span>
                             </div>
@@ -260,14 +256,13 @@ export function CurriculumView({
                                   className="curriculum-action-primary"
                                   href={"/practice?topicId=" + encodeURIComponent(t.id)}
                                 >
-                                  Start Practice <ArrowRight size={14} aria-hidden="true" />
+                                  {translateUi("Start Practice")}{" "}<ArrowRight size={14} aria-hidden="true" />
                                 </Link>
                               ) : (
                                 <>
-                                  <span>No questions available yet</span>
+                                  <span>{translateUi("No questions available yet")}</span>
                                   <button disabled className="curriculum-action-quiet">
-                                    Start Practice
-                                  </button>
+                                    {translateUi("Start Practice")}</button>
                                 </>
                               )}
                               {admin ? (
@@ -275,8 +270,7 @@ export function CurriculumView({
                                   className="curriculum-action-quiet"
                                   href={"/admin/questions?topicId=" + encodeURIComponent(t.id)}
                                 >
-                                  View Questions
-                                </Link>
+                                  {translateUi("View Questions")}</Link>
                               ) : null}
                             </div>
                           </li>
@@ -285,20 +279,16 @@ export function CurriculumView({
                     </ul>
                   )}
                   <p className="curriculum-footnote">
-                    Coverage describes how many available questions have been attempted; it is not
-                    accuracy or mastery. Chapters organize learning. Official exam objectives remain
-                    separate in exam taxonomy. Shared topics may appear in more than one chapter;
-                    domain counts count each topic once.
-                  </p>
+                    {translateUi("Coverage describes how many available questions have been attempted; it is not accuracy or mastery. Chapters organize learning. Official exam objectives remain separate in exam taxonomy. Shared topics may appear in more than one chapter; domain counts count each topic once.")}</p>
                 </>
               ) : (
                 <div className="curriculum-empty curriculum-chapter-prompt">
                   <span className="curriculum-empty-glyph" aria-hidden="true">
                     <Layers3 size={22} />
                   </span>
-                  <span className="curriculum-empty-index">CHAPTER NAVIGATION</span>
-                  <h3>Select a chapter</h3>
-                  <p>Explore topics and start practice without leaving the six-domain overview.</p>
+                  <span className="curriculum-empty-index">{translateUi("CHAPTER NAVIGATION")}</span>
+                  <h3>{translateUi("Select a chapter")}</h3>
+                  <p>{translateUi("Explore topics and start practice without leaving the six-domain overview.")}</p>
                 </div>
               )}
             </article>
@@ -307,14 +297,14 @@ export function CurriculumView({
       ) : (
         <p className="curriculum-hint">
           <span aria-hidden="true" />
-          Select a domain to open its chapter index.
-        </p>
+          {translateUi("Select a domain to open its chapter index.")}</p>
       )}
     </>
   );
 }
 
 function MappingReview() {
+  const { t: translateUi } = useI18n();
   const auth = useAuth(),
     identity = progressIdentity(auth);
   const [open, setOpen] = useState(false);
@@ -330,46 +320,41 @@ function MappingReview() {
     <details className="curriculum-review" onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary>
         <span className="curriculum-review-summary-copy">
-          <span className="curriculum-kicker">ADMINISTRATOR / READ ONLY</span>
-          <strong>Unmapped Topics / Admin review</strong>
+          <span className="curriculum-kicker">{translateUi("ADMINISTRATOR / READ ONLY")}</span>
+          <strong>{translateUi("Unmapped Topics / Admin review")}</strong>
         </span>
-        <span className="curriculum-review-toggle">Open report</span>
+        <span className="curriculum-review-toggle">{translateUi("Open report")}</span>
       </summary>
       {open &&
         (query.isPending ? (
           <p role="status" className="curriculum-review-state">
-            Loading mapping report…
-          </p>
+            {translateUi("Loading mapping report…")}</p>
         ) : query.isError ? (
           <p role="alert" className="curriculum-review-state">
-            Mapping report unavailable.{" "}
+            {translateUi("Mapping report unavailable.")}{" "}
             <button type="button" onClick={() => void query.refetch()}>
-              Retry
-            </button>
+              {translateUi("Retry")}</button>
           </p>
         ) : query.data ? (
           <>
             <div className="curriculum-review-report">
               <p className="curriculum-review-totals">
-                <strong>{query.data.mapped.length}</strong> mapped
-                <span aria-hidden="true">/</span>
-                <strong>{query.data.unmapped.length}</strong> unmapped
-                <span aria-hidden="true">/</span>
-                <strong>{query.data.ambiguous.length}</strong> ambiguous
-              </p>
-              <p className="curriculum-review-readonly">No records are modified here.</p>
+                <strong>{query.data.mapped.length}</strong> {translateUi("mapped")}<span aria-hidden="true">/</span>
+                <strong>{query.data.unmapped.length}</strong> {translateUi("unmapped")}<span aria-hidden="true">/</span>
+                <strong>{query.data.ambiguous.length}</strong> {translateUi("ambiguous")}</p>
+              <p className="curriculum-review-readonly">{translateUi("No records are modified here.")}</p>
               {[...query.data.unmapped, ...query.data.ambiguous].map((t) => (
                 <div key={t.id} className="curriculum-review-row">
                   <div className="curriculum-review-row-heading">
                     <strong>{t.name}</strong>
-                    <span>{t.status}</span>
+                    <span><UiMessage text={t.status}/></span>
                   </div>
                   <code>
                     {t.id} / {t.slug}
                   </code>
                   <p>{t.reason}</p>
                   <Link href="/admin/topics">
-                    Review in topic management <ArrowRight size={13} aria-hidden="true" />
+                    {translateUi("Review in topic management")}{" "}<ArrowRight size={13} aria-hidden="true" />
                   </Link>
                 </div>
               ))}
@@ -380,6 +365,7 @@ function MappingReview() {
   );
 }
 export function CurriculumExplorer() {
+  const { t: translateUi } = useI18n();
   const auth = useAuth(),
     identity = progressIdentity(auth);
   const query = useQuery({
@@ -421,26 +407,22 @@ export function CurriculumExplorer() {
             <span className="curriculum-kicker-mark" aria-hidden="true">
               <Layers3 size={14} />
             </span>
-            LEARN / CCNA 200-301
-          </div>
+            {translateUi("LEARN / CCNA 200-301")}</div>
           <h1>
-            The <em>curriculum</em>
+            {translateUi("The")}{" "}<em>{translateUi("curriculum")}</em>
             <br />
-            in context.
-          </h1>
-          <p>Six domains. A clear path through networking.</p>
+            {translateUi("in context.")}</h1>
+          <p>{translateUi("Six domains. A clear path through networking.")}</p>
           {query.data?.counts && identity && !query.isError ? (
             <p className="curriculum-catalog-counts">
-              <strong>{query.data.counts.mappedQuestions}</strong> mapped published questions
-              <span aria-hidden="true">/</span>
-              <strong>{query.data.counts.availableQuestions}</strong> available across active topics
-            </p>
+              <strong>{query.data.counts.mappedQuestions}</strong> {translateUi("mapped published questions")}<span aria-hidden="true">/</span>
+              <strong>{query.data.counts.availableQuestions}</strong> {translateUi("available across active topics")}</p>
           ) : null}
         </div>
         <div className="curriculum-masthead-figure" aria-hidden="true">
           <div className="curriculum-figure-caption">
-            <span>NETWORK STUDIES</span>
-            <span>200—301 / FIELD MAP</span>
+            <span>{translateUi("NETWORK STUDIES")}</span>
+            <span>{translateUi("200—301 / FIELD MAP")}</span>
           </div>
           <svg viewBox="0 0 460 220" role="presentation">
             <path className="curriculum-circuit-line" d="M22 123h82l37-38h78l42 42h79l35-37h63" />
@@ -458,12 +440,12 @@ export function CurriculumExplorer() {
             <circle className="curriculum-circuit-node" cx="43" cy="186" r="3" />
             <circle className="curriculum-circuit-node is-copper" cx="399" cy="184" r="3" />
             <text x="219" y="132" textAnchor="middle">IP</text>
-            <text x="20" y="112">ROUTING</text>
-            <text x="354" y="116">SWITCHING</text>
+            <text x="20" y="112">{translateUi("ROUTING")}</text>
+            <text x="354" y="116">{translateUi("SWITCHING")}</text>
           </svg>
           <div className="curriculum-figure-footer">
-            <span>LEARNING NAVIGATION</span>
-            <span>EDITION {query.data?.version ?? "—"}</span>
+            <span>{translateUi("LEARNING NAVIGATION")}</span>
+            <span>{translateUi("EDITION")}{" "}{query.data?.version ?? "—"}</span>
           </div>
         </div>
       </header>
@@ -471,44 +453,43 @@ export function CurriculumExplorer() {
       {!auth.isLoaded ? (
         <div role="status" className="curriculum-state curriculum-auth-state">
           <span className="curriculum-state-mark" aria-hidden="true" />
-          <p>Checking your identity…</p>
+          <p>{translateUi("Checking your identity…")}</p>
         </div>
       ) : !identity ? (
         <div className="curriculum-state curriculum-access-state">
-          <div className="curriculum-state-index">ACCESS / 01</div>
+          <div className="curriculum-state-index">{translateUi("ACCESS / 01")}</div>
           <div>
-            <span className="curriculum-kicker">YOUR LEARNING MAP</span>
-            <h2>Sign in to explore your curriculum</h2>
-            <p>Your six-domain learning navigation is ready when you are.</p>
+            <span className="curriculum-kicker">{translateUi("YOUR LEARNING MAP")}</span>
+            <h2>{translateUi("Sign in to explore your curriculum")}</h2>
+            <p>{translateUi("Your six-domain learning navigation is ready when you are.")}</p>
             <Link className="curriculum-action-primary" href="/sign-in">
-              Sign in <ArrowRight size={14} aria-hidden="true" />
+              {translateUi("Sign in")}{" "}<ArrowRight size={14} aria-hidden="true" />
             </Link>
           </div>
         </div>
       ) : query.isPending ? (
         <div role="status" className="curriculum-state curriculum-loading-state">
-          <div className="curriculum-state-index">LOADING / CURRICULUM</div>
+          <div className="curriculum-state-index">{translateUi("LOADING / CURRICULUM")}</div>
           <div className="curriculum-loading-skeletons" aria-hidden="true">
             <span />
             <span />
             <span />
           </div>
-          <p>Loading curriculum…</p>
+          <p>{translateUi("Loading curriculum…")}</p>
         </div>
       ) : query.isError ? (
         <div role="alert" className="curriculum-state curriculum-error-state">
-          <div className="curriculum-state-index">CATALOG / UNAVAILABLE</div>
+          <div className="curriculum-state-index">{translateUi("CATALOG / UNAVAILABLE")}</div>
           <div>
-            <span className="curriculum-kicker">CONNECTION INTERRUPTED</span>
-            <h2>Curriculum could not be loaded</h2>
-            <p>Check your session and connection, then retry.</p>
+            <span className="curriculum-kicker">{translateUi("CONNECTION INTERRUPTED")}</span>
+            <h2>{translateUi("Curriculum could not be loaded")}</h2>
+            <p>{translateUi("Check your session and connection, then retry.")}</p>
             <button
               type="button"
               className="curriculum-action-quiet"
               onClick={() => void query.refetch()}
             >
-              Retry curriculum
-            </button>
+              {translateUi("Retry curriculum")}</button>
           </div>
         </div>
       ) : query.data ? (

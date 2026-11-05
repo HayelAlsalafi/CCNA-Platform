@@ -1,3 +1,5 @@
+import { UiMessage } from '../i18n';
+import { useI18n } from '../i18n';
 import {selectedKeys,toggleSelection,completeSelection,answerLabel} from "../lib/answer-selection";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import {QuestionContent} from './question-content';
@@ -53,6 +55,9 @@ function PracticeSession({
   identity: ProgressIdentity | null;
   activeIdentity: RefObject<ProgressIdentity | null>;
 }) {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   const client = useQueryClient(),
     mounted = useRef(true),
     busy = useRef(false),
@@ -223,66 +228,59 @@ function PracticeSession({
   if (!isAuthLoaded)
     return (
       <section className="practice-workspace" data-testid="loading-practice-auth">
-        Loading your session…
-      </section>
+        {translateUi("Loading your session…")}</section>
     );
   if (!isSignedIn || !identity)
     return (
       <section className="practice-workspace">
-        <h2>Sign in to practice</h2>
-        <Link href="/sign-in">Sign in to continue</Link>
+        <h2>{translateUi("Sign in to practice")}</h2>
+        <Link href="/sign-in">{translateUi("Sign in to continue")}</Link>
       </section>
     );
   return (
-    <section className="practice-workspace" aria-label="Practice session">
+    <section className="practice-workspace" aria-label={translateUi("Practice session")}>
       <div className="practice-session-top">
         <span className="practice-session-label">
-          <Target size={15} /> CCNA PRACTICE
-        </span>
-        <span>{topic?.name ?? "Choose a topic"}</span>
+          <Target size={15} /> {translateUi("CCNA PRACTICE")}</span>
+        <span>{topic?.name ?? translateUi("Choose a topic")}</span>
       </div>
       {error && (
         <p role="alert" className="practice-submit-error" data-testid="error-practice-submit">
-          {error}
+          <UiMessage text={error}/>
         </p>
       )}
       <AlertDialog open={finishConfirm} onOpenChange={setFinishConfirm}>
         <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
-            <AlertDialogTitle>Finish with unanswered questions?</AlertDialogTitle>
+            <AlertDialogTitle>{translateUi("Finish with unanswered questions?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {totals.unanswered} unanswered questions remain. Unsubmitted choices will not count as
-              answers. Submitted attempts remain in your history.
-            </AlertDialogDescription>
+              {totals.unanswered} {translateUi("unanswered questions remain. Unsubmitted choices will not count as answers. Submitted attempts remain in your history.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Continue Practice</AlertDialogCancel>
+            <AlertDialogCancel>{translateUi("Continue Practice")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 setFinished(true);
                 setFinishConfirm(false);
               }}
             >
-              Confirm Finish
-            </AlertDialogAction>
+              {translateUi("Confirm Finish")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
       {!items.length ? (
         <div className="practice-setup practice-question-card">
-          <h2>Build your practice session</h2>
+          <h2>{translateUi("Build your practice session")}</h2>
           <p>
-            Choose a topic and a finite question set. Answers are graded and saved by the server.
-          </p>
+            {translateUi("Choose a topic and a finite question set. Answers are graded and saved by the server.")}</p>
           {topicsQuery.isError ? (
             <p role="alert">
-              Topics unavailable.{" "}
+              {translateUi("Topics unavailable.")}{" "}
               <button type="button" onClick={() => void topicsQuery.refetch()}>
-                Retry
-              </button>
+                {translateUi("Retry")}</button>
             </p>
           ) : null}
-          <label htmlFor="practice-topic-select">Topic</label>
+          <label htmlFor="practice-topic-select">{translateUi("Topic")}</label>
           <select
             id="practice-topic-select"
             value={topicId}
@@ -294,7 +292,7 @@ function PracticeSession({
               setError("");
             }}
           >
-            <option value="">Choose a topic</option>
+            <option value="">{translateUi("Choose a topic")}</option>
             {topics.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -302,11 +300,11 @@ function PracticeSession({
             ))}
           </select>
           <p>
-            Domain: {domain?.title ?? "Topic-specific practice"} ·{" "}
-            <strong>{topic?.questionCount ?? 0} available questions</strong>
+            {translateUi("Domain:")}{" "}{domain?.title ?? translateUi("Topic-specific practice")} ·{" "}
+            <strong>{topic?.questionCount ?? 0} {translateUi("available questions")}</strong>
           </p>
           <label htmlFor="practice-count">
-            Number of questions (maximum {Math.min(topic?.questionCount ?? 0, 100)})
+            {translateUi("Number of questions (maximum")}{" "}{Math.min(topic?.questionCount ?? 0, 100)})
           </label>
           <input
             id="practice-count"
@@ -331,7 +329,7 @@ function PracticeSession({
             }
             onClick={() => void start()}
           >
-            {pending ? "Preparing deliveries…" : "Start Practice"}
+            {pending ? translateUi("Preparing deliveries…") : translateUi("Start Practice")}
           </button>
           <button
             type="button"
@@ -339,74 +337,67 @@ function PracticeSession({
             disabled={pending}
             onClick={() => void topicsQuery.refetch()}
           >
-            Refresh available questions
-          </button>
+            {translateUi("Refresh available questions")}</button>
         </div>
       ) : finished ? (
         <div className="practice-question-card" data-testid="practice-results">
-          <h2>Practice complete · {totals.score}%</h2>
+          <h2>{translateUi("Practice complete ·")}{" "}{totals.score}%</h2>
           <p>
-            {totals.correct} correct · {totals.incorrect} incorrect · {totals.unanswered} unanswered
-            · {totals.total} total
-          </p>
+            {totals.correct} {translateUi("correct ·")}{" "}{totals.incorrect} {translateUi("incorrect ·")}{" "}{totals.unanswered} {translateUi("unanswered ·")}{" "}{totals.total} {translateUi("total")}</p>
           <p>
-            Submitted answers are saved in PostgreSQL. Unsubmitted selections are counted as
-            unanswered. This run's navigation is temporary and is cleared on reload or sign-out.
-          </p>
+            {translateUi("Submitted answers are saved in PostgreSQL. Unsubmitted selections are counted as unanswered. This run's navigation is temporary and is cleared on reload or sign-out.")}</p>
           <ol className="practice-review">
             {items.map((item) => (
               <li key={item.question.deliveryId}>
                 <h3><QuestionContent text={item.question.text}/></h3>
                 <p>
-                  Your answer: {answerLabel(item.selected)} ·{" "}
-                  {item.result ? (item.result.isCorrect ? "Correct" : "Incorrect") : "Unanswered"}
+                  {translateUi("Your answer:")}{" "}{answerLabel(item.selected)} ·{" "}
+                  {item.result ? (item.result.isCorrect ? translateUi("Correct") : translateUi("Incorrect")) : translateUi("Unanswered")}
                 </p>
                 {item.result ? (
                   <>
                     <p>
-                      Correct answer: {(item.result.correctOptions ?? [item.result.correctOption]).map(o=>o.optionKey+". "+o.text).join("; ")} —{" "}
+                      {translateUi("Correct answer:")}{" "}{(item.result.correctOptions ?? [item.result.correctOption]).map(o=>o.optionKey+". "+o.text).join("; ")} —{" "}
 
                     </p>
                     <p><QuestionContent text={item.result.explanation}/></p>
                   </>
                 ) : (
-                  <p>No answer was submitted; no answer key is revealed.</p>
+                  <p>{translateUi("No answer was submitted; no answer key is revealed.")}</p>
                 )}
               </li>
             ))}
           </ol>
-          <Link href="/practice/history">View saved practice history</Link>
+          <Link href="/practice/history">{translateUi("View saved practice history")}</Link>
           <button type="button" className="button-primary" onClick={reset}>
-            New practice session
-          </button>
+            {translateUi("New practice session")}</button>
         </div>
       ) : !topic && !topicsQuery.isLoading ? (
         <div className="practice-state-card" data-testid="state-practice-topic-unavailable">
-          <h2>This topic is no longer active.</h2>
-          <p>Accepted history is preserved. Finish this run to review submitted answers.</p>
-          <button onClick={finish}>Finish Practice</button>
+          <h2>{translateUi("This topic is no longer active.")}</h2>
+          <p>{translateUi("Accepted history is preserved. Finish this run to review submitted answers.")}</p>
+          <button onClick={finish}>{translateUi("Finish Practice")}</button>
         </div>
       ) : (
         <>
           <div className="practice-run-summary">
             <strong>
-              Question {position + 1} of {items.length}
+              {translateUi("Question")}{" "}{position + 1} {translateUi("of")}{" "}{items.length}
             </strong>
-            <span>Progress: {totals.progress}%</span>
-            <progress aria-label="Answered progress" max={items.length} value={totals.answered} />
+            <span>{translateUi("Progress:")}{" "}{totals.progress}%</span>
+            <progress aria-label={translateUi("Answered progress")} max={items.length} value={totals.answered} />
             <span>
-              {totals.answered} answered · {totals.unanswered} unanswered · {totals.remaining}{" "}
-              remaining · {totals.flagged} flagged
-            </span>
+              {totals.answered} {translateUi("answered ·")}{" "}{totals.unanswered} {translateUi("unanswered ·")}{" "}{totals.remaining}{" "}
+              {translateUi("remaining ·")}{" "}{totals.flagged} {translateUi("flagged")}</span>
           </div>
           <div className="practice-session-layout">
-            <nav className="practice-navigator" aria-label="Question navigator">
+            <nav className="practice-navigator" aria-label={translateUi("Question navigator")}>
               {items.map((item, i) => (
                 <button
                   type="button"
                   key={item.question.deliveryId}
                   aria-current={i === position ? "step" : undefined}
-                  aria-label={`Question ${i + 1}, ${item.result ? "answered" : "unanswered"}${item.flagged ? ", flagged" : ""}`}
+                  aria-label={translateUi("Question {value0}, {value1}{value2}", {value0: String(i + 1), value1: String(item.result ? "answered" : "unanswered"), value2: String(item.flagged ? translateUi(", flagged") : "")})}
                   disabled={pending}
                   onClick={() => setPosition(i)}
                   className={`practice-nav-item ${i === position ? "current" : ""} ${item.result ? "answered" : "unanswered"} ${item.flagged ? "flagged" : ""}`}
@@ -415,18 +406,18 @@ function PracticeSession({
                   {item.flagged ? " ⚑" : ""}
                 </button>
               ))}
-              <p>Filled: answered · Outline: unanswered · ⚑: flagged</p>
+              <p>{translateUi("Filled: answered · Outline: unanswered · ⚑: flagged")}</p>
             </nav>
             <div className="practice-question-card" data-testid="panel-practice-question">
               <div className="practice-question-meta">
                 <span>{current.question.questionCode}</span>
-                <span>{current.question.difficulty}</span>
+                <span><UiMessage text={current.question.difficulty}/></span>
               </div>
               <h2 className="practice-question-text" data-testid="text-practice-question">
                 <QuestionContent text={current.question.text}/>
               </h2>
               <fieldset className="practice-options" disabled={pending || !!current.result}>
-                <legend>{current.question.type === "MULTIPLE_CHOICE_MULTIPLE" ? `Choose ${current.question.requiredSelectionCount} answers` : "Select one answer"}</legend>
+                <legend>{current.question.type === "MULTIPLE_CHOICE_MULTIPLE" ? translateUi("Choose {value0} answers", {value0: String(current.question.requiredSelectionCount)}) : translateUi("Select one answer")}</legend>
                 {current.question.options.map((option) => (
                   <label
                     key={option.optionKey}
@@ -447,7 +438,7 @@ function PracticeSession({
               {current.result && (
                 <div className="practice-result" data-testid="result-practice-answer">
                   <strong>
-                    {current.result.isCorrect ? "Correct answer" : "Incorrect answer"}
+                    {current.result.isCorrect ? translateUi("Correct answer") : translateUi("Incorrect answer")}
                   </strong>
                   <p><QuestionContent text={current.result.explanation}/></p>
                 </div>
@@ -458,15 +449,14 @@ function PracticeSession({
                   disabled={pending || position === 0}
                   onClick={() => setPosition((i) => i - 1)}
                 >
-                  <ArrowLeft size={14} /> Previous Question
-                </button>
+                  <ArrowLeft size={14} /> {translateUi("Previous Question")}</button>
                 <button
                   className="button-quiet"
                   disabled={pending || position === items.length - 1}
                   data-testid="button-next-question"
                   onClick={() => setPosition((i) => i + 1)}
                 >
-                  Next Question <ArrowRight size={14} />
+                  {translateUi("Next Question")}{" "}<ArrowRight size={14} />
                 </button>
                 <button
                   className="button-quiet"
@@ -474,7 +464,7 @@ function PracticeSession({
                   aria-pressed={current.flagged}
                   onClick={() => update({ flagged: !current.flagged })}
                 >
-                  <Flag size={14} /> {current.flagged ? "Unflag" : "Flag for Review"}
+                  <Flag size={14} /> {current.flagged ? translateUi("Unflag") : translateUi("Flag for Review")}
                 </button>
                 <button
                   className="button-primary"
@@ -482,11 +472,10 @@ function PracticeSession({
                   disabled={pending || !completeSelection({...current.question,selected:current.selected}) || !!current.result || !topic}
                   onClick={() => void submit()}
                 >
-                  <Send size={14} /> {pending ? "Checking…" : "Submit Answer"}
+                  <Send size={14} /> {pending ? translateUi("Checking…") : translateUi("Submit Answer")}
                 </button>
                 <button className="button-quiet" disabled={pending} onClick={finish}>
-                  Finish Practice
-                </button>
+                  {translateUi("Finish Practice")}</button>
               </div>
             </div>
           </div>

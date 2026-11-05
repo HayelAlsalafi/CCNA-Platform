@@ -1,3 +1,5 @@
+import { UiMessage } from '../i18n';
+import { useI18n } from '../i18n';
 import { useEffect, useState, useRef, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { adminContentRequest, type ManagedTopic } from "@workspace/api-client-react";
@@ -34,6 +36,7 @@ export function TopicEditor({
   onSaved: (message: string) => void;
   onCreated?: (topic: { id: string; name: string; slug: string; status: string }) => void;
 }) {
+  const { t: translateUi } = useI18n();
   const saving = useRef(false);
   const session = useAdminSession(),
     client = useQueryClient();
@@ -168,10 +171,9 @@ export function TopicEditor({
           }}
         >
           <SheetHeader>
-            <SheetTitle>{topic ? "Edit topic" : "Create topic"}</SheetTitle>
+            <SheetTitle>{topic ? translateUi("Edit topic") : translateUi("Create topic")}</SheetTitle>
             <SheetDescription>
-              A canonical chapter owns this topic identity. Its title and slug are fixed; description, availability and display order are editable.
-            </SheetDescription>
+              {translateUi("A canonical chapter owns this topic identity. Its title and slug are fixed; description, availability and display order are editable.")}</SheetDescription>
           </SheetHeader>
           <form
             data-testid="form-admin-topic"
@@ -180,7 +182,7 @@ export function TopicEditor({
           >
             {(["name", "description"] as const).map((key) => (
               <label key={key} htmlFor={"topic-" + key}>
-                {key === "name" ? "Topic name" : "Description"}
+                {key === "name" ? translateUi("Topic name") : translateUi("Description")}
                 {key === "description" ? (
                   <textarea
                     id={"topic-" + key}
@@ -209,35 +211,31 @@ export function TopicEditor({
                   />
                 )}
                 <small id={"help-" + key}>
-                  {errors[key] ||
+                  <UiMessage text={errors[key] ||
                     (key === "name"
-                      ? "A clear, learner-friendly name."
-                      : "Explain what learners will practice. Maximum 2,000 characters.")}
+                      ? translateUi("A clear, learner-friendly name.")
+                      : translateUi("Explain what learners will practice. Maximum 2,000 characters."))}/>
                 </small>
               </label>
             ))}
             <label htmlFor="topic-status">
-              Visibility
-              <select
+              {translateUi("Visibility")}<select
                 id="topic-status"
                 data-testid="select-topic-status"
                 value={form.status}
                 onChange={(e) => change("status", e.target.value)}
                 disabled={pending}
               >
-                <option value="ACTIVE">Enabled</option>
-                <option value="DISABLED">Disabled</option>
+                <option value="ACTIVE">{translateUi("Enabled")}</option>
+                <option value="DISABLED">{translateUi("Disabled")}</option>
               </select>
               <small>
-                Disabled topics are hidden from the learner curriculum. Question status is
-                unchanged.
-              </small>
+                {translateUi("Disabled topics are hidden from the learner curriculum. Question status is unchanged.")}</small>
             </label>
             <details open={!!topic || !!errors.slug || !!errors.displayOrder}>
-              <summary>Advanced settings</summary>
+              <summary>{translateUi("Advanced settings")}</summary>
               <label htmlFor="topic-slug">
-                Slug
-                <input
+                {translateUi("Slug")}<input
                   id="topic-slug"
                   data-testid="input-topic-slug"
                   readOnly={!!topic}
@@ -248,10 +246,10 @@ export function TopicEditor({
                   aria-describedby="help-slug"
                 />
                 <small id="help-slug">
-                  {errors.slug ||
+                  <UiMessage text={errors.slug ||
                     (autoSlug
-                      ? "Automatically generated; uniqueness is checked again when saving."
-                      : "Unique URL identifier. Reviewed chapter mappings use this exact slug.")}
+                      ? translateUi("Automatically generated; uniqueness is checked again when saving.")
+                      : translateUi("Unique URL identifier. Reviewed chapter mappings use this exact slug."))}/>
                 </small>
               </label>
               {!topic && (
@@ -266,12 +264,10 @@ export function TopicEditor({
                         setForm((f) => ({ ...f, slug: initialTopicSlug(f.name) }));
                     }}
                   />{" "}
-                  Generate slug automatically
-                </label>
+                  {translateUi("Generate slug automatically")}</label>
               )}
               <label htmlFor="topic-order">
-                Display order
-                <input
+                {translateUi("Display order")}<input
                   id="topic-order"
                   data-testid="input-topic-displayOrder"
                   type="number"
@@ -283,15 +279,13 @@ export function TopicEditor({
                   aria-invalid={!!errors.displayOrder}
                 />
                 <small>
-                  {errors.displayOrder || "Lower numbers appear first in the curriculum."}
+                  <UiMessage text={errors.displayOrder || translateUi("Lower numbers appear first in the curriculum.")}/>
                 </small>
               </label>
             </details>
             {onCreated && (
               <p>
-                Curriculum Chapter: determined by reviewed topic slug bindings. New arbitrary
-                chapter bindings are not supported; no chapter will be guessed.
-              </p>
+                {translateUi("Curriculum Chapter: determined by reviewed topic slug bindings. New arbitrary chapter bindings are not supported; no chapter will be guessed.")}</p>
             )}
             {mappingChange && (
               <label className="topic-warning">
@@ -301,25 +295,22 @@ export function TopicEditor({
                   onChange={(e) => setAck(e.target.checked)}
                   disabled={pending}
                 />{" "}
-                I understand that changing this reviewed slug may remove its curriculum chapter
-                mapping.
-              </label>
+                {translateUi("I understand that changing this reviewed slug may remove its curriculum chapter mapping.")}</label>
             )}
             {error && (
               <p role="alert" className="topic-warning">
-                {error}
+                <UiMessage text={error}/>
               </p>
             )}
             <footer>
               <button type="button" className="button-quiet" onClick={close} disabled={pending}>
-                Cancel
-              </button>
+                {translateUi("Cancel")}</button>
               <button
                 data-testid="button-save-topic"
                 className="button-primary"
                 disabled={pending || (mappingChange && !ack)}
               >
-                {pending ? "Saving…" : topic ? "Save changes" : "Create topic"}
+                {pending ? translateUi("Saving…") : topic ? translateUi("Save changes") : translateUi("Create topic")}
               </button>
             </footer>
           </form>
@@ -329,12 +320,12 @@ export function TopicEditor({
       <AlertDialog open={discard} onOpenChange={setDiscard}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
-            <AlertDialogDescription>Your changes have not been saved.</AlertDialogDescription>
+            <AlertDialogTitle>{translateUi("Discard unsaved changes?")}</AlertDialogTitle>
+            <AlertDialogDescription>{translateUi("Your changes have not been saved.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep editing</AlertDialogCancel>
-            <AlertDialogAction onClick={onClose}>Discard changes</AlertDialogAction>
+            <AlertDialogCancel>{translateUi("Keep editing")}</AlertDialogCancel>
+            <AlertDialogAction onClick={onClose}>{translateUi("Discard changes")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

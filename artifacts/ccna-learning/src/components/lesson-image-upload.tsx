@@ -1,8 +1,11 @@
+import { UiMessage } from '../i18n';
+import { useI18n } from '../i18n';
 import { useEffect, useState, useRef } from "react";
 import { lessonRequest } from "@workspace/api-client-react";
 import { useAdminSession } from "./admin-session-boundary";
 import { adminMutationOptions } from "../lib/admin-session";
 export function LessonImageUpload({ insert }: { insert: (url: string) => void }) {
+  const { t: translateUi } = useI18n();
   const session = useAdminSession(),
     [file, setFile] = useState<File | null>(null),
     [preview, setPreview] = useState(""),
@@ -20,13 +23,11 @@ export function LessonImageUpload({ insert }: { insert: (url: string) => void })
   }, [file]);
   return (
     <fieldset className="lesson-image-upload">
-      <legend>Upload or replace image</legend>
+      <legend>{translateUi("Upload or replace image")}</legend>
       <p>
-        PNG, JPEG or WebP, up to 5 MiB. Preview is temporary until Upload succeeds. Persistent
-        storage requires separate activation.
-      </p>
+        {translateUi("PNG, JPEG or WebP, up to 5 MiB. Preview is temporary until Upload succeeds. Persistent storage requires separate activation.")}</p>
       <input
-        aria-label="Choose lesson image"
+        aria-label={translateUi("Choose lesson image")}
         type="file"
         accept="image/png,image/jpeg,image/webp"
         disabled={busy}
@@ -47,7 +48,7 @@ export function LessonImageUpload({ insert }: { insert: (url: string) => void })
         }}
       />
       {preview && <img src={preview} alt="Selected image preview (not uploaded)" />}
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert"><UiMessage text={error}/></p>}
       <button
         type="button"
         disabled={!file || busy}
@@ -83,11 +84,10 @@ export function LessonImageUpload({ insert }: { insert: (url: string) => void })
           }
         }}
       >
-        {busy ? "Uploading…" : "Upload and use image"}
+        {busy ? translateUi("Uploading…") : translateUi("Upload and use image")}
       </button>
       <small>
-        Replacing/removing a block never deletes shared media or images in published revisions.
-      </small>
+        {translateUi("Replacing/removing a block never deletes shared media or images in published revisions.")}</small>
     </fieldset>
   );
 }

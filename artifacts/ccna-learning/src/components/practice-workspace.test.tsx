@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { QueryClient, QueryClientProvider, notifyManager } from "@tanstack/react-query";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { PracticeWorkspace } from "./practice-workspace";
+import { LocaleProvider, LanguageSelect, languagePreferenceKey } from '../i18n';
 import { refreshCatalog } from "../lib/catalog-cache";
 const auth = vi.hoisted(() => ({
   isLoaded: true,
@@ -58,6 +59,7 @@ async function choose() {
   await act(async () => container.querySelector<HTMLInputElement>('input[value="A"]')!.click());
 }
 beforeEach(async () => {
+  localStorage.removeItem(languagePreferenceKey);
   (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
   notifyManager.setScheduler(queueMicrotask);
   Object.assign(auth, {
@@ -103,9 +105,9 @@ beforeEach(async () => {
   );
   await act(async () => {
     root.render(
-      <QueryClientProvider client={client}>
+      <LocaleProvider><LanguageSelect/><QueryClientProvider client={client}>
         <PracticeWorkspace isAuthLoaded isSignedIn />
-      </QueryClientProvider>,
+      </QueryClientProvider></LocaleProvider>,
     );
   });
   const input = container.querySelector<HTMLInputElement>("#practice-count")!;
@@ -116,6 +118,7 @@ beforeEach(async () => {
   });
 });
 afterEach(async () => {
+  localStorage.removeItem(languagePreferenceKey);document.documentElement.dir='ltr';document.documentElement.lang='en';
   await act(async () => root.unmount());
   client.clear();
   container.remove();
@@ -232,4 +235,14 @@ it("does not attach a late accepted grade to another signed-in session", async (
   );
   expect(container.textContent).not.toContain("PRIVATE OLD RESULT");
   expect(container.querySelector('[data-testid="result-practice-answer"]')).toBeNull();
+});
+
+it('retains delivered practice questions, choices and flags across locale changes without writes',async()=>{
+  await start();await choose();await click('Flag for Review');
+  const answer=container.querySelector<HTMLInputElement>('input[value="A"]')!, count=vi.mocked(fetch).mock.calls.length;
+  await act(async()=>{const select=container.querySelector('select')!;select.value='ar';select.dispatchEvent(new Event('change',{bubbles:true}));});
+  expect(container.querySelector('input[value="A"]')).toBe(answer);expect(answer.checked).toBe(true);
+  expect(document.documentElement.dir).toBe('rtl');expect(container.textContent).toContain('Question 0');expect(container.textContent).toContain('Option A');
+  expect(container.querySelector('[aria-pressed=true]')).not.toBeNull();expect(vi.mocked(fetch).mock.calls).toHaveLength(count);
+  expect(window.location.pathname).toBe('/practice');
 });

@@ -1,3 +1,5 @@
+import { UiMessage, DateText } from '../i18n';
+import { useI18n } from '../i18n';
 import { useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -37,6 +39,9 @@ export function calendarWeeks(days: LearningActivity["days"]) {
   );
 }
 export function YearlyActivity() {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi, dir, locale } = useI18n();
   const identity = useNexusIdentity(),
     [year, setYear] = useState(() => new Date().getFullYear()),
     [day, setDay] = useState(0),
@@ -57,8 +62,8 @@ export function YearlyActivity() {
     weeks = calendarWeeks(data?.days || []);
   function move(event: React.KeyboardEvent, index: number) {
     const delta: { [key: string]: number } = {
-      ArrowLeft: -7,
-      ArrowRight: 7,
+      ArrowLeft: dir==='rtl'?7:-7,
+      ArrowRight: dir==='rtl'?-7:7,
       ArrowUp: -1,
       ArrowDown: 1,
       Home: -index,
@@ -75,12 +80,12 @@ export function YearlyActivity() {
     <section className="nexus-panel nexus-yearly">
       <div className="nexus-section-heading">
         <div>
-          <span className="nexus-eyebrow">YOUR YEAR IN CONNECTIONS</span>
-          <h2>Yearly learning activity</h2>
+          <span className="nexus-eyebrow">{translateUi("YOUR YEAR IN CONNECTIONS")}</span>
+          <h2>{translateUi("Yearly learning activity")}</h2>
         </div>
         <div className="nexus-year-controls">
           <button
-            aria-label="Previous activity year"
+            aria-label={translateUi("Previous activity year")}
             disabled={year <= 1970}
             onClick={() => {
               setYear((y) => y - 1);
@@ -91,7 +96,7 @@ export function YearlyActivity() {
           </button>
           <strong aria-live="polite">{year}</strong>
           <button
-            aria-label="Next activity year"
+            aria-label={translateUi("Next activity year")}
             disabled={year >= new Date().getFullYear()}
             onClick={() => {
               setYear((y) => y + 1);
@@ -103,22 +108,20 @@ export function YearlyActivity() {
         </div>
       </div>
       {!identity ? (
-        <p>Sign in to see your real learning activity.</p>
+        <p>{translateUi("Sign in to see your real learning activity.")}</p>
       ) : query.isPending ? (
         <Skeleton className="h-40" />
       ) : query.isError ? (
         <div role="alert">
-          <p>{nexusError(query.error)}</p>
+          <p><UiMessage text={nexusError(query.error)}/></p>
           <button className="nexus-button secondary" onClick={() => void query.refetch()}>
-            Retry activity
-          </button>
+            {translateUi("Retry activity")}</button>
         </div>
       ) : (
         data && (
           <>
             <p className="nexus-muted">
-              {data.totals.answers} submitted answers · {data.totals.sessions} completed tracked
-              sessions · {data.totals.activeDays} active days. Calendar timezone:{" "}
+              {data.totals.answers} {translateUi("submitted answers ·")}{" "}{data.totals.sessions} {translateUi("completed tracked sessions ·")}{" "}{data.totals.activeDays} {translateUi("active days. Calendar timezone:")}{" "}
               <strong>{data.timezone}</strong>.
             </p>
             <div className="nexus-calendar-scroll">
@@ -132,7 +135,7 @@ export function YearlyActivity() {
                     return (
                       <span key={i}>
                         {first
-                          ? new Date(first.date + "T00:00:00Z").toLocaleDateString(undefined, {
+                          ? new Date(first.date + "T00:00:00Z").toLocaleDateString(locale, {
                               month: "short",
                               timeZone: "UTC",
                               calendar: "gregory",
@@ -143,14 +146,14 @@ export function YearlyActivity() {
                   })}
                 </div>
                 <div className="nexus-weekdays" aria-hidden="true">
-                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-                    <span key={d}>{d}</span>
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d,index) => (
+                    <span key={d}>{locale==='ar'?new Intl.DateTimeFormat(locale,{weekday:'narrow',timeZone:'UTC'}).format(new Date(Date.UTC(2023,0,1+index))):d}</span>
                   ))}
                 </div>
                 <div
                   className="nexus-calendar-weeks"
                   role="grid"
-                  aria-label={`${year} learning activity; use arrow keys to navigate dates, Home and End for year boundaries`}
+                  aria-label={translateUi("{value0} learning activity; use arrow keys to navigate dates, Home and End for year boundaries", {value0: String(year)})}
                 >
                   {weeks.map((week, i) => (
                     <div className="nexus-calendar-week" role="row" key={i}>
@@ -166,15 +169,14 @@ export function YearlyActivity() {
                                 data-level={d.level}
                                 tabIndex={day === d.index ? 0 : -1}
                                 aria-selected={day === d.index}
-                                aria-label={`${d.date}: ${d.answers} submitted answers, ${d.sessions} completed sessions; ${d.total} learning events in ${data.timezone}`}
+                                aria-label={translateUi("{value0}: {value1} submitted answers, {value2} completed sessions; {value3} learning events in {value4}", {value0: String(d.date), value1: String(d.answers), value2: String(d.sessions), value3: String(d.total), value4: String(data.timezone)})}
                                 onKeyDown={(e) => move(e, d.index)}
                                 onFocus={() => setDay(d.index)}
                                 onClick={() => setDay(d.index)}
                               />
                             </TooltipTrigger>
                             <TooltipContent>
-                              {d.date}: {d.answers} answers + {d.sessions} tracked sessions (
-                              {data.timezone})
+                              {d.date}: {d.answers} {translateUi("answers +")}{" "}{d.sessions} {translateUi("tracked sessions (")}{data.timezone})
                             </TooltipContent>
                           </Tooltip>
                         ) : (
@@ -188,36 +190,30 @@ export function YearlyActivity() {
             </div>
             <div className="nexus-calendar-foot">
               <span aria-live="polite">
-                {data.days[day]?.date}: {data.days[day]?.answers} answers,{" "}
-                {data.days[day]?.sessions} completed sessions
-              </span>
+                {data.days[day]?.date}: {data.days[day]?.answers} {translateUi("answers,")}{" "}
+                {data.days[day]?.sessions} {translateUi("completed sessions")}</span>
               <div
                 className="nexus-activity-legend"
-                aria-label="Activity intensity: none, 1 to 4, 5 to 9, 10 to 19, 20 or more events"
+                aria-label={translateUi("Activity intensity: none, 1 to 4, 5 to 9, 10 to 19, 20 or more events")}
               >
-                <span>Less</span>
+                <span>{translateUi("Less")}</span>
                 {[0, 1, 2, 3, 4].map((level) => (
                   <i key={level} data-level={level} />
                 ))}
-                <span>More</span>
+                <span>{translateUi("More")}</span>
               </div>
             </div>
             {data.totals.activeDays === 0 && (
               <p className="nexus-empty">
-                No recorded learning activity in {year}. Your submitted answers will build this
-                calendar.
-              </p>
+                {translateUi("No recorded learning activity in")}{" "}{year}{translateUi(". Your submitted answers will build this calendar.")}</p>
             )}
             <p className="nexus-muted">
-              One event means one saved answer or one completed tracked session; both can occur on
-              the same day. Page visits do not count. Legacy submissions remain visible here; badge
-              and skill rules use revision-bound evidence.{" "}
+              {translateUi("One event means one saved answer or one completed tracked session; both can occur on the same day. Page visits do not count. Legacy submissions remain visible here; badge and skill rules use revision-bound evidence.")}{" "}
               {data.supportedEvents.PRACTICE_COMPLETED
                 ? ""
-                : "Tracked-session activity awaits the session upgrade. "}
-              Lessons and labs are not yet tracked. Yearly longest streak:{" "}
-              {data.totals.longestStreak} days.
-            </p>
+                : translateUi("Tracked-session activity awaits the session upgrade.")}
+              {translateUi("Lessons and labs are not yet tracked. Yearly longest streak:")}{" "}
+              {data.totals.longestStreak} {translateUi("days.")}</p>
           </>
         )
       )}
@@ -225,6 +221,7 @@ export function YearlyActivity() {
   );
 }
 export function SkillMatrix({ data }: { data: LearnerProgress }) {
+  const { t: translateUi } = useI18n();
   const [selected, setSelected] = useState<string | null>(null),
     [view, setView] = useState<"radar" | "table">("radar"),
     skills = data.skills,
@@ -239,26 +236,21 @@ export function SkillMatrix({ data }: { data: LearnerProgress }) {
     <section className="nexus-panel nexus-skill-matrix">
       <div className="nexus-section-heading">
         <div>
-          <span className="nexus-eyebrow">SKILL EVIDENCE · {data.framework.id}</span>
-          <h2>Your CCNA Skill Matrix</h2>
+          <span className="nexus-eyebrow">{translateUi("SKILL EVIDENCE ·")}{" "}{data.framework.id}</span>
+          <h2>{translateUi("Your CCNA Skill Matrix")}</h2>
         </div>
         <div className="nexus-segment">
           <button aria-pressed={view === "radar"} onClick={() => setView("radar")}>
-            Radar
-          </button>
+            {translateUi("Radar")}</button>
           <button aria-pressed={view === "table"} onClick={() => setView("table")}>
-            Accessible table
-          </button>
+            {translateUi("Accessible table")}</button>
         </div>
       </div>
       <p className="nexus-muted">
-        Revision-verified practice evidence index, not mastery: accuracy × available-question
-        coverage × sample weight (up to {data.framework.sampleTarget} answers). At least{" "}
-        {data.framework.minimumAnswers} answers across {data.framework.minimumUnique} available
-        questions are required per domain.
-      </p>
+        {translateUi("Revision-verified practice evidence index, not mastery: accuracy × available-question coverage × sample weight (up to")}{" "}{data.framework.sampleTarget} {translateUi("answers). At least")}{" "}
+        {data.framework.minimumAnswers} {translateUi("answers across")}{" "}{data.framework.minimumUnique} {translateUi("available questions are required per domain.")}</p>
       {!skills.length ? (
-        <p>No active CCNA v1.1 domain evidence is available.</p>
+        <p>{translateUi("No active CCNA v1.1 domain evidence is available.")}</p>
       ) : (
         <>
           {view === "radar" ? (
@@ -266,7 +258,7 @@ export function SkillMatrix({ data }: { data: LearnerProgress }) {
               <svg
                 viewBox="0 0 520 350"
                 role="img"
-                aria-label="Six-domain practice evidence radar; unavailable scores are omitted and exact evidence follows below"
+                aria-label={translateUi("Six-domain practice evidence radar; unavailable scores are omitted and exact evidence follows below")}
               >
                 {[0.25, 0.5, 0.75, 1].map((scale) => (
                   <polygon
@@ -302,9 +294,8 @@ export function SkillMatrix({ data }: { data: LearnerProgress }) {
                           fill="#0e7490"
                         >
                           <title>
-                            {s.name}: evidence {s.score}/100, accuracy {s.accuracy}%, coverage{" "}
-                            {s.coverage}%, {s.attempts} answers
-                          </title>
+                            {s.name}{translateUi(": evidence")}{" "}{s.score}{translateUi("/100, accuracy")}{" "}{s.accuracy}{translateUi("%, coverage")}{" "}
+                            {s.coverage}%, {s.attempts} {translateUi("answers")}</title>
                         </circle>
                       )}
                     </g>
@@ -324,8 +315,7 @@ export function SkillMatrix({ data }: { data: LearnerProgress }) {
                   />
                 )}
                 <text x="260" y="180" textAnchor="middle" fill="#435a73" fontSize="9">
-                  EVIDENCE
-                </text>
+                  {translateUi("EVIDENCE")}</text>
               </svg>
               <div className="nexus-skill-buttons">
                 {skills.map((s) => (
@@ -335,10 +325,9 @@ export function SkillMatrix({ data }: { data: LearnerProgress }) {
                     onClick={() => setSelected(s.id)}
                   >
                     <span>{s.name}</span>
-                    <strong>{s.score === null ? "Insufficient data" : s.score + "/100"}</strong>
+                    <strong>{s.score === null ? translateUi("Insufficient data") : s.score + "/100"}</strong>
                     <small>
-                      {s.correct}/{s.attempts} correct · {s.attempted}/{s.available} coverage
-                    </small>
+                      {s.correct}/{s.attempts} {translateUi("correct ·")}{" "}{s.attempted}/{s.available} {translateUi("coverage")}</small>
                   </button>
                 ))}
               </div>
@@ -346,15 +335,15 @@ export function SkillMatrix({ data }: { data: LearnerProgress }) {
           ) : (
             <div className="nexus-history-scroll">
               <table className="nexus-history-table">
-                <caption className="sr-only">CCNA skill evidence, accuracy and coverage</caption>
+                <caption className="sr-only">{translateUi("CCNA skill evidence, accuracy and coverage")}</caption>
                 <thead>
                   <tr>
-                    <th>Domain</th>
-                    <th>Accuracy</th>
-                    <th>Coverage</th>
-                    <th>Answers</th>
-                    <th>Evidence index</th>
-                    <th>Practice</th>
+                    <th>{translateUi("Domain")}</th>
+                    <th>{translateUi("Accuracy")}</th>
+                    <th>{translateUi("Coverage")}</th>
+                    <th>{translateUi("Answers")}</th>
+                    <th>{translateUi("Evidence index")}</th>
+                    <th>{translateUi("Practice")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -362,18 +351,17 @@ export function SkillMatrix({ data }: { data: LearnerProgress }) {
                     <tr key={s.id}>
                       <td>{s.name}</td>
                       <td>
-                        {s.accuracy === null ? "No answers" : s.accuracy + "%"} ({s.correct}/
+                        {s.accuracy === null ? translateUi("No answers") : s.accuracy + "%"} ({s.correct}/
                         {s.attempts})
                       </td>
                       <td>
                         {s.attempted}/{s.available}
                       </td>
                       <td>{s.attempts}</td>
-                      <td>{s.score === null ? "Insufficient evidence" : s.score + "/100"}</td>
+                      <td>{s.score === null ? translateUi("Insufficient evidence") : s.score + "/100"}</td>
                       <td>
                         <Link className="nexus-text-link" href={"/practice?domainId=" + s.id}>
-                          Practice domain
-                        </Link>
+                          {translateUi("Practice domain")}</Link>
                       </td>
                     </tr>
                   ))}
@@ -383,25 +371,22 @@ export function SkillMatrix({ data }: { data: LearnerProgress }) {
           )}
           {supported.length < 6 && (
             <p className="nexus-muted">
-              {6 - supported.length} domains need more evidence. Missing scores are not plotted as
-              zero; a filled radar appears only when all six domains have sufficient evidence.
-            </p>
+              {6 - supported.length} {translateUi("domains need more evidence. Missing scores are not plotted as zero; a filled radar appears only when all six domains have sufficient evidence.")}</p>
           )}
           {current && (
             <div className="nexus-domain-detail" role="status">
               <div>
                 <strong>{current.name}</strong>
                 <p>
-                  {current.attempts} answers · {current.correct} correct · {current.attempted}/
-                  {current.available} distinct available questions covered.{" "}
+                  {current.attempts} {translateUi("answers ·")}{" "}{current.correct} {translateUi("correct ·")}{" "}{current.attempted}/
+                  {current.available} {translateUi("distinct available questions covered.")}{" "}
                   {current.score === null
-                    ? "More evidence is needed."
-                    : `Evidence index ${current.score}/100; this is not an exam-readiness measure.`}
+                    ? translateUi("More evidence is needed.")
+                    : translateUi("Evidence index {value0}/100; this is not an exam-readiness measure.", {value0: String(current.score)})}
                 </p>
               </div>
               <Link href={"/practice?domainId=" + current.id} className="nexus-button">
-                Practice this domain
-              </Link>
+                {translateUi("Practice this domain")}</Link>
             </div>
           )}
         </>
@@ -410,6 +395,7 @@ export function SkillMatrix({ data }: { data: LearnerProgress }) {
   );
 }
 export function AchievementGallery({ data }: { data: LearnerProgress }) {
+  const { t: translateUi } = useI18n();
   const life = useNexusLifetime(),
     cache = useQueryClient(),
     [busy, setBusy] = useState(false),
@@ -446,27 +432,23 @@ export function AchievementGallery({ data }: { data: LearnerProgress }) {
     <section className="nexus-panel">
       <div className="nexus-section-heading">
         <div>
-          <span className="nexus-eyebrow">RECOGNITION WITHOUT RANKING</span>
-          <h2>Badges & achievements</h2>
+          <span className="nexus-eyebrow">{translateUi("RECOGNITION WITHOUT RANKING")}</span>
+          <h2>{translateUi("Badges & achievements")}</h2>
         </div>
         <button
           className="nexus-button secondary"
           disabled={busy || !data.capabilities.achievements}
           onClick={() => void evaluate()}
         >
-          {busy ? "Checking evidence…" : "Check earned badges"}
+          {busy ? translateUi("Checking evidence…") : translateUi("Check earned badges")}
         </button>
       </div>
-      <p role="status">{message}</p>
+      <p role="status"><UiMessage text={message}/></p>
       <p className="nexus-muted">
-        Badge eligibility uses revision-bound answers and reliably tracked completions. Legacy
-        activity remains in history but never becomes unverified badge evidence.
-      </p>
+        {translateUi("Badge eligibility uses revision-bound answers and reliably tracked completions. Legacy activity remains in history but never becomes unverified badge evidence.")}</p>
       {!data.capabilities.achievements ? (
         <p>
-          Database-backed badges await the separately approved achievement migration. No historical
-          lesson, lab or session awards are inferred.
-        </p>
+          {translateUi("Database-backed badges await the separately approved achievement migration. No historical lesson, lab or session awards are inferred.")}</p>
       ) : (
         <>
           <div className="nexus-badge-grid">
@@ -481,12 +463,12 @@ export function AchievementGallery({ data }: { data: LearnerProgress }) {
                     {b.awardedAt
                       ? "Earned · recorded " + new Date(b.awardedAt).toLocaleDateString()
                       : b.eligible
-                        ? "Eligible · not yet awarded"
-                        : "Locked"}
+                        ? translateUi("Eligible · not yet awarded")
+                        : translateUi("Locked")}
                   </small>
                   <p>{b.description}</p>
                   {!b.supported && !b.awardedAt ? (
-                    <p>Rule unavailable; no award can be granted.</p>
+                    <p>{translateUi("Rule unavailable; no award can be granted.")}</p>
                   ) : (
                     <>
                       <progress
@@ -495,7 +477,7 @@ export function AchievementGallery({ data }: { data: LearnerProgress }) {
                         aria-label={b.name + " eligibility progress"}
                       />
                       <details>
-                        <summary>Exact eligibility evidence</summary>
+                        <summary>{translateUi("Exact eligibility evidence")}</summary>
                         <ul>
                           {b.requirements.map((r) => (
                             <li key={r.label}>
@@ -512,7 +494,7 @@ export function AchievementGallery({ data }: { data: LearnerProgress }) {
               </article>
             ))}
           </div>
-          <h3 className="mt-6">Recent milestones</h3>
+          <h3 className="mt-6">{translateUi("Recent milestones")}</h3>
           {data.badges.some((b) => b.awardedAt) ? (
             <ul className="nexus-recent-list">
               {[...data.badges]
@@ -523,14 +505,13 @@ export function AchievementGallery({ data }: { data: LearnerProgress }) {
                   <li key={b.id}>
                     <Award size={18} />
                     <strong>{b.name}</strong>
-                    <span>Award recorded {new Date(b.awardedAt!).toLocaleString()}</span>
+                    <span>{translateUi("Award recorded")}{" "}<DateText value={b.awardedAt!} options={{dateStyle:'medium',timeStyle:'short'}}/></span>
                   </li>
                 ))}
             </ul>
           ) : (
             <p>
-              No awards recorded yet. Progress is based on real submissions, not visits or points.
-            </p>
+              {translateUi("No awards recorded yet. Progress is based on real submissions, not visits or points.")}</p>
           )}
         </>
       )}

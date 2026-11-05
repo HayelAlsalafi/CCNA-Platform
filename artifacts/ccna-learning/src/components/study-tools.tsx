@@ -1,3 +1,5 @@
+import { UiMessage, DateText } from '../i18n';
+import { useI18n } from '../i18n';
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -193,16 +195,17 @@ function StudyOutline({children,active,headingId}:{children:ReactNode;active:boo
 }
 
 function StudyHubFrame({children,reveal}:{children:ReactNode;reveal:boolean}) {
+  const { t: translateUi } = useI18n();
   const [mobile,setMobile]=useState(()=>typeof window!=="undefined" && window.matchMedia?.("(max-width: 1100px)").matches),[open,setOpen]=useState(false);
   useEffect(()=>{const media=window.matchMedia?.("(max-width: 1100px)");if(!media)return;const changed=()=>setMobile(media.matches);media.addEventListener("change",changed);return()=>media.removeEventListener("change",changed);},[]);
   useEffect(()=>{if(reveal&&mobile){setOpen(true);requestAnimationFrame(()=>document.getElementById("private-study-note")?.focus());}},[reveal,mobile]);
   const destination=useRef<string|null>(null);
-  return mobile ? <Sheet open={open} onOpenChange={setOpen}><SheetTrigger asChild><button type="button">Open Study Hub</button></SheetTrigger><SheetContent className="study-hub-drawer" onClick={event=>{
+  return mobile ? <Sheet open={open} onOpenChange={setOpen}><SheetTrigger asChild><button type="button">{translateUi("Open Study Hub")}</button></SheetTrigger><SheetContent className="study-hub-drawer" onClick={event=>{
     const link=(event.target as Element).closest<HTMLAnchorElement>('a[href^="#section-"]');
     if(link){event.preventDefault();destination.current=link.hash.slice(1);setOpen(false);}
   }} onCloseAutoFocus={event=>{
     if(destination.current){event.preventDefault();const target=document.getElementById(destination.current);destination.current=null;target?.scrollIntoView({block:"start",behavior:"auto"});if(target){target.tabIndex=-1;target.focus({preventScroll:true});}}
-  }}><SheetHeader><SheetTitle>Study Hub</SheetTitle><SheetDescription>Lesson outline, private materials and explicit progress.</SheetDescription></SheetHeader>{children}</SheetContent></Sheet> : <div className="study-hub">{children}</div>;
+  }}><SheetHeader><SheetTitle>{translateUi("Study Hub")}</SheetTitle><SheetDescription>{translateUi("Lesson outline, private materials and explicit progress.")}</SheetDescription></SheetHeader>{children}</SheetContent></Sheet> : <div className="study-hub">{children}</div>;
 }
 
 export function ReaderStudyTools({
@@ -218,6 +221,9 @@ export function ReaderStudyTools({
   currentPosition?: ReadingPosition;
   outline?: ReactNode;
 }) {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   const [body, setBody] = useState(""),
     [category, setCategory] = useState(""),
     [editing, setEditing] = useState<StudyAnnotation | null>(null),
@@ -265,27 +271,25 @@ export function ReaderStudyTools({
       .includes(search.toLowerCase()),
   );
   return (
-    <section className="reader-study-tools" aria-label="Private study tools">
+    <section className="reader-study-tools" aria-label={translateUi("Private study tools")}>
 
       {study.selection && (
         <div
           className="study-selection-toolbar"
           role="toolbar"
-          aria-label="Selected passage actions"
+          aria-label={translateUi("Selected passage actions")}
           style={{ left: study.selection.left, top: study.selection.top }}
         >
-          <span>Highlight selected text</span>
+          <span>{translateUi("Highlight selected text")}</span>
           <small>
-            Yellow: important · Green: understood · Blue: review later · Pink: difficult. Colors do
-            not change completion.
-          </small>
+            {translateUi("Yellow: important · Green: understood · Blue: review later · Pink: difficult. Colors do not change completion.")}</small>
           {colors.map((color) => (
             <button
               key={color}
               className={"study-color-" + color}
               type="button"
               disabled={!available}
-              aria-label={`Highlight ${color}`}
+              aria-label={translateUi("Highlight {value0}", {value0: localizeUiLabel(String(color))})}
               onClick={() =>
                 void study
                   .create({ kind: "HIGHLIGHT", color, anchor: study.selection!.anchor })
@@ -308,8 +312,7 @@ export function ReaderStudyTools({
               study.clearSelection();
             }}
           >
-            Add note
-          </button>
+            {translateUi("Add note")}</button>
           <button
             type="button"
             disabled={!available}
@@ -321,54 +324,49 @@ export function ReaderStudyTools({
                 })
             }
           >
-            Bookmark passage
-          </button>
+            {translateUi("Bookmark passage")}</button>
           <button type="button" onClick={study.clearSelection}>
-            Dismiss
-          </button>
+            {translateUi("Dismiss")}</button>
         </div>
       )}
       <StudyHubFrame reveal={!!anchor||!!editing}>
-      <header className="study-hub-heading"><h2>Study Hub</h2><p>Your lesson, your study materials.</p></header>
-      <Tabs value={hubTab} onValueChange={setHubTab} dir={typeof document!=="undefined"&&document.documentElement.dir==="rtl"?"rtl":"ltr"} className="study-hub-tabs">
-        <TabsList aria-label="Study Hub sections">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
-          <TabsTrigger value="study">My Study</TabsTrigger>
-          <TabsTrigger value="progress">Progress</TabsTrigger>
+      <header className="study-hub-heading"><h2>{translateUi("Study Hub")}</h2><p>{translateUi("Your lesson, your study materials.")}</p></header>
+      <Tabs value={hubTab} onValueChange={setHubTab} className="study-hub-tabs">
+        <TabsList aria-label={translateUi("Study Hub sections")}>
+          <TabsTrigger value="outline">{translateUi("Outline")}</TabsTrigger>
+          <TabsTrigger value="study">{translateUi("My Study")}</TabsTrigger>
+          <TabsTrigger value="progress">{translateUi("Progress")}</TabsTrigger>
         </TabsList>
         <TabsContent value="outline" forceMount hidden={hubTab!=="outline"}>
-          <StudyOutline active={hubTab==="outline"} headingId={currentPosition?.headingId}>{outline ?? <p>No section outline is available for this lesson.</p>}</StudyOutline>
+          <StudyOutline active={hubTab==="outline"} headingId={currentPosition?.headingId}>{outline ?? <p>{translateUi("No section outline is available for this lesson.")}</p>}</StudyOutline>
         </TabsContent>
         <TabsContent value="progress" forceMount hidden={hubTab!=="progress"}>
         {study.query.isPending ? (
-          <p role="status">Checking private study storage…</p>
+          <p role="status">{translateUi("Checking private study storage…")}</p>
         ) : study.query.isError ? (
           <div role="alert">
             <p>{studyError(study.query.error)}</p>
             <button type="button" onClick={() => void study.query.refetch()}>
-              Retry study tools
-            </button>
+              {translateUi("Retry study tools")}</button>
           </div>
         ) : !study.ready ? (
           <p role="status">
-            Private study storage is unavailable. No personal study changes are being saved.
-          </p>
+            {translateUi("Private study storage is unavailable. No personal study changes are being saved.")}</p>
         ) : (
           <>
             <p>
-              Lesson completion:{" "}
+              {translateUi("Lesson completion:")}{" "}
               <strong>{study.progress.state.replaceAll("_", " ").toLowerCase()}</strong>
             </p>
-            <p>Current reading position: {Math.round(currentPosition?.percent ?? 0)}%</p>
+            <p>{translateUi("Current reading position:")}{" "}{Math.round(currentPosition?.percent ?? 0)}%</p>
             <p>
-              Saved reading position:{" "}
+              {translateUi("Saved reading position:")}{" "}
               {study.progress.blockId
                 ? lesson.blocks.some((block) => block.id === study.progress.blockId)
-                  ? `section ${lesson.blocks.findIndex((block) => block.id === study.progress.blockId) + 1}`
-                  : "section from an earlier revision"
-                : "Not saved"}
-              . Resume is section-based.
-            </p>
+                  ? translateUi("section {value0}", {value0: String(lesson.blocks.findIndex((block) => block.id === study.progress.blockId) + 1)})
+                  : translateUi("section from an earlier revision")
+                : translateUi("Not saved")}
+              {translateUi(". Resume is section-based.")}</p>
             <div className="study-actions">
               {study.progress.state === "NOT_STARTED" ? (
                 <button
@@ -376,61 +374,57 @@ export function ReaderStudyTools({
                   disabled={!available}
                   onClick={() => void study.progressAction("start")}
                 >
-                  Start this lesson
-                </button>
+                  {translateUi("Start this lesson")}</button>
               ) : study.progress.state === "COMPLETED" ? (
                 <button
                   type="button"
                   disabled={!available}
                   onClick={() => void study.progressAction("reopen")}
                 >
-                  Reopen completed lesson
-                </button>
+                  {translateUi("Reopen completed lesson")}</button>
               ) : (
                 <button
                   type="button"
                   disabled={!available}
                   onClick={() => void study.progressAction("complete")}
                 >
-                  Mark lesson completed
-                </button>
+                  {translateUi("Mark lesson completed")}</button>
               )}
               <button
                 type="button"
                 disabled={!available}
                 onClick={() => void study.create({ kind: "BOOKMARK" })}
               >
-                Bookmark lesson
-              </button>
+                {translateUi("Bookmark lesson")}</button>
             </div>
-            {study.progress.state === "NOT_STARTED" && <p>Saving a reading position also starts this lesson. It does not mark it completed.</p>}
+            {study.progress.state === "NOT_STARTED" && <p>{translateUi("Saving a reading position also starts this lesson. It does not mark it completed.")}</p>}
 
           </>
         )}
-        {chapterStatus ? <section className="study-progress-meter" aria-label="Chapter completion">
-          <h3>Chapter completion</h3><p>{chapterStatus.completed} of {chapterStatus.total} published lessons completed</p>
-          <progress aria-label="Chapter completion" max={100} value={completionPercent(chapterStatus.completed,chapterStatus.total)}/>
-        </section> : <div><p>{chapterProgress.isError ? "Chapter progress unavailable." : study.ready ? "Loading chapter progress..." : "Chapter progress loads when private study tools are ready."}</p>{chapterProgress.isError && <button type="button" onClick={()=>void chapterProgress.refetch()}>Retry chapter progress</button>}</div>}
-        <p>Completion requires your explicit action. Reading position never marks a lesson complete.</p>
+        {chapterStatus ? <section className="study-progress-meter" aria-label={translateUi("Chapter completion")}>
+          <h3>{translateUi("Chapter completion")}</h3><p>{chapterStatus.completed} {translateUi("of")}{" "}{chapterStatus.total} {translateUi("published lessons completed")}</p>
+          <progress aria-label={translateUi("Chapter completion")} max={100} value={completionPercent(chapterStatus.completed,chapterStatus.total)}/>
+        </section> : <div><p>{chapterProgress.isError ? translateUi("Chapter progress unavailable.") : study.ready ? translateUi("Loading chapter progress...") : translateUi("Chapter progress loads when private study tools are ready.")}</p>{chapterProgress.isError && <button type="button" onClick={()=>void chapterProgress.refetch()}>{translateUi("Retry chapter progress")}</button>}</div>}
+        <p>{translateUi("Completion requires your explicit action. Reading position never marks a lesson complete.")}</p>
         </TabsContent>
         <TabsContent value="study" forceMount hidden={hubTab!=="study"}>
-          {!study.ready && <div role="status"><p>{study.query.isError ? studyError(study.query.error) : "Loading your private study materials..."}</p>{study.query.isError && <button type="button" onClick={()=>void study.query.refetch()}>Retry private materials</button>}</div>}
-          <div className="study-summary" aria-label="Saved items in this lesson">
-            {(["NOTE","HIGHLIGHT","BOOKMARK"] as const).map(kind=><div key={kind}><strong>{study.ready ? study.annotations.filter(item=>item.kind===kind).length : "?"}</strong><span>{kind==="NOTE"?"Notes":kind==="HIGHLIGHT"?"Highlights":"Bookmarks"}</span></div>)}
+          {!study.ready && <div role="status"><p>{study.query.isError ? studyError(study.query.error) : translateUi("Loading your private study materials...")}</p>{study.query.isError && <button type="button" onClick={()=>void study.query.refetch()}>{translateUi("Retry private materials")}</button>}</div>}
+          <div className="study-summary" aria-label={translateUi("Saved items in this lesson")}>
+            {(["NOTE","HIGHLIGHT","BOOKMARK"] as const).map(kind=><div key={kind}><strong>{study.ready ? study.annotations.filter(item=>item.kind===kind).length : "?"}</strong><span>{kind==="NOTE"?translateUi("Notes"):kind==="HIGHLIGHT"?translateUi("Highlights"):translateUi("Bookmarks")}</span></div>)}
           </div>
-          <p className="study-muted">This lesson, including materials saved on earlier revisions.</p>
+          <p className="study-muted">{translateUi("This lesson, including materials saved on earlier revisions.")}</p>
           <div className="study-hub-actions"><StudyWorkspace curriculum={curriculum}/>
-          <Suspense fallback={<p>Loading export tools...</p>}><StudyExportPanel chapterId={lesson.chapterId} lessonId={lesson.id} identityKey={study.key}/></Suspense></div>
+          <Suspense fallback={<p>{translateUi("Loading export tools...")}</p>}><StudyExportPanel chapterId={lesson.chapterId} lessonId={lesson.id} identityKey={study.key}/></Suspense></div>
         <details open={!!body || !!editing || !!anchor}>
-          <summary>Private notes</summary>
+          <summary>{translateUi("Private notes")}</summary>
           <label htmlFor="private-study-note">
             {editing
-              ? `Edit private ${editing.kind.toLowerCase()}`
+              ? translateUi("Edit private {value0}", {value0: localizeUiLabel(String(editing.kind.toLowerCase()))})
               : anchor
-                ? "Note on selected text"
-                : "General lesson note"}
+                ? translateUi("Note on selected text")
+                : translateUi("General lesson note")}
           </label>
-          {anchor && <blockquote>{anchor.quote || "Selected section"}</blockquote>}
+          {anchor && <blockquote>{anchor.quote || translateUi("Selected section")}</blockquote>}
           <textarea
             id="private-study-note"
             maxLength={10000}
@@ -438,10 +432,9 @@ export function ReaderStudyTools({
             value={body}
             onChange={(e) => setBody(e.target.value)}
           />
-          {body && <small>Unsaved note. Save explicitly before leaving this lesson.</small>}
+          {body && <small>{translateUi("Unsaved note. Save explicitly before leaving this lesson.")}</small>}
           <label>
-            Study item category
-            <input maxLength={80} value={category} onChange={(e) => setCategory(e.target.value)} />
+            {translateUi("Study item category")}<input maxLength={80} value={category} onChange={(e) => setCategory(e.target.value)} />
           </label>
           <button
             type="button"
@@ -458,7 +451,7 @@ export function ReaderStudyTools({
               }
             }}
           >
-            {study.busy ? "Saving…" : "Save private note"}
+            {study.busy ? translateUi("Saving…") : translateUi("Save private note")}
           </button>
           {(editing || anchor) && (
             <button
@@ -470,34 +463,32 @@ export function ReaderStudyTools({
                 setCategory("");
               }}
             >
-              Cancel note edit
-            </button>
+              {translateUi("Cancel note edit")}</button>
           )}
         </details>
         {study.message && <p role="status">{study.message}</p>}
-        <h3>Recent lesson materials</h3>
+        <h3>{translateUi("Recent lesson materials")}</h3>
         <label>
-          Find saved lesson items
-          <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
+          {translateUi("Find saved lesson items")}<input type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
         </label>
         <ul className="study-saved-items">
           {[...items].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).slice(0,showAll ? items.length : 3).map((item) => (
             <li key={item.id}>
-              <strong>{item.kind.toLowerCase()}</strong>
+              <strong><UiMessage text={item.kind.toLowerCase()}/></strong>
               {item.revisionId !== lesson.revisionId ? (
-                <p>Saved on an older revision; not applied to this text.</p>
+                <p>{translateUi("Saved on an older revision; not applied to this text.")}</p>
               ) : (
                 item.anchor && (
-                  <a href={`#section-${item.anchor.blockId}`}>Go to passage / section</a>
+                  <a href={`#section-${item.anchor.blockId}`}>{translateUi("Go to passage / section")}</a>
                 )
               )}
               <p>
                 {item.body ||
                   item.anchor?.quote ||
-                  (item.anchor ? "Section bookmark" : "Lesson bookmark")}
+                  (item.anchor ? translateUi("Section bookmark") : translateUi("Lesson bookmark"))}
               </p>
               {item.category && <small>{item.category}</small>}
-              <details><summary>Manage this item</summary>
+              <details><summary>{translateUi("Manage this item")}</summary>
               {
                 <button
                   type="button"
@@ -510,13 +501,12 @@ export function ReaderStudyTools({
                     setAnchor(item.anchor);
                   }}
                 >
-                  Edit {item.kind.toLowerCase()}
+                  {translateUi("Edit")}{" "}<UiMessage text={item.kind.toLowerCase()}/>
                 </button>
               }
               {
                 <label>
-                  Item color
-                  <select
+                  {translateUi("Item color")}<select
                     value={item.color ?? ""}
                     disabled={!available}
                     onChange={(e) =>
@@ -525,9 +515,9 @@ export function ReaderStudyTools({
                       })
                     }
                   >
-                    {item.kind !== "HIGHLIGHT" && <option value="">None</option>}
+                    {item.kind !== "HIGHLIGHT" && <option value="">{translateUi("None")}</option>}
                     {colors.map((color) => (
-                      <option key={color}>{color}</option>
+                      <option key={color} value={color}><UiMessage text={String(color)}/></option>
                     ))}
                   </select>
                 </label>
@@ -540,14 +530,14 @@ export function ReaderStudyTools({
                     void study.remove(item);
                 }}
               >
-                Delete {item.kind.toLowerCase()}
+                {translateUi("Delete")}{" "}<UiMessage text={item.kind.toLowerCase()}/>
               </button>
               </details>
             </li>
           ))}
         </ul>
-        {study.ready && !items.length && <p>No saved materials yet. Select a passage to highlight it, bookmark a section, or write a private note.</p>}
-        {items.length>3 && <button type="button" onClick={()=>setShowAll(!showAll)}>{showAll?"Show recent items":`Show all ${items.length} lesson items`}</button>}
+        {study.ready && !items.length && <p>{translateUi("No saved materials yet. Select a passage to highlight it, bookmark a section, or write a private note.")}</p>}
+        {items.length>3 && <button type="button" onClick={()=>setShowAll(!showAll)}>{showAll?translateUi("Show recent items"):translateUi("Show all {value0} lesson items", {value0: String(items.length)})}</button>}
         </TabsContent>
       </Tabs>
       </StudyHubFrame>
@@ -556,6 +546,9 @@ export function ReaderStudyTools({
 }
 
 export function StudyWorkspace({ curriculum }: { curriculum?: CurriculumSummary }) {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   const identity = useNexusIdentity(),
     [open, setOpen] = useState(false),
     [tab, setTab] = useState("NOTE"),
@@ -629,20 +622,18 @@ export function StudyWorkspace({ curriculum }: { curriculum?: CurriculumSummary 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button type="button">Open My Study Workspace</button>
+        <button type="button">{translateUi("Open My Study Workspace")}</button>
       </SheetTrigger>
       <SheetContent className="study-workspace-sheet">
         <SheetHeader>
-          <SheetTitle>My Study Workspace</SheetTitle>
+          <SheetTitle>{translateUi("My Study Workspace")}</SheetTitle>
           <SheetDescription>
-            Private notes, highlights, bookmarks and explicit progress. Nothing is stored only in
-            this browser.
-          </SheetDescription>
+            {translateUi("Private notes, highlights, bookmarks and explicit progress. Nothing is stored only in this browser.")}</SheetDescription>
         </SheetHeader>
-        <div className="study-summary" aria-label="Saved items in selected scope">
-          {(["NOTE","HIGHLIGHT","BOOKMARK"] as const).map(kind=><button type="button" key={kind} onClick={()=>{setTab(kind);setPage(1);}}><strong>{summary.data?.find(item=>item.kind===kind)?.total ?? (summary.isError?"Unavailable":"...")}</strong><span>{kind==="NOTE"?"Notes":kind==="HIGHLIGHT"?"Highlights":"Bookmarks"}</span></button>)}
+        <div className="study-summary" aria-label={translateUi("Saved items in selected scope")}>
+          {(["NOTE","HIGHLIGHT","BOOKMARK"] as const).map(kind=><button type="button" key={kind} onClick={()=>{setTab(kind);setPage(1);}}><strong>{summary.data?.find(item=>item.kind===kind)?.total ?? (summary.isError?translateUi("Unavailable"):"...")}</strong><span>{kind==="NOTE"?translateUi("Notes"):kind==="HIGHLIGHT"?translateUi("Highlights"):translateUi("Bookmarks")}</span></button>)}
         </div>
-        <div role="tablist" aria-label="Study collections" className="study-tabs">
+        <div role="tablist" aria-label={translateUi("Study collections")} className="study-tabs">
           {[
             ["NOTE", "My Notes"],
             ["HIGHLIGHT", "Highlights"],
@@ -678,21 +669,19 @@ export function StudyWorkspace({ curriculum }: { curriculum?: CurriculumSummary 
                 tabs[target].focus();
               }}
             >
-              {label}
+              <UiMessage text={String(label)}/>
             </button>
           ))}
         </div>
         <div className="study-workspace-search">
 
           <label>
-            Search my study materials
-            <input value={search} type="search" onChange={(e) => setSearch(e.target.value)} />
+            {translateUi("Search my study materials")}<input value={search} type="search" onChange={(e) => setSearch(e.target.value)} />
           </label>
         </div>
-        <details className="study-advanced-filters"><summary>Advanced filters{activeFilters.length?` (${activeFilters.length})`:""}</summary><div className="study-workspace-filters">
+        <details className="study-advanced-filters"><summary>{translateUi("Advanced filters")}{activeFilters.length?` (${activeFilters.length})`:""}</summary><div className="study-workspace-filters">
           <label>
-            Domain
-            <select
+            {translateUi("Domain")}<select
               value={domain}
               onChange={(e) => {
                 setDomain(e.target.value);
@@ -700,7 +689,7 @@ export function StudyWorkspace({ curriculum }: { curriculum?: CurriculumSummary 
                 setPage(1);
               }}
             >
-              <option value="">All domains</option>
+              <option value="">{translateUi("All domains")}</option>
               {curriculum?.domains.map((d) => (
                 <option key={d.id} value={d.id.replace(/^d([1-6])$/, "$1.0")}>
                   {d.title}
@@ -709,15 +698,14 @@ export function StudyWorkspace({ curriculum }: { curriculum?: CurriculumSummary 
             </select>
           </label>
           <label>
-            Chapter
-            <select
+            {translateUi("Chapter")}<select
               value={chapter}
               onChange={(e) => {
                 setChapter(e.target.value);setLessonFilter("");
                 setPage(1);
               }}
             >
-              <option value="">All chapters</option>
+              <option value="">{translateUi("All chapters")}</option>
               {chapters.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.title}
@@ -725,100 +713,95 @@ export function StudyWorkspace({ curriculum }: { curriculum?: CurriculumSummary 
               ))}
             </select>
           </label>
-          <label>Lesson<select value={lessonFilter} disabled={!chapter || lessonChoices.isPending} onChange={e=>{setLessonFilter(e.target.value);setPage(1);}}><option value="">All lessons</option>{lessonChoices.data?.items.map(lesson=><option key={lesson.id} value={lesson.id}>{lesson.title}</option>)}</select></label>
-          {tab !== "PROGRESS" && <label>Sort by date<select value={sort} onChange={e=>{setSort(e.target.value);setPage(1);}}>{[["updated_desc","Updated newest"],["updated_asc","Updated oldest"],["created_desc","Created newest"],["created_asc","Created oldest"]].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>}
+          <label>{translateUi("Lesson")}<select value={lessonFilter} disabled={!chapter || lessonChoices.isPending} onChange={e=>{setLessonFilter(e.target.value);setPage(1);}}><option value="">{translateUi("All lessons")}</option>{lessonChoices.data?.items.map(lesson=><option key={lesson.id} value={lesson.id}>{lesson.title}</option>)}</select></label>
+          {tab !== "PROGRESS" && <label>{translateUi("Sort by date")}<select value={sort} onChange={e=>{setSort(e.target.value);setPage(1);}}>{[["updated_desc","Updated newest"],["updated_asc","Updated oldest"],["created_desc","Created newest"],["created_asc","Created oldest"]].map(([value,label])=><option key={value} value={value}><UiMessage text={String(label)}/></option>)}</select></label>}
           {tab !== "PROGRESS" && (
             <label>
-              Color
-              <select
+              {translateUi("Color")}<select
                 value={color}
                 onChange={(e) => {
                   setColor(e.target.value);
                   setPage(1);
                 }}
               >
-                <option value="">All colors</option>
+                <option value="">{translateUi("All colors")}</option>
                 {colors.map((c) => (
-                  <option key={c}>{c}</option>
+                  <option key={c} value={c}><UiMessage text={String(c)}/></option>
                 ))}
               </select>
             </label>
           )}
         </div></details>
-        {activeFilters.length>0 && <div className="study-active-filters" aria-label="Active filters"><ul>{activeFilters.map(value=><li key={String(value)}>{value}</li>)}</ul><button type="button" onClick={clearFilters}>Clear Filters</button></div>}
-        <Suspense fallback={<p>Loading export tools...</p>}><StudyExportPanel chapterId={chapter||undefined} lessonId={lessonFilter||undefined} identityKey={identity ? identity.userId+":"+identity.sessionId : ""}/></Suspense>
+        {activeFilters.length>0 && <div className="study-active-filters" aria-label={translateUi("Active filters")}><ul>{activeFilters.map(value=><li key={String(value)}>{value}</li>)}</ul><button type="button" onClick={clearFilters}>{translateUi("Clear Filters")}</button></div>}
+        <Suspense fallback={<p>{translateUi("Loading export tools...")}</p>}><StudyExportPanel chapterId={chapter||undefined} lessonId={lessonFilter||undefined} identityKey={identity ? identity.userId+":"+identity.sessionId : ""}/></Suspense>
         <section role="tabpanel" id="study-workspace-panel" aria-labelledby={"study-tab-" + tab}>
           {selected.isPending ? (
-            <p role="status">Loading saved study materials…</p>
+            <p role="status">{translateUi("Loading saved study materials…")}</p>
           ) : selected.isError ? (
             <div role="alert">
               <p>{studyError(selected.error)}</p>
-              <button onClick={() => void selected.refetch()}>Retry workspace</button>
+              <button onClick={() => void selected.refetch()}>{translateUi("Retry workspace")}</button>
             </div>
           ) : tab === "PROGRESS" ? (
             <>
-              <h2>Current published revisions</h2>
+              <h2>{translateUi("Current published revisions")}</h2>
               <p>
-                Chapter/domain totals include all published lessons in the selected scope. Search
-                filters the lesson list below.
-              </p>
-              <section className="study-progress-meter" aria-label="Selected scope completion">
-                <h3>Selected scope</h3>
-                <p>{Object.values(domainTotals).reduce((sum,c)=>sum+c.completed,0)} of {Object.values(domainTotals).reduce((sum,c)=>sum+c.total,0)} published lessons completed</p>
-                <progress aria-label="Selected scope completion" max={100} value={completionPercent(Object.values(domainTotals).reduce((sum,c)=>sum+c.completed,0),Object.values(domainTotals).reduce((sum,c)=>sum+c.total,0))}/>
+                {translateUi("Chapter/domain totals include all published lessons in the selected scope. Search filters the lesson list below.")}</p>
+              <section className="study-progress-meter" aria-label={translateUi("Selected scope completion")}>
+                <h3>{translateUi("Selected scope")}</h3>
+                <p>{Object.values(domainTotals).reduce((sum,c)=>sum+c.completed,0)} {translateUi("of")}{" "}{Object.values(domainTotals).reduce((sum,c)=>sum+c.total,0)} {translateUi("published lessons completed")}</p>
+                <progress aria-label={translateUi("Selected scope completion")} max={100} value={completionPercent(Object.values(domainTotals).reduce((sum,c)=>sum+c.completed,0),Object.values(domainTotals).reduce((sum,c)=>sum+c.total,0))}/>
               </section>
               {Object.entries(domainTotals).map(([id,c])=><details key={id} className="study-progress-domain">
-                <summary>{c.name} <span>{c.completed}/{c.total} completed</span></summary>
-                <progress aria-label={`${c.name} completion`} max={100} value={completionPercent(c.completed,c.total)}/>
+                <summary>{c.name} <span>{c.completed}/{c.total} {translateUi("completed")}</span></summary>
+                <progress aria-label={translateUi("{value0} completion", {value0: String(c.name)})} max={100} value={completionPercent(c.completed,c.total)}/>
                 {progress.data?.chapters.filter(ch=>ch.domainCode===id).map(ch=><details key={ch.chapterId} className="study-progress-chapter">
-                  <summary>{ch.chapterTitle} <span>{ch.completed}/{ch.total} completed</span></summary>
-                  <progress aria-label={`${ch.chapterTitle} completion`} max={100} value={completionPercent(ch.completed,ch.total)}/>
-                  <p className="study-muted">Lessons on this page</p><ul>{progress.data?.lessons.filter(l=>l.chapterId===ch.chapterId).map(l=><li key={l.id}><Link href={`/learn/chapters/${l.chapterId}/lessons/${l.id}${l.blockId?"#section-"+l.blockId:""}`}>{l.title}</Link><span className="study-status">{l.state.replaceAll("_"," ").toLowerCase()}</span></li>)}</ul>
+                  <summary>{ch.chapterTitle} <span>{ch.completed}/{ch.total} {translateUi("completed")}</span></summary>
+                  <progress aria-label={translateUi("{value0} completion", {value0: String(ch.chapterTitle)})} max={100} value={completionPercent(ch.completed,ch.total)}/>
+                  <p className="study-muted">{translateUi("Lessons on this page")}</p><ul>{progress.data?.lessons.filter(l=>l.chapterId===ch.chapterId).map(l=><li key={l.id}><Link href={`/learn/chapters/${l.chapterId}/lessons/${l.id}${l.blockId?"#section-"+l.blockId:""}`}>{l.title}</Link><span className="study-status">{l.state.replaceAll("_"," ").toLowerCase()}</span></li>)}</ul>
                 </details>)}
               </details>)}
-              {progress.data?.total === 0 && <p>No published lessons match these filters.</p>}
+              {progress.data?.total === 0 && <p>{translateUi("No published lessons match these filters.")}</p>}
             </>
           ) : (
             <>
-              <p>{query.data?.total ?? 0} matching saved items</p>
+              <p>{query.data?.total ?? 0} {translateUi("matching saved items")}</p>
               {query.data?.items.map((item) => (
                 <article key={item.id} className="study-workspace-item">
-                  <div className="study-item-meta"><strong>{item.kind.toLowerCase()}</strong><time dateTime={item.updatedAt}>{new Date(item.updatedAt).toLocaleDateString()}</time></div>
+                  <div className="study-item-meta"><strong><UiMessage text={item.kind.toLowerCase()}/></strong><time dateTime={item.updatedAt}><DateText value={item.updatedAt} options={{dateStyle:'medium'}}/></time></div>
                   <small>
                     {item.domainName} → {item.chapterTitle}
                   </small>
                   <h2>{item.lessonTitle}</h2>
-                  <small>{item.anchor ? (item.anchor.quote ? `Section excerpt: ${item.anchor.quote}` : "Bookmarked section") : "Lesson-wide material"}</small>
+                  <small>{item.anchor ? (item.anchor.quote ? translateUi("Section excerpt: {value0}", {value0: String(item.anchor.quote)}) : translateUi("Bookmarked section")) : translateUi("Lesson-wide material")}</small>
                   <p>
                     {item.body ||
                       item.anchor?.quote ||
-                      (item.anchor ? "Section bookmark" : "Lesson bookmark")}
+                      (item.anchor ? translateUi("Section bookmark") : translateUi("Lesson bookmark"))}
                   </p>
                   <small>
                     {item.category} {item.color && <span className={`study-color-label study-color-${item.color}`}>{item.color}</span>}
                   </small>
                   {item.revisionId !== item.currentRevisionId && (
-                    <p>Older revision: this annotation is not attached to current text.</p>
+                    <p>{translateUi("Older revision: this annotation is not attached to current text.")}</p>
                   )}
                   <Link
                     href={`/learn/chapters/${item.chapterId}/lessons/${item.lessonId}${item.anchor && item.revisionId === item.currentRevisionId ? "#section-" + item.anchor.blockId : ""}`}
                   >
-                    Open original lesson
-                  </Link>
-                  <small>Manage this private item in the original lesson. {item.anchor ? "Section-linked item" : "Lesson bookmark or general note"}</small>
+                    {translateUi("Open original lesson")}</Link>
+                  <small>{translateUi("Manage this private item in the original lesson.")}{" "}{item.anchor ? translateUi("Section-linked item") : translateUi("Lesson bookmark or general note")}</small>
                 </article>
               ))}
               {query.data?.total === 0 && (
-                <p>No saved study items match. Save a private item from a published lesson.</p>
+                <p>{translateUi("No saved study items match. Save a private item from a published lesson.")}</p>
               )}
             </>
           )}
         </section>
-        <nav aria-label="Study workspace pages">
+        <nav aria-label={translateUi("Study workspace pages")}>
           <button disabled={page === 1 || selected.isFetching} onClick={() => setPage(page - 1)}>
-            Previous page
-          </button>
-          <span>Page {page}</span>
+            {translateUi("Previous page")}</button>
+          <span>{translateUi("Page")}{" "}{page}</span>
           <button
             disabled={
               selected.isFetching ||
@@ -827,8 +810,7 @@ export function StudyWorkspace({ curriculum }: { curriculum?: CurriculumSummary 
             }
             onClick={() => setPage(page + 1)}
           >
-            Next page
-          </button>
+            {translateUi("Next page")}</button>
         </nav>
       </SheetContent>
     </Sheet>

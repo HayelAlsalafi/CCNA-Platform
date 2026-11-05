@@ -1,3 +1,5 @@
+import { UiMessage, DateText } from '../i18n';
+import { useI18n } from '../i18n';
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -82,6 +84,7 @@ export function duplicateLessonBlock(block: LessonBlock): LessonBlock {
   return { ...structuredClone(block), id: crypto.randomUUID() };
 }
 export function AdminLessonManager() {
+  const { t: translateUi } = useI18n();
   const session = useAdminSession(),
     client = useQueryClient(),
     [chapterId, setChapterId] = useState(""),
@@ -229,18 +232,14 @@ export function AdminLessonManager() {
     <section className="lesson-admin">
       <header className="lesson-admin-header">
         <div>
-          <p className="eyebrow">Official learning content</p>
+          <p className="eyebrow">{translateUi("Official learning content")}</p>
           <h1 id="lesson-library-title" tabIndex={-1}>
-            Lesson studio
-          </h1>
+            {translateUi("Lesson studio")}</h1>
           <p>
-            Author structured lessons in existing chapters. Drafts are visible only to
-            administrators.
-          </p>
+            {translateUi("Author structured lessons in existing chapters. Drafts are visible only to administrators.")}</p>
         </div>
         <button type="button" onClick={() => setEditing("new")}>
-          Create lesson
-        </button>
+          {translateUi("Create lesson")}</button>
       </header>
       {query.data?.summary && (
         <dl className="lesson-studio-metrics">
@@ -251,7 +250,7 @@ export function AdminLessonManager() {
             "Chapters with lessons": query.data.summary.chapters,
           }).map(([label, count]) => (
             <div key={label}>
-              <dt>{label}</dt>
+              <dt><UiMessage text={String(label)}/></dt>
               <dd>{count}</dd>
             </div>
           ))}
@@ -259,16 +258,15 @@ export function AdminLessonManager() {
       )}
       <div className="lesson-library-filters">
         <label>
-          Search lessons
-          <input
+          {translateUi("Search lessons")}<input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Title, description, chapter, domain or lesson ID"
+            placeholder={translateUi("Title, description, chapter, domain or lesson ID")}
           />
         </label>
         <RelationshipFilter
-          label="Domain"
+          label={translateUi("Domain")}
           value={domainId}
           options={curriculum.data?.domains.map((d) => ({ id: d.id, title: d.title })) ?? []}
           onChange={(value) => {
@@ -278,7 +276,7 @@ export function AdminLessonManager() {
           }}
         />
         <RelationshipFilter
-          label="Chapter"
+          label={translateUi("Chapter")}
           value={chapterId}
           options={chapters.filter((ch) => !domainId || ch.domainId === domainId)}
           onChange={(value) => {
@@ -287,36 +285,33 @@ export function AdminLessonManager() {
           }}
         />
         <label>
-          Status
-          <select
+          {translateUi("Status")}<select
             value={status}
             onChange={(e) => {
               setStatus(e.target.value);
               setPage(1);
             }}
           >
-            <option value="">All statuses</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="DRAFT">Draft / unpublished</option>
+            <option value="">{translateUi("All statuses")}</option>
+            <option value="PUBLISHED">{translateUi("Published")}</option>
+            <option value="DRAFT">{translateUi("Draft / unpublished")}</option>
           </select>
         </label>
         <label>
-          Volume
-          <select
+          {translateUi("Volume")}<select
             value={volume}
             onChange={(e) => {
               setVolume(e.target.value);
               setPage(1);
             }}
           >
-            <option value="">All volumes</option>
-            <option value="V1">Volume 1</option>
-            <option value="V2">Volume 2</option>
+            <option value="">{translateUi("All volumes")}</option>
+            <option value="V1">{translateUi("Volume 1")}</option>
+            <option value="V2">{translateUi("Volume 2")}</option>
           </select>
         </label>
         <label>
-          Updated on or after (UTC)
-          <input
+          {translateUi("Updated on or after (UTC)")}<input
             type="date"
             value={updatedAfter}
             onChange={(e) => {
@@ -338,32 +333,28 @@ export function AdminLessonManager() {
             setPage(1);
           }}
         >
-          Clear filters
-        </button>
+          {translateUi("Clear filters")}</button>
       </div>
-      {notice && <p role="status">{notice}</p>}
-      {error && <p role="alert">{error}</p>}
+      {notice && <p role="status"><UiMessage text={notice}/></p>}
+      {error && <p role="alert"><UiMessage text={error}/></p>}
       {query.isPending ? (
-        <p role="status">Loading lesson inventory…</p>
+        <p role="status">{translateUi("Loading lesson inventory…")}</p>
       ) : query.error || curriculum.error ? (
         <div role="alert">
-          <p>{lessonError(query.error || curriculum.error, query.error ? "library" : "admin")}</p>
+          <p><UiMessage text={lessonError(query.error || curriculum.error, query.error ? "library" : "admin")}/></p>
           <button
             onClick={() => {
               void query.refetch();
               void curriculum.refetch();
             }}
           >
-            Retry
-          </button>
+            {translateUi("Retry")}</button>
         </div>
       ) : !query.data?.items.length ? (
         <div className="lesson-state">
-          <h2>{query.data?.summary?.total ? "No matching lessons" : "No lessons yet"}</h2>
+          <h2>{query.data?.summary?.total ? translateUi("No matching lessons") : translateUi("No lessons yet")}</h2>
           <p>
-            Create a draft for an existing chapter or adjust the filters. Nothing is published
-            automatically.
-          </p>
+            {translateUi("Create a draft for an existing chapter or adjust the filters. Nothing is published automatically.")}</p>
         </div>
       ) : (
         <LessonLibraryListing
@@ -376,10 +367,9 @@ export function AdminLessonManager() {
         />
       )}
       {query.data && (
-        <nav className="lesson-library-pagination" aria-label="Lesson library pages">
+        <nav className="lesson-library-pagination" aria-label={translateUi("Lesson library pages")}>
           <label>
-            Lessons per page
-            <select
+            {translateUi("Lessons per page")}<select
               value={pageSize}
               onChange={(e) => {
                 setPageSize(Number(e.target.value));
@@ -387,29 +377,26 @@ export function AdminLessonManager() {
               }}
             >
               {[10, 25, 50].map((size) => (
-                <option key={size}>{size}</option>
+                <option key={size} value={size}><UiMessage text={String(size)}/></option>
               ))}
             </select>
           </label>
           <span role="status">
-            Page {page} · {query.data.total ?? query.data.items.length} matching lessons
-          </span>
+            {translateUi("Page")}{" "}{page} · {query.data.total ?? query.data.items.length} {translateUi("matching lessons")}</span>
           <button
             disabled={page === 1 || query.isFetching || busy}
             onClick={() => setPage(page - 1)}
           >
-            Previous page
-          </button>
+            {translateUi("Previous page")}</button>
           <button
             disabled={page * pageSize >= (query.data.total ?? 0) || query.isFetching || busy}
             onClick={() => setPage(page + 1)}
           >
-            Next page
-          </button>
+            {translateUi("Next page")}</button>
         </nav>
       )}
       {!chapterId && !!query.data?.items.length && (
-        <p className="lesson-help">Filter to one chapter to reorder its lessons.</p>
+        <p className="lesson-help">{translateUi("Filter to one chapter to reorder its lessons.")}</p>
       )}
     </section>
   );
@@ -430,6 +417,9 @@ function LessonLibraryListing({
   reorder: (id: string, direction: number) => Promise<void>;
   onDeleted: () => Promise<void>;
 }) {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   const domains = [...new Set(items.map((item) => item.domainId))];
   return (
     <div className="lesson-library-groups">
@@ -439,37 +429,36 @@ function LessonLibraryListing({
         return (
           <details open key={domainId ?? "domain"}>
             <summary>
-              {domainItems[0].domainName || "Curriculum domain"}{" "}
-              <small>{domainItems.length} on this page</small>
+              {domainItems[0].domainName || translateUi("Curriculum domain")}{" "}
+              <small>{domainItems.length} {translateUi("on this page")}</small>
             </summary>
             {chapterIds.map((id) => {
               const lessons = domainItems.filter((item) => item.chapterId === id);
               return (
                 <details open key={id}>
-                  <summary>{lessons[0].chapterTitle || "Chapter lessons"}</summary>
+                  <summary>{lessons[0].chapterTitle || translateUi("Chapter lessons")}</summary>
                   <ol className="lesson-catalog">
                     {lessons.map((lesson) => (
                       <li key={lesson.id}>
                         <div>
                           <h2>{lesson.title}</h2>
                           <small>
-                            {lesson.status} · {lesson.estimatedMinutes} min · Order{" "}
+                            <UiMessage text={lesson.status}/> · {lesson.estimatedMinutes} {translateUi("min · Order")}{" "}
                             {lesson.displayOrder}
                             {lesson.publishedRevisionNumber
-                              ? ` · Published revision ${lesson.publishedRevisionNumber}`
+                              ? translateUi(' · Published revision {value0}',{value0:String(lesson.publishedRevisionNumber)})
                               : ""}
                           </small>
                           <p>{lesson.description}</p>
                           <small>
-                            Updated{" "}
+                            {translateUi("Updated")}{" "}
                             {new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(
                               new Date(lesson.updatedAt),
                             )}
                           </small>
                           <p>
                             <Link href={`/learn/chapters/${lesson.chapterId}`}>
-                              Open curriculum chapter
-                            </Link>
+                              {translateUi("Open curriculum chapter")}</Link>
                             {lesson.status === "PUBLISHED" && (
                               <>
                                 {" "}
@@ -477,27 +466,25 @@ function LessonLibraryListing({
                                 <Link
                                   href={`/learn/chapters/${lesson.chapterId}/lessons/${lesson.id}`}
                                 >
-                                  Read published lesson
-                                </Link>
+                                  {translateUi("Read published lesson")}</Link>
                               </>
                             )}
                           </p>
                         </div>
                         <div className="lesson-row-actions">
                           <button disabled={busy} onClick={() => void edit(lesson.id)}>
-                            Edit / preview
-                          </button>
+                            {translateUi("Edit / preview")}</button>
                           <LessonDeleteControl lesson={lesson} disabled={busy} onDeleted={onDeleted}/>
                           <button
                             disabled={!canReorder || busy}
-                            aria-label={`Move ${lesson.title} earlier`}
+                            aria-label={translateUi("Move {value0} earlier", {value0: String(lesson.title)})}
                             onClick={() => void reorder(lesson.id, -1)}
                           >
                             ↑
                           </button>
                           <button
                             disabled={!canReorder || busy}
-                            aria-label={`Move ${lesson.title} later`}
+                            aria-label={translateUi("Move {value0} later", {value0: String(lesson.title)})}
                             onClick={() => void reorder(lesson.id, 1)}
                           >
                             ↓
@@ -529,6 +516,9 @@ function LessonEditor({
   onClose: () => void;
   onSaved: (saved: LessonAdmin) => Promise<void>;
 }) {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   const session = useAdminSession(),
     [saved, setSaved] = useState(original);
   const history = useLessonHistory<LessonInput>(() => ({
@@ -682,23 +672,22 @@ function LessonEditor({
         <header className="lesson-studio-actionbar">
           <div className="lesson-studio-heading">
             <button type="button" onClick={close} disabled={busy}>
-              Back to lesson library
-            </button>
+              {translateUi("Back to lesson library")}</button>
             <h1 id="lesson-studio-title" title={form.title} tabIndex={-1} ref={titleRef}>
-              {form.title.trim() || (saved ? "Edit official lesson" : "Create official lesson")}
+              {form.title.trim() || (saved ? translateUi("Edit official lesson") : translateUi("Create official lesson"))}
             </h1>
             <span role="status">
-              {dirty ? "Unsaved changes" : saved ? "Saved draft" : "New draft"}
-              {saved?.status === "PUBLISHED" ? " · Published revision preserved" : ""}
+              {dirty ? translateUi("Unsaved changes") : saved ? translateUi("Saved draft") : translateUi("New draft")}
+              {saved?.status === "PUBLISHED" ? translateUi("· Published revision preserved") : ""}
             </span>
           </div>
-          <div className="lesson-studio-actions" role="group" aria-label="Lesson actions">
+          <div className="lesson-studio-actions" role="group" aria-label={translateUi("Lesson actions")}>
             <button
               type="submit"
               form="lesson-draft-form"
               disabled={busy || !form.chapterId || !form.title.trim()}
             >
-              {busy ? "Saving lesson…" : "Save draft changes"}
+              {busy ? translateUi("Saving lesson…") : translateUi("Save draft changes")}
             </button>
             <button
               type="button"
@@ -708,8 +697,7 @@ function LessonEditor({
                   void persist("publish");
               }}
             >
-              Publish revision
-            </button>
+              {translateUi("Publish revision")}</button>
             <button
               type="button"
               disabled={busy || !saved || dirty || saved.status !== "PUBLISHED"}
@@ -718,45 +706,40 @@ function LessonEditor({
                   void persist("unpublish");
               }}
             >
-              Unpublish
-            </button>
+              {translateUi("Unpublish")}</button>
           </div>
         </header>
         <div className="lesson-studio-viewbar">
-          <p>Draft workspace. Changes reach students only when you publish a revision.</p>
-          <div role="group" aria-label="Workspace view" className="lesson-studio-view-switch">
+          <p>{translateUi("Draft workspace. Changes reach students only when you publish a revision.")}</p>
+          <div role="group" aria-label={translateUi("Workspace view")} className="lesson-studio-view-switch">
             <button
               type="button"
               aria-pressed={!preview}
               aria-controls="lesson-editor-pane"
               onClick={() => setPreview(false)}
             >
-              Editor
-            </button>
+              {translateUi("Editor")}</button>
             <button
               type="button"
               aria-pressed={preview}
               aria-controls="lesson-preview-pane"
               onClick={() => setPreview(true)}
             >
-              Preview lesson
-            </button>
+              {translateUi("Preview lesson")}</button>
           </div>
-          <div role="group" aria-label="Draft history">
+          <div role="group" aria-label={translateUi("Draft history")}>
             <button type="button" disabled={busy || !history.canUndo} onClick={history.undo}>
-              Undo
-            </button>
+              {translateUi("Undo")}</button>
             <button type="button" disabled={busy || !history.canRedo} onClick={history.redo}>
-              Redo
-            </button>
+              {translateUi("Redo")}</button>
           </div>
         </div>
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert"><UiMessage text={error}/></p>}
         {fieldErrors.length > 0 && (
           <ul className="lesson-field-errors" role="alert">
             {fieldErrors.map((issue, index) => (
               <li key={index}>
-                <strong>{issue.path || "Lesson"}</strong>: {issue.message}
+                <strong>{issue.path || translateUi("Lesson")}</strong>: {issue.message}
               </li>
             ))}
           </ul>
@@ -767,13 +750,12 @@ function LessonEditor({
             id="lesson-preview-pane"
             tabIndex={0}
             className="visual-preview-pane"
-            aria-label="Live student preview"
+            aria-label={translateUi("Live student preview")}
           >
             <p className="visual-preview-label">
-              Live student preview · local, unsaved content · no progress recorded
-            </p>
+              {translateUi("Live student preview · local, unsaved content · no progress recorded")}</p>
             <article className="lesson-prose" dir="auto">
-              <h1>{form.title || "Untitled lesson"}</h1>
+              <h1>{form.title || translateUi("Untitled lesson")}</h1>
               <p>{form.description}</p>
               <ul>
                 {form.objectives.map((objective, index) => (
@@ -786,11 +768,11 @@ function LessonEditor({
           <section
             id="lesson-editor-pane"
             className="visual-editor-pane"
-            aria-label="Lesson editing controls"
+            aria-label={translateUi("Lesson editing controls")}
             tabIndex={0}
           >
             <div inert={busy} aria-disabled={busy} className="lesson-shared-format">
-              <Suspense fallback={<p role="status">Loading formatting controls...</p>}>
+              <Suspense fallback={<p role="status">{translateUi("Loading formatting controls...")}</p>}>
                 <LessonFormattingToolbar />
               </Suspense>
             </div>
@@ -817,19 +799,18 @@ function LessonEditor({
                 open={metadataOpen}
                 onToggle={(e) => setMetadataOpen(e.currentTarget.open)}
               >
-                <summary>Lesson setup and metadata</summary>
+                <summary>{translateUi("Lesson setup and metadata")}</summary>
                 <div className="lesson-studio-metadata-fields">
                   <RelationshipFilter
-                    label="Chapter"
+                    label={translateUi("Chapter")}
                     value={form.chapterId}
                     options={chapters}
                     onChange={(chapterId) => update({ chapterId })}
                   />
-                  {!form.chapterId && <small>Choose an existing chapter before saving.</small>}
+                  {!form.chapterId && <small>{translateUi("Choose an existing chapter before saving.")}</small>}
                   {inlineErrors("chapterId")}
                   <label>
-                    Lesson title
-                    <input
+                    {translateUi("Lesson title")}<input
                       required
                       dir="auto"
                       maxLength={180}
@@ -839,8 +820,7 @@ function LessonEditor({
                     {inlineErrors("title")}
                   </label>
                   <label>
-                    Description
-                    <textarea
+                    {translateUi("Description")}<textarea
                       dir="auto"
                       maxLength={4000}
                       value={form.description}
@@ -849,8 +829,7 @@ function LessonEditor({
                     {inlineErrors("description")}
                   </label>
                   <label>
-                    Learning objectives (one per line)
-                    <textarea
+                    {translateUi("Learning objectives (one per line)")}<textarea
                       dir="auto"
                       value={form.objectives.join("\n")}
                       onChange={(e) => update({ objectives: e.target.value.split("\n") })}
@@ -858,8 +837,7 @@ function LessonEditor({
                     {inlineErrors("objectives")}
                   </label>
                   <label>
-                    Estimated reading minutes
-                    <input
+                    {translateUi("Estimated reading minutes")}<input
                       type="number"
                       required
                       min={1}
@@ -872,11 +850,11 @@ function LessonEditor({
                 </div>
               </details>
               <div className="lesson-blocks-editor">
-                <h2>Content sections</h2>
+                <h2>{translateUi("Content sections")}</h2>
                 {!!form.blocks.length && (
                   <details className="lesson-outline-disclosure">
-                    <summary>Content outline ({form.blocks.length} blocks)</summary>
-                    <nav aria-label="Lesson outline" className="lesson-author-outline">
+                    <summary>{translateUi("Content outline (")}{form.blocks.length} {translateUi("blocks)")}</summary>
+                    <nav aria-label={translateUi("Lesson outline")} className="lesson-author-outline">
                       {form.blocks.map((block, index) => (
                         <a
                           key={block.id}
@@ -891,9 +869,7 @@ function LessonEditor({
                   </details>
                 )}
                 <p className="lesson-help">
-                  Use headings to build the reading table of contents. Paragraphs preserve line
-                  breaks. Styling is controlled by the platform for consistent, safe reading.
-                </p>
+                  {translateUi("Use headings to build the reading table of contents. Paragraphs preserve line breaks. Styling is controlled by the platform for consistent, safe reading.")}</p>
                 {form.blocks.map((block, index) => (
                   <fieldset
                     className="lesson-block-editor"
@@ -911,7 +887,7 @@ function LessonEditor({
                         else setActiveBlock((current) => (current === block.id ? null : current));
                       }}
                     >
-                      <summary>Edit / collapse section {index + 1}</summary>
+                      <summary>{translateUi("Edit / collapse section")}{" "}{index + 1}</summary>
                       {activeBlock === block.id && (
                         <BlockEditor
                           block={block}
@@ -928,7 +904,7 @@ function LessonEditor({
                     </details>
                     {inlineErrors(`blocks.${index}`)}
                     <details className="lesson-block-actions">
-                      <summary>Section actions</summary>
+                      <summary>{translateUi("Section actions")}</summary>
                       <div className="lesson-row-actions">
                         <button
                           type="button"
@@ -937,8 +913,7 @@ function LessonEditor({
                             document.getElementById("lesson-add-block")?.focus();
                           }}
                         >
-                          Add before
-                        </button>
+                          {translateUi("Add before")}</button>
                         <button
                           type="button"
                           onClick={() => {
@@ -946,8 +921,7 @@ function LessonEditor({
                             document.getElementById("lesson-add-block")?.focus();
                           }}
                         >
-                          Add after
-                        </button>
+                          {translateUi("Add after")}</button>
                         <button
                           type="button"
                           disabled={form.blocks.length >= 200}
@@ -961,12 +935,11 @@ function LessonEditor({
                             })
                           }
                         >
-                          Duplicate section
-                        </button>
+                          {translateUi("Duplicate section")}</button>
                         <button
                           type="button"
                           disabled={index === 0}
-                          aria-label={`Move section ${index + 1} earlier`}
+                          aria-label={translateUi("Move section {value0} earlier", {value0: String(index + 1)})}
                           onClick={() =>
                             update({ blocks: moveLessonBlock(form.blocks, index, -1) })
                           }
@@ -976,7 +949,7 @@ function LessonEditor({
                         <button
                           type="button"
                           disabled={index === form.blocks.length - 1}
-                          aria-label={`Move section ${index + 1} later`}
+                          aria-label={translateUi("Move section {value0} later", {value0: String(index + 1)})}
                           onClick={() => update({ blocks: moveLessonBlock(form.blocks, index, 1) })}
                         >
                           ↓
@@ -990,15 +963,13 @@ function LessonEditor({
                               });
                           }}
                         >
-                          Remove section
-                        </button>
+                          {translateUi("Remove section")}</button>
                       </div>
                     </details>
                   </fieldset>
                 ))}
                 <label>
-                  Add content block
-                  <select
+                  {translateUi("Add content block")}<select
                     id="lesson-add-block"
                     disabled={form.blocks.length >= 200}
                     value=""
@@ -1017,7 +988,7 @@ function LessonEditor({
                       setInsertAt(-1);
                     }}
                   >
-                    <option value="">Choose a block type…</option>
+                    <option value="">{translateUi("Choose a block type…")}</option>
                     {[
                       [
                         "Text and structure",
@@ -1038,27 +1009,27 @@ function LessonEditor({
                 </label>
                 <small>
                   {insertAt < 0
-                    ? "New blocks append at the end."
-                    : `New block will be inserted at position ${insertAt + 1}.`}
+                    ? translateUi("New blocks append at the end.")
+                    : translateUi("New block will be inserted at position {value0}.", {value0: String(insertAt + 1)})}
                 </small>
               </div>
             </form>
             {saved && (
               <details className="lesson-revisions">
-                <summary>Immutable revision history</summary>
+                <summary>{translateUi("Immutable revision history")}</summary>
                 {revisions.isPending ? (
-                  <p>Loading revisions…</p>
+                  <p>{translateUi("Loading revisions…")}</p>
                 ) : revisions.error ? (
                   <p role="alert">
-                    Revision history could not load.{" "}
-                    <button onClick={() => void revisions.refetch()}>Retry</button>
+                    {translateUi("Revision history could not load.")}{" "}
+                    <button onClick={() => void revisions.refetch()}>{translateUi("Retry")}</button>
                   </p>
                 ) : (
                   <ul>
                     {revisions.data?.items.map((revision) => (
                       <li key={revision.id}>
-                        Revision {revision.revisionNumber} ·{" "}
-                        {new Date(revision.createdAt).toLocaleString()}
+                        {translateUi("Revision")}{" "}{revision.revisionNumber} ·{" "}
+                        <DateText value={revision.createdAt} options={{dateStyle:'medium',timeStyle:'short'}}/>
                       </li>
                     ))}
                   </ul>

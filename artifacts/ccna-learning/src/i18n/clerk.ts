@@ -1,0 +1,35 @@
+import type { ComponentProps } from 'react';
+import type { ClerkProvider } from '@clerk/react';
+// Presentation overrides only. Clerk retains all configured strategies, proxy,
+// redirects, verification and session behavior. Unlisted SDK text falls back.
+export const clerkArabic = {
+  locale:'ar',
+  socialButtonsBlockButton:'المتابعة باستخدام {{provider|titleize}}',
+  dividerText:'أو',
+  formFieldLabel__emailAddress:'البريد الإلكتروني',
+  formFieldLabel__phoneNumber:'رقم الهاتف',
+  formFieldLabel__username:'اسم المستخدم',
+  formFieldLabel__emailAddress_username:'البريد الإلكتروني أو اسم المستخدم',
+  formFieldLabel__password:'كلمة المرور',
+  formFieldLabel__currentPassword:'كلمة المرور الحالية',
+  formFieldLabel__newPassword:'كلمة المرور الجديدة',
+  formFieldLabel__confirmPassword:'تأكيد كلمة المرور',
+  formFieldLabel__firstName:'الاسم الأول',
+  formFieldLabel__lastName:'اسم العائلة',
+  formFieldLabel__backupCode:'رمز الاسترداد',
+  formFieldInputPlaceholder__emailAddress:'أدخل البريد الإلكتروني',
+  formFieldInputPlaceholder__username:'أدخل اسم المستخدم',
+  formFieldInputPlaceholder__password:'أدخل كلمة المرور',
+  formFieldAction__forgotPassword:'نسيت كلمة المرور؟',
+  formFieldAction__showPassword:'إظهار كلمة المرور',
+  formFieldAction__hidePassword:'إخفاء كلمة المرور',
+  formFieldHintText__optional:'اختياري',
+  formButtonPrimary:'متابعة',
+  formButtonPrimary__verify:'تحقق',
+  backButton:'رجوع',
+  footerActionLink__useAnotherMethod:'استخدام طريقة أخرى',
+  signIn:{start:{title:'تسجيل الدخول',subtitle:'مرحبًا بعودتك. سجّل الدخول للمتابعة.',actionText:'ليس لديك حساب؟',actionLink:'إنشاء حساب'}},
+  signUp:{start:{title:'إنشاء حساب',subtitle:'مرحبًا بك. أنشئ حسابك للمتابعة.',actionText:'لديك حساب؟',actionLink:'تسجيل الدخول'}},
+  userButton:{action__manageAccount:'إدارة الحساب',action__signOut:'تسجيل الخروج',action__signOutAll:'تسجيل الخروج من جميع الحسابات',action__addAccount:'إضافة حساب'},
+} satisfies NonNullable<ComponentProps<typeof ClerkProvider>['localization']>;
+export const clerkEnglish = {locale:'en-US'};

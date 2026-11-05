@@ -5,7 +5,7 @@ import "../question-content.css";
 export function QuestionContent({ text }: { text: string }) {
   const parts = text.split(/(```[^\n`]*\n[\s\S]*?```)/g);
   return (
-    <span className="question-content">
+    <span className="question-content" dir="auto">
       {parts.map((part, index) =>
         part.startsWith("```") ? (
           <code className="question-content-block" key={index}>

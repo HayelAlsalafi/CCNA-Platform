@@ -1,3 +1,4 @@
+import { UiText, useI18n } from "../../i18n";
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cn } from '@/lib/utils';
@@ -8,7 +9,7 @@ const Breadcrumb = React.forwardRef<
   React.ComponentPropsWithoutRef<'nav'> & {
     separator?: React.ReactNode;
   }
->(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />);
+>(({ ...props }, ref) => {const {t:translateUi}=useI18n();return (<nav ref={ref} aria-label={translateUi("breadcrumb")} {...props} />);});
 Breadcrumb.displayName = 'Breadcrumb';
 
 const BreadcrumbList = React.forwardRef<
@@ -98,7 +99,7 @@ const BreadcrumbEllipsis = ({
     {...props}
   >
     <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">More</span>
+    <span className="sr-only"><UiText messageKey="More"/></span>
   </span>
 );
 BreadcrumbEllipsis.displayName = 'BreadcrumbElipssis';

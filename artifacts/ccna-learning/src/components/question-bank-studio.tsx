@@ -1,3 +1,5 @@
+import { UiMessage, DateText } from '../i18n';
+import { useI18n } from '../i18n';
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -89,8 +91,8 @@ function locationFilters(): Filters {
   next.pageSize = [10, 25, 50].includes(size) ? size : 25;
   return next;
 }
-const date = (value: string) => new Date(value).toLocaleDateString();
 export function AdminQuestionManager() {
+  const { t: translateUi, date } = useI18n();
   const session = useAdminSession(),
     client = useQueryClient();
   const [filters, setFilters] = useState(locationFilters),
@@ -221,17 +223,15 @@ export function AdminQuestionManager() {
           <div className="topic-dependency-list">
             {preview.items.map((q) => (
               <p key={q.id}>
-                <strong>{q.questionCode}</strong> · {q.revisions} immutable revisions,{" "}
-                {q.deliveries} deliveries, {q.attempts} learner attempts.{" "}
+                <strong>{q.questionCode}</strong> · {q.revisions} {translateUi("immutable revisions,")}{" "}
+                {q.deliveries} {translateUi("deliveries,")}{" "}{q.attempts} {translateUi("learner attempts.")}{" "}
                 {q.revisions + q.deliveries + q.attempts > 0
-                  ? "Standard deletion is BLOCKED."
-                  : "Rechecked at confirmation."}
+                  ? translateUi("Standard deletion is BLOCKED.")
+                  : translateUi("Rechecked at confirmation.")}
               </p>
             ))}
             <p>
-              Deleting history requires the separate, explicit history preview and confirmation. It
-              never happens automatically.
-            </p>
+              {translateUi("Deleting history requires the separate, explicit history preview and confirmation. It never happens automatically.")}</p>
           </div>
         );
       },
@@ -331,24 +331,23 @@ export function AdminQuestionManager() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => open(row, "details")}>View details</DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => open(row, "edit")}>Edit</DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => open(row, "duplicate")}>Duplicate</DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => open(row, "preview")}>Preview</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => open(row, "details")}>{translateUi("View details")}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => open(row, "edit")}>{translateUi("Edit")}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => open(row, "duplicate")}>{translateUi("Duplicate")}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => open(row, "preview")}>{translateUi("Preview")}</DropdownMenuItem>
         <DropdownMenuItem
           onSelect={() =>
             confirmBulk("status", row.status === "ACTIVE" ? "DISABLED" : "ACTIVE", row)
           }
         >
-          {row.status === "ACTIVE" ? "Disable" : "Enable"}
+          {row.status === "ACTIVE" ? translateUi("Disable") : translateUi("Enable")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-destructive"
           onSelect={() => void deletion.requestDelete([row.id])}
         >
-          Delete permanently
-        </DropdownMenuItem>
+          {translateUi("Delete permanently")}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -360,17 +359,15 @@ export function AdminQuestionManager() {
   return (
     <section className="question-studio" data-testid="admin-question-manager">
       <AdminPageHeader
-        title="Question Bank"
-        description="Create, classify and review CCNA assessments with learner history preserved."
+        title={translateUi("Question Bank")}
+        description={translateUi("Create, classify and review CCNA assessments with learner history preserved.")}
         action={
           <div className="studio-header-actions">
             <Link href="/admin/import" className="button-quiet">
-              Import Questions
-            </Link>
+              {translateUi("Import Questions")}</Link>
             <Button variant="outline" onClick={exportPage} disabled={!rows.length}>
               <Download size={16} />
-              Export current page
-            </Button>
+              {translateUi("Export current page")}</Button>
             <Button
               data-testid="create-studio-question"
               onClick={(event) => {
@@ -379,8 +376,7 @@ export function AdminQuestionManager() {
               }}
             >
               <Plus size={16} />
-              Create Question
-            </Button>
+              {translateUi("Create Question")}</Button>
           </div>
         }
       />
@@ -398,19 +394,18 @@ export function AdminQuestionManager() {
         ))}
       </div>
       <p className="studio-metric-note">
-        Difficulty: {stats?.easy ?? "—"} easy · {stats?.medium ?? "—"} medium · {stats?.hard ?? "—"}{" "}
-        hard. Draft imports use DISABLED; there is no separate draft or review state.
-      </p>
+        {translateUi("Difficulty:")}{" "}{stats?.easy ?? "—"} {translateUi("easy ·")}{" "}{stats?.medium ?? "—"} {translateUi("medium ·")}{" "}{stats?.hard ?? "—"}{" "}
+        {translateUi("hard. Draft imports use DISABLED; there is no separate draft or review state.")}</p>
       <div className="studio-filters">
         <AdminSearch
-          label="Search question bank"
+          label={translateUi("Search question bank")}
           value={search}
           onChange={setSearch}
-          placeholder="Search all questions by text or code…"
+          placeholder={translateUi("Search all questions by text or code…")}
         />
         <StudioRelationshipPicker
           kind="topics"
-          label="Filter by topic"
+          label={translateUi("Filter by topic")}
           value={filters.topicId}
           selectedLabel={topicLabel}
           onSelect={(item) => {
@@ -419,7 +414,7 @@ export function AdminQuestionManager() {
           }}
         />
         <RelationshipFilter
-          label="Exam domains"
+          label={translateUi("Exam domains")}
           value={filters.domainId}
           options={(metadata.data?.taxonomyDomains ?? []).map((d) => ({
             id: d.id,
@@ -432,46 +427,43 @@ export function AdminQuestionManager() {
           }}
         />
         <RelationshipFilter
-          label="Curriculum chapters"
+          label={translateUi("Curriculum chapters")}
           value={filters.chapterId}
           options={metadata.data?.chapters ?? []}
           onChange={(v) => filter("chapterId", v)}
         />
         <label>
-          Difficulty
-          <select
+          {translateUi("Difficulty")}<select
             id="filter-question-difficulty"
             value={filters.difficulty}
             onChange={(e) => filter("difficulty", e.target.value)}
           >
-            <option value="">All difficulties</option>
+            <option value="">{translateUi("All difficulties")}</option>
             {["EASY", "MEDIUM", "HARD"].map((d) => (
-              <option key={d}>{d}</option>
+              <option key={d} value={d}><UiMessage text={String(d)}/></option>
             ))}
           </select>
         </label>
         <label>
-          Status
-          <select
+          {translateUi("Status")}<select
             id="filter-question-status"
             value={filters.status}
             onChange={(e) => filter("status", e.target.value)}
           >
-            <option value="">All statuses</option>
-            <option value="ACTIVE">Published / active</option>
-            <option value="DISABLED">Unpublished / disabled</option>
+            <option value="">{translateUi("All statuses")}</option>
+            <option value="ACTIVE">{translateUi("Published / active")}</option>
+            <option value="DISABLED">{translateUi("Unpublished / disabled")}</option>
           </select>
         </label>
         <label>
-          Mapping
-          <select
-            aria-label="Mapping status filter"
+          {translateUi("Mapping")}<select
+            aria-label={translateUi("Mapping status filter")}
             value={filters.mapping}
             onChange={(e) => filter("mapping", e.target.value)}
           >
-            <option value="">All mappings</option>
-            <option value="full">Chapter mapped</option>
-            <option value="chapter">Missing curriculum chapter</option>
+            <option value="">{translateUi("All mappings")}</option>
+            <option value="full">{translateUi("Chapter mapped")}</option>
+            <option value="chapter">{translateUi("Missing curriculum chapter")}</option>
           </select>
         </label>
         <Button
@@ -483,21 +475,19 @@ export function AdminQuestionManager() {
             setObjectiveLabel("");
           }}
         >
-          Clear all filters
-        </Button>
+          {translateUi("Clear all filters")}</Button>
       </div>
       {metadata.isError && (
         <p role="alert">
-          Relationship metadata could not load.{" "}
-          <button onClick={() => void metadata.refetch()}>Retry filters</button>
+          {translateUi("Relationship metadata could not load.")}{" "}
+          <button onClick={() => void metadata.refetch()}>{translateUi("Retry filters")}</button>
         </p>
       )}
       <div className="studio-list-tools">
-        <p aria-live="polite">{listing.data?.total ?? "…"} matching questions</p>
+        <p aria-live="polite">{listing.data?.total ?? "…"} {translateUi("matching questions")}</p>
         <label>
-          Sort
-          <select
-            aria-label="Sort questions"
+          {translateUi("Sort")}<select
+            aria-label={translateUi("Sort questions")}
             value={filters.sort}
             onChange={(e) => filter("sort", e.target.value)}
           >
@@ -518,56 +508,49 @@ export function AdminQuestionManager() {
           variant="outline"
           onClick={() => filter("direction", filters.direction === "asc" ? "desc" : "asc")}
         >
-          {filters.direction === "asc" ? "Ascending" : "Descending"}
+          {filters.direction === "asc" ? translateUi("Ascending") : translateUi("Descending")}
         </Button>
         <Button
           variant={view === "table" ? "default" : "outline"}
           aria-pressed={view === "table"}
           onClick={() => changeView("table")}
         >
-          Table
-        </Button>
+          {translateUi("Table")}</Button>
         <Button
           variant={view === "cards" ? "default" : "outline"}
           aria-pressed={view === "cards"}
           onClick={() => changeView("cards")}
         >
-          Cards
-        </Button>
+          {translateUi("Cards")}</Button>
         <details>
-          <summary>Columns</summary>
+          <summary>{translateUi("Columns")}</summary>
           <label>
             <input
               type="checkbox"
               checked={columns.mapping}
               onChange={(e) => setColumns((c) => ({ ...c, mapping: e.target.checked }))}
             />
-            Mappings
-          </label>
+            {translateUi("Mappings")}</label>
           <label>
             <input
               type="checkbox"
               checked={columns.updated}
               onChange={(e) => setColumns((c) => ({ ...c, updated: e.target.checked }))}
             />
-            Updated
-          </label>
+            {translateUi("Updated")}</label>
         </details>
       </div>
       {deletion.controls}
       {deletion.selected.length > 0 && (
         <div className="studio-bulk-toolbar">
-          <strong>Bulk Actions</strong>
+          <strong>{translateUi("Bulk Actions")}</strong>
           <Button variant="outline" onClick={() => confirmBulk("status", "ACTIVE")}>
-            Enable selected
-          </Button>
+            {translateUi("Enable selected")}</Button>
           <Button variant="outline" onClick={() => confirmBulk("status", "DISABLED")}>
-            Disable selected
-          </Button>
+            {translateUi("Disable selected")}</Button>
           <label>
-            Change
-            <select
-              aria-label="Bulk change type"
+            {translateUi("Change")}<select
+              aria-label={translateUi("Bulk change type")}
               value={bulkKind}
               onChange={(e) => {
                 const kind = e.target.value as typeof bulkKind;
@@ -577,15 +560,15 @@ export function AdminQuestionManager() {
                 );
               }}
             >
-              <option value="status">Status</option>
-              <option value="difficulty">Difficulty</option>
-              <option value="topicId">Topic</option>
+              <option value="status">{translateUi("Status")}</option>
+              <option value="difficulty">{translateUi("Difficulty")}</option>
+              <option value="topicId">{translateUi("Topic")}</option>
             </select>
           </label>
           {bulkKind === "topicId" ? (
             <StudioRelationshipPicker
               kind="topics"
-              label="Bulk target topic"
+              label={translateUi("Bulk target topic")}
               value={bulkValue}
               selectedLabel={bulkTopicLabel}
               onSelect={(item) => {
@@ -595,7 +578,7 @@ export function AdminQuestionManager() {
             />
           ) : (
             <select
-              aria-label="Bulk change value"
+              aria-label={translateUi("Bulk change value")}
               value={bulkValue}
               onChange={(e) => setBulkValue(e.target.value)}
             >
@@ -603,19 +586,18 @@ export function AdminQuestionManager() {
                 ? ["EASY", "MEDIUM", "HARD"]
                 : ["ACTIVE", "DISABLED"]
               ).map((v) => (
-                <option key={v}>{v}</option>
+                <option key={v} value={v}><UiMessage text={String(v)}/></option>
               ))}
             </select>
           )}
           <Button variant="outline" disabled={!bulkValue} onClick={() => confirmBulk()}>
-            Review bulk change
-          </Button>
+            {translateUi("Review bulk change")}</Button>
         </div>
       )}
-      {error && !bulk && <p role="alert">{error}</p>}
+      {error && !bulk && <p role="alert"><UiMessage text={error}/></p>}
       {bulkResults.length > 0 && (
         <details>
-          <summary>Bulk results</summary>
+          <summary>{translateUi("Bulk results")}</summary>
           {bulkResults.map((r) => (
             <p key={r.id}>
               {r.id}: <strong>{r.outcome}</strong> — {r.reason}
@@ -624,28 +606,27 @@ export function AdminQuestionManager() {
         </details>
       )}
       {listing.isPending ? (
-        <div role="status" aria-label="Loading questions">
+        <div role="status" aria-label={translateUi("Loading questions")}>
           {Array.from({ length: 5 }, (_, i) => (
             <Skeleton className="h-16 mb-3" key={i} />
           ))}
         </div>
       ) : listing.isError ? (
         <div className="topic-empty" role="alert">
-          <h2>Question bank could not load</h2>
-          <p>{topicRequestError(listing.error)}</p>
-          <Button onClick={() => void listing.refetch()}>Retry</Button>
+          <h2>{translateUi("Question bank could not load")}</h2>
+          <p><UiMessage text={topicRequestError(listing.error)}/></p>
+          <Button onClick={() => void listing.refetch()}>{translateUi("Retry")}</Button>
         </div>
       ) : !rows.length ? (
         <div className="topic-empty">
-          <h2>No matching questions</h2>
-          <p>Clear the filters or create a question to begin.</p>
+          <h2>{translateUi("No matching questions")}</h2>
+          <p>{translateUi("Clear the filters or create a question to begin.")}</p>
         </div>
       ) : view === "table" ? (
         <div className="topic-table-scroll">
           <table className="topic-table studio-table" data-testid="table-admin-questions">
             <caption className="sr-only">
-              Current question page. Selection across pages is explicit.
-            </caption>
+              {translateUi("Current question page. Selection across pages is explicit.")}</caption>
             <thead>
               <tr>
                 {[
@@ -660,7 +641,7 @@ export function AdminQuestionManager() {
                   "Actions",
                 ].map((title) => (
                   <th scope="col" key={title}>
-                    {title}
+                    <UiMessage text={title}/>
                   </th>
                 ))}
               </tr>
@@ -690,7 +671,7 @@ export function AdminQuestionManager() {
                       {row.chapterIds.map(id=><span key={id}>{metadata.data?.chapters.find(c=>c.id===id)?.title??id}</span>)}
                     </td>
                   )}
-                  <td>{row.difficulty}</td>
+                  <td><UiMessage text={row.difficulty}/></td>
                   <td>
                     <StatusIndicator status={row.status} />
                   </td>
@@ -721,39 +702,37 @@ export function AdminQuestionManager() {
                 {row.text}
               </button>
               <small>
-                {row.topicName} · {row.difficulty}
+                {row.topicName} · <UiMessage text={row.difficulty}/>
               </small>
               <small>{mapping(row)}</small>
-              <footer>Updated {date(row.updatedAt)}</footer>
+              <footer>{translateUi("Updated")}{" "}{date(row.updatedAt)}</footer>
             </article>
           ))}
         </div>
       )}
-      <nav className="topic-pagination" aria-label="Question pagination">
+      <nav className="topic-pagination" aria-label={translateUi("Question pagination")}>
         <label>
-          Rows per page
-          <select
-            aria-label="Question page size"
+          {translateUi("Rows per page")}<select
+            aria-label={translateUi("Question page size")}
             value={filters.pageSize}
             onChange={(e) =>
               setFilters((f) => ({ ...f, pageSize: Number(e.target.value), page: 1 }))
             }
           >
             {[10, 25, 50].map((n) => (
-              <option key={n}>{n}</option>
+              <option key={n} value={n}><UiMessage text={String(n)}/></option>
             ))}
           </select>
         </label>
         <span>
-          Page {listing.data?.page ?? filters.page} of {listing.data?.totalPages ?? 1}
+          {translateUi("Page")}{" "}{listing.data?.page ?? filters.page} {translateUi("of")}{" "}{listing.data?.totalPages ?? 1}
         </span>
         <Button
           variant="outline"
           disabled={listing.isFetching || (listing.data?.page ?? filters.page) <= 1}
           onClick={() => setFilters((f) => ({ ...f, page: (listing.data?.page ?? f.page) - 1 }))}
         >
-          Previous
-        </Button>
+          {translateUi("Previous")}</Button>
         <Button
           variant="outline"
           disabled={
@@ -761,8 +740,7 @@ export function AdminQuestionManager() {
           }
           onClick={() => setFilters((f) => ({ ...f, page: listing.data!.page + 1 }))}
         >
-          Next
-        </Button>
+          {translateUi("Next")}</Button>
       </nav>
       {creating && (
         <QuestionStudioEditor
@@ -796,31 +774,28 @@ export function AdminQuestionManager() {
           }}
         >
           <SheetHeader>
-            <SheetTitle>{detail.data?.question.questionCode ?? "Question details"}</SheetTitle>
+            <SheetTitle>{detail.data?.question.questionCode ?? translateUi("Question details")}</SheetTitle>
             <SheetDescription>
-              Administrative answer key, mappings and immutable content revision references.
-            </SheetDescription>
+              {translateUi("Administrative answer key, mappings and immutable content revision references.")}</SheetDescription>
           </SheetHeader>
           {detail.isPending ? (
             <Skeleton className="h-40" />
           ) : detail.isError ? (
             <p role="alert">
-              {topicRequestError(detail.error)}{" "}
-              <button onClick={() => void detail.refetch()}>Retry</button>
+              <UiMessage text={topicRequestError(detail.error)}/>{" "}
+              <button onClick={() => void detail.refetch()}>{translateUi("Retry")}</button>
             </p>
           ) : (
             detail.data && (
               <div className="studio-detail">
                 <div className="studio-detail-actions">
                   <Button onClick={() => setTarget((t) => (t ? { ...t, mode: "edit" } : null))}>
-                    Edit
-                  </Button>
+                    {translateUi("Edit")}</Button>
                   <Button
                     variant="outline"
                     onClick={() => setTarget((t) => (t ? { ...t, mode: "duplicate" } : null))}
                   >
-                    Duplicate
-                  </Button>
+                    {translateUi("Duplicate")}</Button>
                   <Button
                     variant="outline"
                     onClick={() =>
@@ -829,7 +804,7 @@ export function AdminQuestionManager() {
                       )
                     }
                   >
-                    {target?.mode === "preview" ? "Details" : "Preview"}
+                    {target?.mode === "preview" ? translateUi("Details") : translateUi("Preview")}
                   </Button>
                   <Button
                     variant="outline"
@@ -846,14 +821,12 @@ export function AdminQuestionManager() {
                       confirmBulk("status", row.status === "ACTIVE" ? "DISABLED" : "ACTIVE", row);
                     }}
                   >
-                    Enable / Disable
-                  </Button>
+                    {translateUi("Enable / Disable")}</Button>
                   <Button
                     variant="outline"
                     onClick={() => void deletion.requestDelete([detail.data!.question.id])}
                   >
-                    Delete permanently
-                  </Button>
+                    {translateUi("Delete permanently")}</Button>
                 </div>
                 {target?.mode === "preview" ? (
                   <StudioPreview
@@ -867,45 +840,43 @@ export function AdminQuestionManager() {
                         <li key={o.optionKey}>
                           <strong>
                             {o.optionKey}
-                            {o.isCorrect ? " · Correct answer" : ""}
+                            {o.isCorrect ? translateUi("· Correct answer") : ""}
                           </strong>
                           <TechnicalText text={o.text} />
                         </li>
                       ))}
                     </ol>
-                    <h3>Explanation</h3>
+                    <h3>{translateUi("Explanation")}</h3>
                     <TechnicalText text={detail.data.question.explanation || "No explanation."} />
-                    <h3>References / educational notes</h3>
+                    <h3>{translateUi("References / educational notes")}</h3>
                     <TechnicalText text={detail.data.question.referenceNotes || "No references."} />
                     <dl>
-                      <dt>Topic</dt>
+                      <dt>{translateUi("Topic")}</dt>
                       <dd>{detail.data.topicName}</dd>
-                      <dt>Difficulty / state</dt>
+                      <dt>{translateUi("Difficulty / state")}</dt>
                       <dd>
-                        {detail.data.question.difficulty} · {detail.data.question.status}
+                        <UiMessage text={detail.data.question.difficulty}/> · <UiMessage text={detail.data.question.status}/>
                       </dd>
-                      <dt>Chapters</dt>
+                      <dt>{translateUi("Chapters")}</dt>
                       <dd>
                         {detail.data.chapterIds
                           .map(
                             (id) => metadata.data?.chapters.find((c) => c.id === id)?.title ?? id,
                           )
-                          .join(", ") || "Missing chapter mapping"}
+                          .join(", ") || translateUi("Missing chapter mapping")}
                       </dd>
-                      <dt>Created</dt>
-                      <dd>{new Date(detail.data.question.createdAt).toLocaleString()}</dd>
-                      <dt>Updated</dt>
-                      <dd>{new Date(detail.data.question.updatedAt).toLocaleString()}</dd>
+                      <dt>{translateUi("Created")}</dt>
+                      <dd><DateText value={detail.data.question.createdAt} options={{dateStyle:'medium',timeStyle:'short'}}/></dd>
+                      <dt>{translateUi("Updated")}</dt>
+                      <dd><DateText value={detail.data.question.updatedAt} options={{dateStyle:'medium',timeStyle:'short'}}/></dd>
                     </dl>
-                    <h3>{detail.data.revisionCount} immutable content revisions</h3>
+                    <h3>{detail.data.revisionCount} {translateUi("immutable content revisions")}</h3>
                     <p>
-                      History is read-only. Chapter identity is captured in the topic snapshot; snapshots do not include publication state or domain metadata
-                      or publication status; neither is claimed as revision history.
-                    </p>
+                      {translateUi("History is read-only. Chapter identity is captured in the topic snapshot; snapshots do not include publication state or domain metadata or publication status; neither is claimed as revision history.")}</p>
                     {detail.data.revisions.map((r) => (
                       <details key={r.id}>
                         <summary>
-                          {new Date(r.createdAt).toLocaleString()} · {r.id}
+                          <DateText value={r.createdAt} options={{dateStyle:'medium',timeStyle:'short'}}/> · {r.id}
                         </summary>
                         <code>{r.contentHash}</code>
                       </details>
@@ -916,15 +887,13 @@ export function AdminQuestionManager() {
                         disabled={revisionPage <= 1}
                         onClick={() => setRevisionPage((p) => p - 1)}
                       >
-                        Previous revisions
-                      </Button>
+                        {translateUi("Previous revisions")}</Button>
                       <Button
                         variant="outline"
                         disabled={revisionPage * 20 >= detail.data.revisionCount}
                         onClick={() => setRevisionPage((p) => p + 1)}
                       >
-                        Next revisions
-                      </Button>
+                        {translateUi("Next revisions")}</Button>
                     </div>
                   </>
                 )}
@@ -941,13 +910,10 @@ export function AdminQuestionManager() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Change {bulk?.rows.length} selected questions?</AlertDialogTitle>
+            <AlertDialogTitle>{translateUi("Change")}{" "}{bulk?.rows.length} {translateUi("selected questions?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This changes only {bulk?.kind} to{" "}
-              {bulk?.kind === "topicId" ? bulkTopicLabel || bulk.value : bulk?.value}. It preserves
-              IDs, codes, attempts, deliveries and existing revisions. Changed or invalid records
-              are BLOCKED. Publishing is validated per question.
-            </AlertDialogDescription>
+              {translateUi("This changes only")}{" "}{bulk?.kind} {translateUi("to")}{" "}
+              {bulk?.kind === "topicId" ? bulkTopicLabel || bulk.value : bulk?.value}{translateUi(". It preserves IDs, codes, attempts, deliveries and existing revisions. Changed or invalid records are BLOCKED. Publishing is validated per question.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="topic-dependency-list">
             {bulk?.rows.map((q) => (
@@ -956,15 +922,15 @@ export function AdminQuestionManager() {
               </p>
             ))}
           </div>
-          {error && <p role="alert">{error}</p>}
+          {error && <p role="alert"><UiMessage text={error}/></p>}
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={bulkBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={bulkBusy}>{translateUi("Cancel")}</AlertDialogCancel>
             <Button
               disabled={bulkBusy || !bulk?.value}
               data-testid="button-confirm-disable-question"
               onClick={() => void runBulk()}
             >
-              {bulkBusy ? "Updating…" : "Confirm bulk change"}
+              {bulkBusy ? translateUi("Updating…") : translateUi("Confirm bulk change")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

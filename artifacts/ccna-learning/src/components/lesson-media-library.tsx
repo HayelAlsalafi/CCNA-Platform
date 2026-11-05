@@ -1,3 +1,5 @@
+import { UiMessage } from '../i18n';
+import { useI18n } from '../i18n';
 import { useEffect, useId, useRef, useState } from "react";
 import { useAuth } from "@clerk/react";
 import { lessonRequest } from "@workspace/api-client-react";
@@ -26,6 +28,7 @@ export async function prepareMediaFile(file:File) {
   } finally { bitmap.close(); }
 }
 function Thumbnail({image}:{image:LibraryImage}) {
+  const { t: translateUi } = useI18n();
   const [source,setSource]=useState(""),[failed,setFailed]=useState(false);
   useEffect(()=>{
     const controller=new AbortController(); let url="";
@@ -34,7 +37,7 @@ function Thumbnail({image}:{image:LibraryImage}) {
     }).catch(()=>{if(!controller.signal.aborted)setFailed(true);});
     return()=>{controller.abort();if(url)URL.revokeObjectURL(url);};
   },[image.id,image.url,image.thumbnailUrl]);
-  return failed?<span>Thumbnail unavailable</span>:source?<img src={source} alt={image.name??"Uploaded image"} loading="lazy" width={160} height={120}/>:<span role="status">Loading thumbnail...</span>;
+  return failed?<span>{translateUi("Thumbnail unavailable")}</span>:source?<img src={source} alt={image.name??"Uploaded image"} loading="lazy" width={160} height={120}/>:<span role="status">{translateUi("Loading thumbnail...")}</span>;
 }
 function PendingThumbnail({file}:{file:File}) {
   const [url,setUrl]=useState("");
@@ -42,6 +45,7 @@ function PendingThumbnail({file}:{file:File}) {
   return url?<img src={url} alt={`Local preview of ${file.name}`} width={72} height={56}/>:null;
 }
 export function LessonMediaLibrary({onInsert}:{onInsert:(image:LibraryImage)=>void}) {
+  const { t: translateUi } = useI18n();
   const session=useAdminSession(), auth=useAuth(), fileId=useId(), fileInput=useRef<HTMLInputElement>(null);
   const [tab,setTab]=useState("upload"),[libraryLoading,setLibraryLoading]=useState(false),[libraryError,setLibraryError]=useState("");
   const [queue,setQueue]=useState<Record<number,{state:string;percent?:number}>>({});
@@ -100,59 +104,59 @@ export function LessonMediaLibrary({onInsert}:{onInsert:(image:LibraryImage)=>vo
   const closeLibrary=()=>{if(busy)return;setOpen(false);setFiles([]);setQueue({});setDerive(null);};
   const pendingFiles=files.some((_,index)=>queue[index]?.state!=="Saved");
   return <Dialog open={open} onOpenChange={next=>{if(next)setOpen(true);else closeLibrary();}}>
-    <DialogTrigger asChild><button type="button">Upload / Media Library</button></DialogTrigger>
+    <DialogTrigger asChild><button type="button">{translateUi("Upload / Media Library")}</button></DialogTrigger>
     <DialogContent className="lesson-media-dialog" aria-busy={busy}>
-      <DialogHeader><DialogTitle>Lesson Media Library</DialogTitle><DialogDescription>Upload once, reuse in your lessons. Insertion updates only the current draft.</DialogDescription></DialogHeader>
+      <DialogHeader><DialogTitle>{translateUi("Lesson Media Library")}</DialogTitle><DialogDescription>{translateUi("Upload once, reuse in your lessons. Insertion updates only the current draft.")}</DialogDescription></DialogHeader>
       <Tabs value={tab} onValueChange={setTab} className="media-library-tabs">
-        <TabsList aria-label="Media Library areas"><TabsTrigger value="upload">Upload</TabsTrigger><TabsTrigger value="library">Existing Library</TabsTrigger></TabsList>
+        <TabsList aria-label={translateUi("Media Library areas")}><TabsTrigger value="upload">{translateUi("Upload")}</TabsTrigger><TabsTrigger value="library">{translateUi("Existing Library")}</TabsTrigger></TabsList>
         <div className="media-dialog-body">
         <TabsContent value="upload">
           <div className="media-drop" onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();if(!busy)choose(event.dataTransfer.files);}}>
-            <strong>Drop images here</strong><span>or choose images from your computer</span>
-            <input ref={fileInput} id={fileId} className="sr-only" type="file" multiple accept="image/jpeg,image/png,image/webp" disabled={busy} aria-label="Choose lesson images" onChange={event=>{if(event.target.files)choose(event.target.files);event.target.value="";}}/>
-            <button type="button" disabled={busy} onClick={()=>fileInput.current?.click()}>Browse Files</button>
-            <small>JPG, PNG or WebP. Up to 10 files, 5 MiB each, 32 megapixels. No SVG.</small>
+            <strong>{translateUi("Drop images here")}</strong><span>{translateUi("or choose images from your computer")}</span>
+            <input ref={fileInput} id={fileId} className="sr-only" type="file" multiple accept="image/jpeg,image/png,image/webp" disabled={busy} aria-label={translateUi("Choose lesson images")} onChange={event=>{if(event.target.files)choose(event.target.files);event.target.value="";}}/>
+            <button type="button" disabled={busy} onClick={()=>fileInput.current?.click()}>{translateUi("Browse Files")}</button>
+            <small>{translateUi("JPG, PNG or WebP. Up to 10 files, 5 MiB each, 32 megapixels. No SVG.")}</small>
           </div>
-          {files.length>0 && <ul className="media-file-queue" aria-label="Selected image uploads">{files.map((file,index)=><li key={`${file.name}:${index}`}>
+          {files.length>0 && <ul className="media-file-queue" aria-label={translateUi("Selected image uploads")}>{files.map((file,index)=><li key={`${file.name}:${index}`}>
             <PendingThumbnail file={file}/><div><strong>{file.name}</strong><small>{(file.size/1024).toFixed(0)} KiB</small></div>
-            <span className={`media-file-status media-state-${queue[index]?.state.toLowerCase()??"ready"}`}>{queue[index]?.state??"Ready"}{queue[index]?.state==="Uploading"?` ${queue[index]?.percent??0}%`:""}</span>
+            <span className={`media-file-status media-state-${queue[index]?.state.toLowerCase()??"ready"}`}><UiMessage text={queue[index]?.state??"Ready"}/>{queue[index]?.state==="Uploading"?` ${queue[index]?.percent??0}%`:""}</span>
           </li>)}</ul>}
           {(preview||derive)&&<details className="media-edit-options" open={!!derive}>
-            <summary>Image adjustments and caption</summary><div className="media-edit">
+            <summary>{translateUi("Image adjustments and caption")}</summary><div className="media-edit">
             {preview&&<img src={preview} alt="Local edit preview; not saved" style={{transform:`rotate(${rotate}deg)`,aspectRatio:ratio==="original"?undefined:ratio.replace(":","/"),objectFit:"cover"}}/>}
-            <label>Rotate<select value={rotate} disabled={busy} onChange={event=>setRotate(Number(event.target.value))}>{[0,90,180,270].map(value=><option key={value} value={value}>{value} degrees</option>)}</select></label>
-            <label>Aspect ratio<select value={ratio} disabled={busy} onChange={event=>setRatio(event.target.value)}>{["original","1:1","4:3","16:9"].map(value=><option key={value}>{value}</option>)}</select></label>
-            <label>Caption<input value={caption} maxLength={1000} disabled={busy} onChange={event=>setCaption(event.target.value)}/></label>
-            <label className="media-check"><input type="checkbox" checked={cropEnabled} disabled={busy} onChange={event=>setCropEnabled(event.target.checked)}/>Crop after rotation</label>
-            {cropEnabled&&<div className="media-crop">{(["left","top","width","height"] as const).map(key=><label key={key}>{key}<input type="number" min={key==="left"||key==="top"?0:1} max={8192} value={crop[key]} disabled={busy} onChange={event=>setCrop({...crop,[key]:Number(event.target.value)})}/></label>)}</div>}
-            <label className="media-check"><input type="checkbox" checked={keepOriginal} disabled={busy} onChange={event=>setKeepOriginal(event.target.checked)}/>Retain a metadata-stripped master for future edits</label>
-            <small>Rotation and ratio are previewed. Crop uses pixels of the prepared image (up to 4096px). Adjustments apply to the selected batch. Edits create new copies.</small>
+            <label>{translateUi("Rotate")}<select value={rotate} disabled={busy} onChange={event=>setRotate(Number(event.target.value))}>{[0,90,180,270].map(value=><option key={value} value={value}>{value} {translateUi("degrees")}</option>)}</select></label>
+            <label>{translateUi("Aspect ratio")}<select value={ratio} disabled={busy} onChange={event=>setRatio(event.target.value)}>{["original","1:1","4:3","16:9"].map(value=><option key={value} value={value}><UiMessage text={String(value)}/></option>)}</select></label>
+            <label>{translateUi("Caption")}<input value={caption} maxLength={1000} disabled={busy} onChange={event=>setCaption(event.target.value)}/></label>
+            <label className="media-check"><input type="checkbox" checked={cropEnabled} disabled={busy} onChange={event=>setCropEnabled(event.target.checked)}/>{translateUi("Crop after rotation")}</label>
+            {cropEnabled&&<div className="media-crop">{(["left","top","width","height"] as const).map(key=><label key={key}><UiMessage text={key}/><input type="number" min={key==="left"||key==="top"?0:1} max={8192} value={crop[key]} disabled={busy} onChange={event=>setCrop({...crop,[key]:Number(event.target.value)})}/></label>)}</div>}
+            <label className="media-check"><input type="checkbox" checked={keepOriginal} disabled={busy} onChange={event=>setKeepOriginal(event.target.checked)}/>{translateUi("Retain a metadata-stripped master for future edits")}</label>
+            <small>{translateUi("Rotation and ratio are previewed. Crop uses pixels of the prepared image (up to 4096px). Adjustments apply to the selected batch. Edits create new copies.")}</small>
             </div>
           </details>}
-          <button className="media-upload-action" type="button" disabled={busy||(!pendingFiles&&!derive)} onClick={()=>void upload()}>{busy?"Uploading / processing...":derive?"Save edited copy":"Upload Images"}</button>
+          <button className="media-upload-action" type="button" disabled={busy||(!pendingFiles&&!derive)} onClick={()=>void upload()}>{busy?translateUi("Uploading / processing..."):derive?translateUi("Save edited copy"):translateUi("Upload Images")}</button>
         </TabsContent>
         <TabsContent value="library">
-          <label className="media-search">Search filename or caption<input type="search" value={search} onChange={event=>{setSearch(event.target.value);setPage(1);}}/></label>
-          {libraryLoading&&<p role="status">Loading your Media Library...</p>}
-          {libraryError&&<p role="alert">{libraryError}</p>}
+          <label className="media-search">{translateUi("Search filename or caption")}<input type="search" value={search} onChange={event=>{setSearch(event.target.value);setPage(1);}}/></label>
+          {libraryLoading&&<p role="status">{translateUi("Loading your Media Library...")}</p>}
+          {libraryError&&<p role="alert"><UiMessage text={libraryError}/></p>}
           <div className="media-gallery">{items.map(image=><div key={image.id}>
-            <button type="button" disabled={busy} aria-pressed={selected?.id===image.id} onClick={()=>{setSelected(image);setDerive(null);}}><Thumbnail image={image}/><span>{image.name||"Uploaded image"}</span></button>
+            <button type="button" disabled={busy} aria-pressed={selected?.id===image.id} onClick={()=>{setSelected(image);setDerive(null);}}><Thumbnail image={image}/><span>{image.name||translateUi("Uploaded image")}</span></button>
             <small>{image.width&&image.height?`${image.width} x ${image.height}`:""}{image.caption?` - ${image.caption}`:""}</small>
-            <button type="button" disabled={busy} onClick={()=>{setSelected(image);setDerive(image.id);setFiles([]);setCaption(image.caption??"");setTab("upload");}}>Edit a new copy</button>
+            <button type="button" disabled={busy} onClick={()=>{setSelected(image);setDerive(image.id);setFiles([]);setCaption(image.caption??"");setTab("upload");}}>{translateUi("Edit a new copy")}</button>
           </div>)}</div>
-          {!items.length&&!libraryLoading&&!libraryError&&<div className="media-empty"><h3>{search?"No matching images":"Your library is ready for images"}</h3><p>{search?"Try another filename or caption.":"Upload a JPG, PNG or WebP, then reuse it in your lessons."}</p><button type="button" onClick={()=>setTab("upload")}>Go to Upload</button></div>}
-          <nav aria-label="Media gallery pages"><button type="button" disabled={busy||libraryLoading||page===1} onClick={()=>setPage(page-1)}>Previous</button><span>Page {page}</span><button type="button" disabled={busy||libraryLoading||page*24>=total} onClick={()=>setPage(page+1)}>Next</button></nav>
-          <small>Images referenced by published revisions are retained. Deletion is unavailable.</small>
+          {!items.length&&!libraryLoading&&!libraryError&&<div className="media-empty"><h3>{search?translateUi("No matching images"):translateUi("Your library is ready for images")}</h3><p>{search?translateUi("Try another filename or caption."):translateUi("Upload a JPG, PNG or WebP, then reuse it in your lessons.")}</p><button type="button" onClick={()=>setTab("upload")}>{translateUi("Go to Upload")}</button></div>}
+          <nav aria-label={translateUi("Media gallery pages")}><button type="button" disabled={busy||libraryLoading||page===1} onClick={()=>setPage(page-1)}>{translateUi("Previous")}</button><span>{translateUi("Page")}{" "}{page}</span><button type="button" disabled={busy||libraryLoading||page*24>=total} onClick={()=>setPage(page+1)}>{translateUi("Next")}</button></nav>
+          <small>{translateUi("Images referenced by published revisions are retained. Deletion is unavailable.")}</small>
         </TabsContent>
         </div>
       </Tabs>
       <div className="media-operation-feedback">
-        {busy&&<progress aria-label="Image transfer progress" max={100} {...(progress===null?{}:{value:progress})}/>}
-        {message&&<p role="status">{message}</p>}{error&&<p role="alert">{error}</p>}
+        {busy&&<progress aria-label={translateUi("Image transfer progress")} max={100} {...(progress===null?{}:{value:progress})}/>}
+        {message&&<p role="status"><UiMessage text={message}/></p>}{error&&<p role="alert"><UiMessage text={error}/></p>}
       </div>
-      <footer className="media-dialog-footer"><span>{selected?.name??(selected?"Image selected":"Choose an image to insert")}</span><div>
-        <button type="button" disabled={busy} onClick={closeLibrary}>Cancel</button>
-        <button className="media-insert-action" type="button" disabled={busy||!selected||!!derive} onClick={()=>{if(selected){onInsert(selected);closeLibrary();}}}>Insert Selected Image</button>
+      <footer className="media-dialog-footer"><span>{selected?.name??(selected?translateUi("Image selected"):translateUi("Choose an image to insert"))}</span><div>
+        <button type="button" disabled={busy} onClick={closeLibrary}>{translateUi("Cancel")}</button>
+        <button className="media-insert-action" type="button" disabled={busy||!selected||!!derive} onClick={()=>{if(selected){onInsert(selected);closeLibrary();}}}>{translateUi("Insert Selected Image")}</button>
       </div></footer>
     </DialogContent>
   </Dialog>;

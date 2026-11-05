@@ -1,3 +1,4 @@
+import { UiText } from "../../i18n";
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -214,7 +215,7 @@ const CarouselPrevious = React.forwardRef<
       {...props}
     >
       <ArrowLeft className="h-4 w-4" />
-      <span className="sr-only">Previous slide</span>
+      <span className="sr-only"><UiText messageKey="Previous slide"/></span>
     </Button>
   );
 });
@@ -243,7 +244,7 @@ const CarouselNext = React.forwardRef<
       {...props}
     >
       <ArrowRight className="h-4 w-4" />
-      <span className="sr-only">Next slide</span>
+      <span className="sr-only"><UiText messageKey="Next slide"/></span>
     </Button>
   );
 });

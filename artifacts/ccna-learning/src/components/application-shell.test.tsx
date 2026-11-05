@@ -29,9 +29,11 @@ vi.mock('./admin-taxonomy',()=>({AdminTaxonomyManager:()=> <h2>Taxonomy manager 
 vi.mock('./admin-question-import',()=>({AdminQuestionImport:()=> <h2>Import manager content</h2>}));
 vi.mock('./admin-overview',()=>({AdminOverview:()=> <h2>Admin overview content</h2>}));
 import {ApplicationRoutes} from '../App';
+import {LocaleProvider,languagePreferenceKey} from '../i18n';
 import {isNavigationCurrent} from './nexus-shell';
 let host:HTMLDivElement,root:Root,client:QueryClient;
 beforeEach(()=>{
+ localStorage.removeItem(languagePreferenceKey);
  Object.assign(state,{role:'USER',roleError:false,rolePending:false,adminAllowed:true});
  Object.assign(state.auth,{isLoaded:true,isSignedIn:true,userId:'learner-a',sessionId:'session-a'});
  window.history.replaceState({},'','/');
@@ -44,8 +46,15 @@ beforeEach(()=>{
  HTMLElement.prototype.releasePointerCapture??=()=>{};
  HTMLElement.prototype.scrollIntoView??=()=>{};
 });
-afterEach(async()=>{await act(async()=>root.unmount());client.clear();host.remove();});
-async function render(){await act(async()=>root.render(<QueryClientProvider client={client}><ApplicationRoutes/></QueryClientProvider>));}
+afterEach(async()=>{await act(async()=>root.unmount());client.clear();host.remove();localStorage.removeItem(languagePreferenceKey);document.documentElement.dir='ltr';document.documentElement.lang='en';});
+async function render(){await act(async()=>root.render(<LocaleProvider><QueryClientProvider client={client}><ApplicationRoutes/></QueryClientProvider></LocaleProvider>));}
+it('localizes navigation without granting Admin access or replacing the shell',async()=>{
+ state.role='USER';await render();const sidebar=host.querySelector('.nexus-sidebar');
+ await act(async()=>{const select=host.querySelector('select')!;select.value='ar';select.dispatchEvent(new Event('change',{bubbles:true}));});
+ expect(host.querySelector('.nexus-sidebar')).toBe(sidebar);expect(host.querySelector('[aria-label="تنقل المتعلم"]')).not.toBeNull();
+ expect(host.querySelector('a[href="/exam"]')?.textContent).toBe('محاكي الاختبار');expect(host.querySelector('a[href="/admin"]')).toBeNull();
+ await navigate('/admin/questions');expect(host.textContent).toContain('لا يملك حسابك صلاحية المسؤول');expect(host.textContent).not.toContain('Question manager content');
+});
 async function click(el:Element|null){expect(el).not.toBeNull();await act(async()=>{(el as HTMLElement).click();});}
 async function navigate(path:string){await act(async()=>{window.history.pushState({},'',path);window.dispatchEvent(new PopStateEvent('popstate'));});}
 const learnerLinks=['Command Center','Learning Curriculum','Challenge Arena','Learning Intelligence','Learner Profile','Exam Simulator'];
@@ -146,8 +155,8 @@ it('collapsed links remain named and skip navigation targets the only main landm
  expect(host.querySelector('main')?.id).toBe('nexus-content');
 });
 it('sign-in and sign-up keep their dedicated authentication pages without workspace navigation',async()=>{
- await navigate('/sign-in');await render();expect(host.textContent).toBe('Sign in');expect(host.querySelector('aside')).toBeNull();
- await navigate('/sign-up');expect(host.textContent).toBe('Sign up');expect(host.querySelector('aside')).toBeNull();
+ await navigate('/sign-in');await render();expect(host.querySelector('h1')?.textContent).toBe('Sign in');expect(host.querySelector('aside')).toBeNull();expect(host.querySelector('select[aria-label="Language"]')).not.toBeNull();expect(host.querySelector('.nexus-app')).toBeNull();
+ await navigate('/sign-up');expect(host.querySelector('h1')?.textContent).toBe('Sign up');expect(host.querySelector('aside')).toBeNull();expect(host.querySelector('select[aria-label="Language"]')).not.toBeNull();expect(host.querySelector('.nexus-app')).toBeNull();
 });
 it('active matching excludes prefix collisions and marks nested destination paths',()=>{
  expect(isNavigationCurrent('/admin/questions?status=ACTIVE','/admin/questions')).toBe(true);

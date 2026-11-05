@@ -1,3 +1,5 @@
+import { UiMessage, DateText } from '../i18n';
+import { useI18n } from '../i18n';
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -41,6 +43,7 @@ export function QuestionStudioEditor({
   onSaved: (message: string) => void;
   onReturnFocus?: () => void;
 }) {
+  const { t: translateUi } = useI18n();
   const session = useAdminSession(),
     client = useQueryClient(),
     busy = useRef(false);
@@ -327,7 +330,7 @@ export function QuestionStudioEditor({
   }
   const field = (key: "text" | "explanation" | "referenceNotes", label: string, rows: number) => (
     <label htmlFor={"question-" + (key === "referenceNotes" ? "reference-notes" : key)}>
-      {label}
+      <UiMessage text={label}/>
       <textarea
         id={"question-" + (key === "referenceNotes" ? "reference-notes" : key)}
         value={form[key]}
@@ -340,10 +343,10 @@ export function QuestionStudioEditor({
         spellCheck={false}
       />
       <small id={"studio-error-" + key}>
-        {errors[key] ||
+        <UiMessage text={errors[key] ||
           (key === "referenceNotes"
-            ? "Educational sources/reference notes. No separate private-note field exists."
-            : "Plain text; line breaks, indentation and CLI output are preserved. HTML is displayed as text.")}
+            ? translateUi("Educational sources/reference notes. No separate private-note field exists.")
+            : translateUi("Plain text; line breaks, indentation and CLI output are preserved. HTML is displayed as text."))}/>
       </small>
     </label>
   );
@@ -383,15 +386,13 @@ export function QuestionStudioEditor({
           <SheetHeader>
             <SheetTitle>
               {duplicate
-                ? "Duplicate question"
+                ? translateUi("Duplicate question")
                 : detail
                   ? "Edit " + detail.question.questionCode
-                  : "Create Question"}
+                  : translateUi("Create Question")}
             </SheetTitle>
             <SheetDescription>
-              Single or multiple-answer questions. Save unpublished content or publish a complete
-              question. Existing learner history is preserved.
-            </SheetDescription>
+              {translateUi("Single or multiple-answer questions. Save unpublished content or publish a complete question. Existing learner history is preserved.")}</SheetDescription>
           </SheetHeader>
           <div className="question-editor-layout">
             <form
@@ -404,11 +405,10 @@ export function QuestionStudioEditor({
               className="studio-form"
             >
               <fieldset disabled={pending}>
-                <legend>Question information</legend>
+                <legend>{translateUi("Question information")}</legend>
                 <div className="studio-form-grid">
                   <label>
-                    Question code
-                    <input
+                    {translateUi("Question code")}<input
                       value={
                         detail && !duplicate
                           ? detail.question.questionCode
@@ -418,9 +418,8 @@ export function QuestionStudioEditor({
                     />
                   </label>
                   <label>
-                    Question Type
-                    <select
-                      aria-label="Question Type"
+                    {translateUi("Question Type")}<select
+                      aria-label={translateUi("Question Type")}
                       value={form.type}
                       onChange={(e) => {
                         const type = e.target.value as StudioForm["type"];
@@ -439,13 +438,12 @@ export function QuestionStudioEditor({
                         }));
                       }}
                     >
-                      <option value="MULTIPLE_CHOICE_SINGLE">Single Answer</option>
-                      <option value="MULTIPLE_CHOICE_MULTIPLE">Multiple Answers</option>
+                      <option value="MULTIPLE_CHOICE_SINGLE">{translateUi("Single Answer")}</option>
+                      <option value="MULTIPLE_CHOICE_MULTIPLE">{translateUi("Multiple Answers")}</option>
                     </select>
                   </label>
                   <label htmlFor="question-difficulty">
-                    Difficulty
-                    <select
+                    {translateUi("Difficulty")}<select
                       id="question-difficulty"
                       value={form.difficulty}
                       onChange={(e) =>
@@ -453,19 +451,18 @@ export function QuestionStudioEditor({
                       }
                     >
                       {["EASY", "MEDIUM", "HARD"].map((d) => (
-                        <option key={d}>{d}</option>
+                        <option key={d} value={d}><UiMessage text={String(d)}/></option>
                       ))}
                     </select>
                   </label>
                   <label htmlFor="question-status">
-                    Publication state
-                    <select
+                    {translateUi("Publication state")}<select
                       id="question-status"
                       value={form.status}
                       onChange={(e) => change("status", e.target.value as StudioForm["status"])}
                     >
-                      <option value="DISABLED">Unpublished / disabled</option>
-                      <option value="ACTIVE">Published / active</option>
+                      <option value="DISABLED">{translateUi("Unpublished / disabled")}</option>
+                      <option value="ACTIVE">{translateUi("Published / active")}</option>
                     </select>
                   </label>
                 </div>
@@ -476,22 +473,20 @@ export function QuestionStudioEditor({
                   disabled={checking || !form.topicId || !form.text.trim()}
                   onClick={() => void checkDuplicates()}
                 >
-                  {checking ? "Checking…" : "Check possible duplicates"}
+                  {checking ? translateUi("Checking…") : translateUi("Check possible duplicates")}
                 </Button>
               </fieldset>
               <fieldset disabled={pending}>
-                <legend>Answer options</legend>
+                <legend>{translateUi("Answer options")}</legend>
                 <p>
                   {form.type === "MULTIPLE_CHOICE_SINGLE"
-                    ? "Choose exactly one correct answer."
-                    : `Choose exactly ${form.requiredSelectionCount} correct answers.`}{" "}
-                  Provide 2-10 distinct options.
-                </p>
+                    ? translateUi("Choose exactly one correct answer.")
+                    : translateUi("Choose exactly {value0} correct answers.", {value0: String(form.requiredSelectionCount)})}{" "}
+                  {translateUi("Provide 2-10 distinct options.")}</p>
                 {form.type === "MULTIPLE_CHOICE_MULTIPLE" && (
                   <label>
-                    Required selection count
-                    <input
-                      aria-label="Required selection count"
+                    {translateUi("Required selection count")}<input
+                      aria-label={translateUi("Required selection count")}
                       type="number"
                       min={2}
                       max={form.options.length}
@@ -526,7 +521,7 @@ export function QuestionStudioEditor({
                       <span>{o.optionKey}</span>
                     </label>
                     <label className="studio-answer-text">
-                      <span className="sr-only">Option {o.optionKey} text</span>
+                      <span className="sr-only">{translateUi("Option")}{" "}{o.optionKey} {translateUi("text")}</span>
                       <textarea
                         aria-label={"Option " + o.optionKey + " text"}
                         value={o.text}
@@ -535,7 +530,7 @@ export function QuestionStudioEditor({
                         maxLength={4000}
                         aria-invalid={!!errors["option-" + index]}
                       />
-                      {errors["option-" + index] && <small>{errors["option-" + index]}</small>}
+                      {errors["option-" + index] && <small><UiMessage text={errors["option-" + index]}/></small>}
                     </label>
                     <div className="studio-option-actions">
                       <Button
@@ -571,12 +566,11 @@ export function QuestionStudioEditor({
                           )
                         }
                       >
-                        Remove
-                      </Button>
+                        {translateUi("Remove")}</Button>
                     </div>
                   </div>
                 ))}
-                {errors.options && <p role="alert">{errors.options}</p>}
+                {errors.options && <p role="alert"><UiMessage text={errors.options}/></p>}
                 <Button
                   type="button"
                   variant="outline"
@@ -592,59 +586,55 @@ export function QuestionStudioEditor({
                     ]);
                   }}
                 >
-                  Add option
-                </Button>
+                  {translateUi("Add option")}</Button>
               </fieldset>
               <fieldset disabled={pending}>
-                <legend>Explanation and references</legend>
+                <legend>{translateUi("Explanation and references")}</legend>
                 {field("explanation", "Technical explanation", 6)}
                 {field("referenceNotes", "Educational references / notes", 3)}
                 {detail?.question.imageKey && (
                   <p>
-                    Existing image reference is preserved. Image uploads and remote image preview
-                    are unavailable until a validated media workflow exists.
-                  </p>
+                    {translateUi("Existing image reference is preserved. Image uploads and remote image preview are unavailable until a validated media workflow exists.")}</p>
                 )}
               </fieldset>
               <fieldset disabled={pending}>
-                <legend>Canonical book chapter</legend>
-                <RelationshipFilter label="CCNA Exam Domain" value={domainFilter} options={(metadata.data?.taxonomyDomains??[]).map(d=>({id:d.id,title:`${d.code} ${d.name}`}))} onChange={setDomainFilter}/>
-                <StudioRelationshipPicker kind="topics" label="Choose chapter" value={form.topicId} selectedLabel={topicLabel} domainId={domainFilter||undefined} disabled={pending} onSelect={item=>{change("topicId",item?.id??"");setTopicLabel(item?.label??"");setTopicChapters(item?.chapterIds??[]);}}/>
-                <small>{errors.topicId||"Choose one of the 48 exact V1/V2 book chapters. Its primary domain is assigned explicitly by the canonical catalog."}</small>
-                <p><a href="/admin/taxonomy">Manage chapters and domains</a></p>
-                {metadata.isError&&<p role="alert">Could not load chapter metadata. <button type="button" onClick={()=>void metadata.refetch()}>Retry</button></p>}
+                <legend>{translateUi("Canonical book chapter")}</legend>
+                <RelationshipFilter label={translateUi("CCNA Exam Domain")} value={domainFilter} options={(metadata.data?.taxonomyDomains??[]).map(d=>({id:d.id,title:`${d.code} ${d.name}`}))} onChange={setDomainFilter}/>
+                <StudioRelationshipPicker kind="topics" label={translateUi("Choose chapter")} value={form.topicId} selectedLabel={topicLabel} domainId={domainFilter||undefined} disabled={pending} onSelect={item=>{change("topicId",item?.id??"");setTopicLabel(item?.label??"");setTopicChapters(item?.chapterIds??[]);}}/>
+                <small><UiMessage text={errors.topicId||translateUi("Choose one of the 48 exact V1/V2 book chapters. Its primary domain is assigned explicitly by the canonical catalog.")}/></small>
+                <p><a href="/admin/taxonomy">{translateUi("Manage chapters and domains")}</a></p>
+                {metadata.isError&&<p role="alert">{translateUi("Could not load chapter metadata.")}{" "}<button type="button" onClick={()=>void metadata.refetch()}>{translateUi("Retry")}</button></p>}
               </fieldset>
               <details
                 className="studio-publish-checklist"
                 open={Object.keys(publishingErrors).length > 0 || !!readiness?.blockers.length}
               >
                 <summary>
-                  Publishing Readiness -{" "}
+                  {translateUi("Publishing Readiness -")}{" "}
                   {Object.keys(publishingErrors).length
-                    ? "Missing Required Information"
+                    ? translateUi("Missing Required Information")
                     : checkingReadiness
-                      ? "Checking server requirements..."
+                      ? translateUi("Checking server requirements...")
                       : readiness?.ready
-                        ? "Ready to Publish"
-                        : "Needs Attention"}
+                        ? translateUi("Ready to Publish")
+                        : translateUi("Needs Attention")}
                 </summary>
-                <h4>Blocking requirements</h4>
+                <h4>{translateUi("Blocking requirements")}</h4>
                 <ul>
                   {[...Object.values(publishingErrors), ...(readiness?.blockers ?? [])].map(
                     (message, i) => (
-                      <li key={i}>{message}</li>
+                      <li key={i}><UiMessage text={message}/></li>
                     ),
                   )}
                 </ul>
                 {!Object.keys(publishingErrors).length && readiness?.ready && (
                   <p>
-                    Server validation passed for these values. Saving rechecks concurrent changes.
-                  </p>
+                    {translateUi("Server validation passed for these values. Saving rechecks concurrent changes.")}</p>
                 )}
-                <h4>Nonblocking warnings</h4>
+                <h4>{translateUi("Nonblocking warnings")}</h4>
 
                 {!topicChapters.length && (
-                  <p>No curriculum chapter. No placement will be guessed.</p>
+                  <p>{translateUi("No curriculum chapter. No placement will be guessed.")}</p>
                 )}
               </details>
               {(duplicate ||
@@ -663,37 +653,33 @@ export function QuestionStudioEditor({
                       onChange={(e) => setAckDuplicate(e.target.checked)}
                       disabled={pending}
                     />{" "}
-                    I reviewed the possible duplicate and intend to create or save a separate
-                    record.
-                  </label>
+                    {translateUi("I reviewed the possible duplicate and intend to create or save a separate record.")}</label>
                 </div>
               )}
               {error && (
                 <p role="alert" data-testid="admin-question-error">
-                  {error}
+                  <UiMessage text={error}/>
                 </p>
               )}
-              <p className="muted">New questions start unpublished. Reopen the saved question, review readiness, then publish explicitly.</p>
+              <p className="muted">{translateUi("New questions start unpublished. Reopen the saved question, review readiness, then publish explicitly.")}</p>
                 <footer>
                 <Button type="button" variant="outline" onClick={close} disabled={pending}>
-                  Cancel
-                </Button>
+                  {translateUi("Cancel")}</Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => void save("DISABLED")}
                   disabled={pending}
                 >
-                  Save unpublished
-                </Button>
+                  {translateUi("Save unpublished")}</Button>
                 <Button type="submit" data-testid="button-save-question" disabled={pending}>
                   {pending
-                    ? "Saving…"
+                    ? translateUi("Saving…")
                     : detail && !duplicate
-                      ? "Save changes"
+                      ? translateUi("Save changes")
                       : form.status === "ACTIVE"
-                        ? "Create unpublished"
-                        : "Create question"}
+                        ? translateUi("Create unpublished")
+                        : translateUi("Create question")}
                 </Button>
               </footer>
             </form>
@@ -710,10 +696,9 @@ export function QuestionStudioEditor({
               />
               {detail && (
                 <p className="studio-editor-meta">
-                  Created {new Date(detail.question.createdAt).toLocaleString()} · Updated{" "}
-                  {new Date(detail.question.updatedAt).toLocaleString()} · {detail.revisionCount}{" "}
-                  immutable content revisions.
-                </p>
+                  {translateUi("Created")}{" "}<DateText value={detail.question.createdAt} options={{dateStyle:'medium',timeStyle:'short'}}/> {translateUi("· Updated")}{" "}
+                  <DateText value={detail.question.updatedAt} options={{dateStyle:'medium',timeStyle:'short'}}/> · {detail.revisionCount}{" "}
+                  {translateUi("immutable content revisions.")}</p>
               )}
             </aside>
           </div>
@@ -731,16 +716,14 @@ export function QuestionStudioEditor({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard unsaved question changes?</AlertDialogTitle>
+            <AlertDialogTitle>{translateUi("Discard unsaved question changes?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Your question and chapter changes have not been saved.
-            </AlertDialogDescription>
+              {translateUi("Your question and chapter changes have not been saved.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep editing</AlertDialogCancel>
+            <AlertDialogCancel>{translateUi("Keep editing")}</AlertDialogCancel>
             <AlertDialogAction onClick={discardChanges} disabled={pending}>
-              Discard changes
-            </AlertDialogAction>
+              {translateUi("Discard changes")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

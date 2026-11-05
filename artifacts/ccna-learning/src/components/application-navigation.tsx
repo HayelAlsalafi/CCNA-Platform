@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n';
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { useAuth, useClerk, useUser } from "@clerk/react";
@@ -24,6 +25,7 @@ function useAccount() {
   return { auth, identity, query };
 }
 export function AccountMenu({ basePath = "" }: { basePath?: string }) {
+  const { t: translateUi, message } = useI18n();
   const { auth, identity, query } = useAccount(),
     { user } = useUser(),
     { signOut, openUserProfile } = useClerk();
@@ -38,16 +40,14 @@ export function AccountMenu({ basePath = "" }: { basePath?: string }) {
   if (!auth.isLoaded || (auth.isSignedIn && !identity))
     return (
       <div className="sidebar-account" role="status">
-        Checking identity…
-      </div>
+        {translateUi("Checking identity…")}</div>
     );
   if (!auth.isSignedIn)
     return (
       <div className="sidebar-account">
-        <p>Save your learning progress.</p>
+        <p>{translateUi("Save your learning progress.")}</p>
         <Link href="/sign-in" className="account-sign-in">
-          <LogIn size={18} /> Sign in
-        </Link>
+          <LogIn size={18} /> {translateUi("Sign in")}</Link>
       </div>
     );
   const verifiedUser = user?.id === auth.userId ? user : null;
@@ -55,7 +55,7 @@ export function AccountMenu({ basePath = "" }: { basePath?: string }) {
     verifiedUser?.fullName ||
     verifiedUser?.username ||
     query.data?.user.displayName ||
-    "Signed-in learner";
+    translateUi("Signed-in learner");
   const role = query.isError ? "Role unavailable" : (query.data?.user.role ?? "Checking role");
   const initials =
     name
@@ -73,14 +73,14 @@ export function AccountMenu({ basePath = "" }: { basePath?: string }) {
             className="account-trigger"
             type="button"
             disabled={busy}
-            aria-label={`Open account menu for ${name}`}
+            aria-label={translateUi('Open account menu for {name}', {name})}
           >
             <span className="account-avatar" aria-hidden="true">
               {initials}
             </span>
             <span className="account-details">
               <strong>{name}</strong>
-              <span>{role}</span>
+              <span>{message(role)}</span>
             </span>
             <ChevronUp size={17} aria-hidden="true" />
           </button>
@@ -88,7 +88,7 @@ export function AccountMenu({ basePath = "" }: { basePath?: string }) {
         <DropdownMenuContent className="account-dropdown" align="start" side="top" sideOffset={10}>
           <DropdownMenuLabel>
             <strong>{name}</strong>
-            <span className="account-menu-role">{role}</span>
+            <span className="account-menu-role">{message(role)}</span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {verifiedUser && typeof openUserProfile === "function" && (
@@ -102,8 +102,7 @@ export function AccountMenu({ basePath = "" }: { basePath?: string }) {
                 }
               }}
             >
-              <Settings aria-hidden="true" /> Account settings
-            </DropdownMenuItem>
+              <Settings aria-hidden="true" /> {translateUi("Account settings")}</DropdownMenuItem>
           )}
           <DropdownMenuItem
             data-testid="button-sign-out"
@@ -120,21 +119,19 @@ export function AccountMenu({ basePath = "" }: { basePath?: string }) {
                 });
             }}
           >
-            <LogOut aria-hidden="true" /> Sign out
-          </DropdownMenuItem>
+            <LogOut aria-hidden="true" /> {translateUi("Sign out")}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       {query.isError && (
         <p className="account-message">
-          Could not load your role.{" "}
+          {translateUi("Could not load your role.")}{" "}
           <button type="button" onClick={() => void query.refetch()}>
-            Retry
-          </button>
+            {translateUi("Retry")}</button>
         </p>
       )}
       {error && (
         <p role="alert" className="account-message">
-          {error}
+          {message(error)}
         </p>
       )}
     </div>

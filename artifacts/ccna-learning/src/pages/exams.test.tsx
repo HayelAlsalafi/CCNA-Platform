@@ -11,6 +11,7 @@ const auth = vi.hoisted(() => ({
 }));
 vi.mock("@clerk/react", () => ({ useAuth: () => auth }));
 import { ExamSimulatorPage } from "./exam-simulator";
+import { LocaleProvider, LanguageSelect, languagePreferenceKey } from '../i18n';
 const qid = "11111111-1111-4111-8111-111111111111",
   id = "22222222-2222-4222-8222-222222222222";
 let host: HTMLDivElement,
@@ -50,6 +51,7 @@ function question(multi = false) {
 const response = (body: any, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 beforeEach(() => {
+  localStorage.removeItem(languagePreferenceKey);
   available = 2;
   ready = true;
   saveFail = false;
@@ -179,6 +181,7 @@ afterEach(async () => {
   client.clear();
   host.remove();
   vi.unstubAllGlobals();
+  localStorage.removeItem(languagePreferenceKey);document.documentElement.dir='ltr';document.documentElement.lang='en';
 });
 async function flush() {
   await act(async () => {
@@ -188,9 +191,9 @@ async function flush() {
 async function render() {
   await act(async () =>
     root.render(
-      <QueryClientProvider client={client}>
+      <LocaleProvider><LanguageSelect/><QueryClientProvider client={client}>
         <ExamSimulatorPage />
-      </QueryClientProvider>,
+      </QueryClientProvider></LocaleProvider>,
     ),
   );
   await flush();
@@ -202,6 +205,21 @@ async function click(el: HTMLElement | null) {
 }
 const button = (text: string) =>
   [...document.querySelectorAll<HTMLButtonElement>("button")].find((b) => b.textContent === text)!;
+it('switches locale during an active exam without refetch, mutations, reset or changed deadline', async()=>{
+  run.questions[0].selectedOptionKeys=['A'];run.questions[0].flagged=true;
+  const deadline=run.deadlineAt, order=run.questions.map((q:any)=>q.deliveryId);
+  window.history.replaceState({},'', '/exam?session='+id);await render();
+  const radio=host.querySelector<HTMLInputElement>('input[type=radio]')!;
+  const count=calls.length, timer=host.querySelector('[role=timer]');
+  await act(async()=>{const select=host.querySelector('select')!;select.value='ar';select.dispatchEvent(new Event('change',{bubbles:true}));});
+  expect(document.documentElement.dir).toBe('rtl');expect(host.textContent).toContain('محاكي الاختبار');
+  expect(host.querySelector('input[type=radio]')).toBe(radio);expect(radio.checked).toBe(true);
+  expect(host.querySelector('[role=timer]')).toBe(timer);expect(run.deadlineAt).toBe(deadline);
+  expect(run.questions.map((q:any)=>q.deliveryId)).toEqual(order);expect(run.questions[0].flagged).toBe(true);
+  expect(window.location.search).toBe('?session='+id);expect(calls).toHaveLength(count);
+  expect(host.textContent).toContain('Select a transport protocol.');expect(host.textContent).toContain('UDP');
+  expect(calls.some(c=>c.url.endsWith('/submit'))).toBe(false);
+});
 async function input(el: HTMLInputElement, value: string) {
   await act(async () => {
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(el, value);

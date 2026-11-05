@@ -1,3 +1,5 @@
+import { UiMessage } from '../i18n';
+import { useI18n } from '../i18n';
 import { useAuth } from "@clerk/react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -8,6 +10,7 @@ import { lessonError } from "../pages/lesson-reader";
 
 /** Lesson availability is independent of question coverage and practice state. */
 export function ChapterLearningAction({ chapterId }: { chapterId: string }) {
+  const { t: translateUi } = useI18n();
   const auth = useAuth(),
     identity = progressIdentity(auth);
   const query = useQuery({
@@ -19,38 +22,35 @@ export function ChapterLearningAction({ chapterId }: { chapterId: string }) {
       getChapterLessons(chapterId, { signal, cache: "no-store", credentials: "same-origin" }),
   });
   return (
-    <section className="curriculum-learning-action" aria-label="Chapter lessons">
+    <section className="curriculum-learning-action" aria-label={translateUi("Chapter lessons")}>
       {!auth.isLoaded ? (
-        <p role="status">Checking lesson access…</p>
+        <p role="status">{translateUi("Checking lesson access…")}</p>
       ) : !identity ? (
         <Link href="/sign-in" className="curriculum-action-quiet">
-          Sign in to start learning
-        </Link>
+          {translateUi("Sign in to start learning")}</Link>
       ) : query.isError ? (
         <div role="alert">
-          <p>Lesson availability could not load. Practice availability is shown separately.</p>
-          <p>{lessonError(query.error)}</p>
+          <p>{translateUi("Lesson availability could not load. Practice availability is shown separately.")}</p>
+          <p><UiMessage text={lessonError(query.error)}/></p>
           <button
             type="button"
             className="curriculum-action-quiet"
             onClick={() => void query.refetch()}
           >
-            Retry lessons
-          </button>
+            {translateUi("Retry lessons")}</button>
         </div>
       ) : query.isPending ? (
-        <p role="status">Checking published lessons…</p>
+        <p role="status">{translateUi("Checking published lessons…")}</p>
       ) : query.data?.items?.length ? (
         <Link href={`/learn/chapters/${chapterId}`} className="curriculum-action">
-          <BookOpen size={16} aria-hidden="true" /> Start Learning{" "}
-          <span>({query.data.items.length} lessons)</span>
+          <BookOpen size={16} aria-hidden="true" /> {translateUi("Start Learning")}{" "}
+          <span>({query.data.items.length} {translateUi("lessons)")}</span>
         </Link>
       ) : (
         <div>
-          <p>Lessons coming soon</p>
+          <p>{translateUi("Lessons coming soon")}</p>
           <button type="button" className="curriculum-action-quiet" disabled>
-            Start Learning
-          </button>
+            {translateUi("Start Learning")}</button>
         </div>
       )}
     </section>

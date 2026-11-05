@@ -1,0 +1,38 @@
+.language-select { display:flex; align-items:center; gap:.5rem; flex-shrink:0; }
+.language-select select { color:inherit; background:var(--background,#fff); border:1px solid var(--border,#b8c7d6); border-radius:.5rem; padding:.4rem .6rem; min-height:44px; max-width:9rem; font:inherit; }
+.language-select select:focus-visible { outline:3px solid #0891b2; outline-offset:2px; }
+.technical-ltr, pre, code, kbd { unicode-bidi:isolate; }
+pre, code, kbd { direction:ltr; text-align:start; }
+html[lang=ar] body { font-family:Tahoma,Arial,sans-serif; }
+html[lang=ar] .nexus-app { font-family:Tahoma,Arial,sans-serif; }
+html[lang=ar] :is(.nexus-eyebrow,.nexus-nav-caption,.nexus-topbar strong,.nexus-brand small) { letter-spacing:normal; }
+html[dir=rtl] .nexus-sidebar { inset:0 0 0 auto; }
+html[dir=rtl] .nexus-body { margin-left:0; margin-right:258px; }
+html[dir=rtl] .nexus-compact .nexus-body { margin-right:85px; }
+html[dir=rtl] .nexus-collapse { right:auto; left:-13px; }
+html[dir=rtl] .nexus-collapse svg { transform:scaleX(-1); }
+html[dir=rtl] .nexus-compact .nexus-collapse svg { transform:none; }
+html[dir=rtl] .nexus-topbar strong { margin-left:0; margin-right:18px; }
+html[dir=rtl] :is(th,td) { text-align:start; }
+html[dir=rtl] :is([data-radix-popper-content-wrapper],[role=dialog]) { text-align:start; }
+html[dir=rtl] .account-details { text-align:start; }
+html[dir=rtl] :is(.admin-table,.admin-panel,.admin-search,.studio-field) { text-align:start; }
+html[dir=rtl] .question-content { unicode-bidi:plaintext; }
+html[dir=rtl] :is(.exam-session-toolbar [role=timer],.question-content code) { direction:ltr; unicode-bidi:isolate; }
+.language-select { max-width:100%; }
+[role=dialog] { max-inline-size:calc(100vw - 2rem); max-block-size:calc(100dvh - 2rem); overflow-y:auto; }
+html[dir=rtl] :is(.nexus-page,.admin-workspace) :is(.lucide-chevron-left,.lucide-chevron-right,.lucide-arrow-left,.lucide-arrow-right) { transform:scaleX(-1); }
+html[dir=rtl] :is(.lesson-prose,.question-content,.studio-technical-text) :is(.lucide-chevron-left,.lucide-chevron-right,.lucide-arrow-left,.lucide-arrow-right) { transform:none; }
+.auth-page > .language-select { position:absolute; inset-block-start:1rem; inset-inline-end:1rem; }
+@media (prefers-reduced-motion:reduce) { [role=dialog], [data-radix-popper-content-wrapper] { animation:none!important; transition:none!important; } }
+html[dir=rtl] .nexus-page :is(input[type=url],input[type=email]) { direction:ltr; text-align:start; }
+@media (max-width:1100px) and (min-width:761px) {
+  html[dir=rtl] .nexus-body { margin-right:220px; }
+  html[dir=rtl] .nexus-compact .nexus-body { margin-right:85px; }
+}
+@media (max-width:760px) {
+  html[dir=rtl] .nexus-body,html[dir=rtl] .nexus-compact .nexus-body { margin-right:0; }
+  .nexus-topbar { gap:.5rem; flex-wrap:wrap; height:auto; min-height:68px; padding-block:.5rem; }
+  .language-select span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+}
+html[dir=rtl] .nexus-app:has(.lesson-focus-mode) > .nexus-body { margin-inline:0; }

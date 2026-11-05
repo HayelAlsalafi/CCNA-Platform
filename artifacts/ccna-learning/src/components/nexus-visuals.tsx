@@ -1,3 +1,5 @@
+import { DateText } from '../i18n';
+import { useI18n } from '../i18n';
 import { useState, type ReactNode } from "react";
 import {
   Router,
@@ -91,6 +93,7 @@ export function LearningMetricCard({
   );
 }
 export function NetworkTopologyMap({ domains }: { domains: NexusDomain[] }) {
+  const { t: translateUi } = useI18n();
   const [selected, setSelected] = useState<string | null>(null),
     [view, setView] = useState<"map" | "list">("map"),
     current = domains.find((d) => d.id === selected);
@@ -98,22 +101,18 @@ export function NetworkTopologyMap({ domains }: { domains: NexusDomain[] }) {
     <section className="nexus-panel">
       <div className="nexus-section-heading">
         <div>
-          <span className="nexus-eyebrow">LEARNING TOPOLOGY</span>
-          <h2>Your six-domain network</h2>
+          <span className="nexus-eyebrow">{translateUi("LEARNING TOPOLOGY")}</span>
+          <h2>{translateUi("Your six-domain network")}</h2>
         </div>
         <div className="nexus-segment">
           <button aria-pressed={view === "map"} onClick={() => setView("map")}>
-            Topology
-          </button>
+            {translateUi("Topology")}</button>
           <button aria-pressed={view === "list"} onClick={() => setView("list")}>
-            Accessible list
-          </button>
+            {translateUi("Accessible list")}</button>
         </div>
       </div>
       <p className="nexus-muted">
-        Coverage counts unique available questions attempted. Accuracy counts recorded answers.
-        Neither is a mastery claim.
-      </p>
+        {translateUi("Coverage counts unique available questions attempted. Accuracy counts recorded answers. Neither is a mastery claim.")}</p>
       <div className={"nexus-domain-grid " + view}>
         {view === "map" && (
           <svg
@@ -140,14 +139,13 @@ export function NetworkTopologyMap({ domains }: { domains: NexusDomain[] }) {
                 <Icon size={22} />
               </span>
               <span>
-                <small>DOMAIN {d.code}</small>
+                <small>{translateUi("DOMAIN")}{" "}{d.code}</small>
                 <strong>{d.name}</strong>
                 <span>
-                  {d.available} available · {d.attempted} attempted
-                </span>
+                  {d.available} {translateUi("available ·")}{" "}{d.attempted} {translateUi("attempted")}</span>
                 <span>
                   {rate === null
-                    ? "No answers yet"
+                    ? translateUi("No answers yet")
                     : rate + "% accuracy · " + d.attempts + " answers"}
                 </span>
                 <span
@@ -166,28 +164,25 @@ export function NetworkTopologyMap({ domains }: { domains: NexusDomain[] }) {
         })}
       </div>
       {!domains.length && (
-        <p>No active CCNA v1.1 domain catalog is available. No mappings are inferred.</p>
+        <p>{translateUi("No active CCNA v1.1 domain catalog is available. No mappings are inferred.")}</p>
       )}
       {current && (
         <div className="nexus-domain-detail" role="status">
           <div>
             <strong>{current.name}</strong>
             <p>
-              {current.covered_chapters}/{current.chapters} chapters have available question
-              associations.{" "}
+              {current.covered_chapters}/{current.chapters} {translateUi("chapters have available question associations.")}{" "}
               {current.attempts < 5
-                ? "Small sample; continue exploring."
+                ? translateUi("Small sample; continue exploring.")
                 : "Accuracy is based on " + current.attempts + " recorded answers."}
             </p>
             {current.recommendedTopic && (
               <p>
-                Suggested topic: {current.recommendedTopic.name}. Prioritize low accuracy after five
-                answers, then expand coverage.
-              </p>
+                {translateUi("Suggested topic:")}{" "}{current.recommendedTopic.name}{translateUi(". Prioritize low accuracy after five answers, then expand coverage.")}</p>
             )}
           </div>
           <Link href={"/practice?domainId=" + current.id} className="nexus-button">
-            Practice this domain <ArrowUpRight size={16} />
+            {translateUi("Practice this domain")}{" "}<ArrowUpRight size={16} />
           </Link>
         </div>
       )}
@@ -203,6 +198,7 @@ export function LearningAnalytics({
   range: string;
   onRange: (range: string) => void;
 }) {
+  const { t: translateUi } = useI18n();
   const [point, setPoint] = useState<number | null>(null),
     items = data.timeline;
   const points = items
@@ -215,30 +211,30 @@ export function LearningAnalytics({
     <section className="nexus-panel">
       <div className="nexus-section-heading">
         <div>
-          <span className="nexus-eyebrow">PERFORMANCE SIGNAL</span>
-          <h2>Accuracy over time</h2>
+          <span className="nexus-eyebrow">{translateUi("PERFORMANCE SIGNAL")}</span>
+          <h2>{translateUi("Accuracy over time")}</h2>
         </div>
         <select
-          aria-label="Analytics period"
+          aria-label={translateUi("Analytics period")}
           value={range}
           onChange={(e) => {
             setPoint(null);
             onRange(e.target.value);
           }}
         >
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="90">Last 90 days</option>
-          <option value="all">All time · monthly</option>
+          <option value="7">{translateUi("Last 7 days")}</option>
+          <option value="30">{translateUi("Last 30 days")}</option>
+          <option value="90">{translateUi("Last 90 days")}</option>
+          <option value="all">{translateUi("All time · monthly")}</option>
         </select>
       </div>
-      <p className="nexus-muted">Selected period: {items.reduce((sum, row) => sum + row.attempts, 0)} practice answers · {items.reduce((sum, row) => sum + row.correct, 0)} correct · {items.reduce((sum, row) => sum + row.attempts - row.correct, 0)} incorrect. All-time statistics above do not change with this filter.</p>
+      <p className="nexus-muted">{translateUi("Selected period:")}{" "}{items.reduce((sum, row) => sum + row.attempts, 0)} {translateUi("practice answers ·")}{" "}{items.reduce((sum, row) => sum + row.correct, 0)} {translateUi("correct ·")}{" "}{items.reduce((sum, row) => sum + row.attempts - row.correct, 0)} {translateUi("incorrect. All-time statistics above do not change with this filter.")}</p>
       {items.filter(row => row.attempts > 0).length > 1 ? (
         <svg
           viewBox="0 0 600 125"
           className="nexus-timeline"
           role="img"
-          aria-label="Accuracy timeline; exact values and sample sizes follow in the accessible list"
+          aria-label={translateUi("Accuracy timeline; exact values and sample sizes follow in the accessible list")}
         >
           <path d="M10 15H590M10 60H590M10 105H590" stroke="#DEE8F2" fill="none" />
           <path d={points} stroke="#0891B2" strokeWidth="3" fill="none" />
@@ -255,31 +251,29 @@ export function LearningAnalytics({
       ) : (
         <p className="nexus-empty">
           {items.some(row => row.attempts > 0)
-            ? "One time bucket is available. More activity is needed to show a trend."
-            : "Your submitted answers will build this timeline."}
+            ? translateUi("One time bucket is available. More activity is needed to show a trend.")
+            : translateUi("Your submitted answers will build this timeline.")}
         </p>
       )}
-      <div className="nexus-timeline-list" aria-label="Exact timeline data">
+      <div className="nexus-timeline-list" aria-label={translateUi("Exact timeline data")}>
         {items.map((p, i) => (
           <button key={p.day} aria-pressed={point === i} onClick={() => setPoint(i)}>
-            {new Date(p.day.length === 10 ? p.day + "T00:00:00Z" : p.day).toLocaleDateString(undefined, {
+            <DateText value={p.day.length === 10 ? p.day + "T00:00:00Z" : p.day} options={{
               month: "short",
               day: data.granularity === "month" ? undefined : "numeric",
               year: "numeric",
               timeZone: "UTC",
-            })}
-            <strong>{p.attempts ? `${accuracy(p.correct, p.attempts)}%` : "No answers"}</strong>
+            }}/>
+            <strong>{p.attempts ? `${accuracy(p.correct, p.attempts)}%` : translateUi("No answers")}</strong>
             <small>
-              {p.correct}/{p.attempts} correct{p.attempts < 5 ? " · small sample" : ""}
+              {p.correct}/{p.attempts} {translateUi("correct")}{p.attempts < 5 ? translateUi("· small sample") : ""}
             </small>
-            <small>{p.completedSessions ?? 0} completed practice sessions · {p.completedExams ?? 0} completed exams</small>
+            <small>{p.completedSessions ?? 0} {translateUi("completed practice sessions ·")}{" "}{p.completedExams ?? 0} {translateUi("completed exams")}</small>
           </button>
         ))}
       </div>
       <small className="nexus-muted">
-        Buckets use {data.commandCenter?.timezone ?? "UTC"}. {data.commandCenter?.timeline.truncated ? "The all-time chart shows the latest 120 calendar months; lifetime counters include older records. " : ""}Accuracy and answer count are shown together; no study duration or exam
-        readiness is inferred.
-      </small>
+        {translateUi("Buckets use")}{" "}{data.commandCenter?.timezone ?? "UTC"}. {data.commandCenter?.timeline.truncated ? translateUi("The all-time chart shows the latest 120 calendar months; lifetime counters include older records.") : ""}{translateUi("Accuracy and answer count are shown together; no study duration or exam readiness is inferred.")}</small>
     </section>
   );
 }

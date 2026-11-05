@@ -1,3 +1,5 @@
+import { UiMessage } from '../i18n';
+import { useI18n } from '../i18n';
 import {
   selectedKeys,
   toggleSelection,
@@ -44,6 +46,9 @@ export function NexusPractice() {
   );
 }
 function NexusPracticeActor() {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   const life = useNexusLifetime(),
     identity = life.identity,
     cache = useQueryClient(),
@@ -343,14 +348,14 @@ function NexusPracticeActor() {
     answered = run?.questions.filter((q) => completeSelection(q)).length || 0;
   const navigator = run && (
     <>
-      <h3>Question navigator</h3>
+      <h3>{translateUi("Question navigator")}</h3>
       <div className="nexus-question-nav">
         {run.questions.map((item, i) => (
           <button
             key={item.deliveryId}
             disabled={busy}
             aria-current={i === index}
-            aria-label={`Question ${i + 1}, ${item.result ? "submitted" : item.selected ? "selected" : "unanswered"}${item.flagged ? ", flagged" : ""}`}
+            aria-label={translateUi("Question {value0}, {value1}{value2}", {value0: String(i + 1), value1: String(item.result ? "submitted" : item.selected ? "selected" : "unanswered"), value2: String(item.flagged ? translateUi(", flagged") : "")})}
             className={
               (item.result ? "answered" : item.selected ? "selected" : "") +
               (item.flagged ? " flagged" : "")
@@ -365,53 +370,47 @@ function NexusPracticeActor() {
         ))}
       </div>
       <p className="nexus-muted">
-        {answered}/{run.questions.length} selected · {run.questions.filter((q) => q.flagged).length}{" "}
-        flagged. Green: submitted. Blue: selected. Flag: review.
-      </p>
+        {answered}/{run.questions.length} {translateUi("selected ·")}{" "}{run.questions.filter((q) => q.flagged).length}{" "}
+        {translateUi("flagged. Green: submitted. Blue: selected. Flag: review.")}</p>
     </>
   );
   return (
     <div className="nexus-page ccna-practice">
       <NetworkHero
         compact
-        eyebrow="NETWORK CHALLENGE ARENA"
-        title="Train with a clear signal."
-        description="Real questions. Revision-bound delivery. Server-authoritative feedback."
+        eyebrow={translateUi("NETWORK CHALLENGE ARENA")}
+        title={translateUi("Train with a clear signal.")}
+        description={translateUi("Real questions. Revision-bound delivery. Server-authoritative feedback.")}
       />
       {!identity ? (
         <section className="nexus-panel">
-          <h2>Sign in to start practice</h2>
+          <h2>{translateUi("Sign in to start practice")}</h2>
           <Link href="/sign-in" className="nexus-button">
-            Sign in
-          </Link>
+            {translateUi("Sign in")}</Link>
         </section>
       ) : (
         <>
           {error && (
             <div role="alert" className="nexus-error">
-              {error}
+              <UiMessage text={error}/>
             </div>
           )}
           {error && pendingFinal && (
             <p className="nexus-panel" role="status">
-              Final submission is unconfirmed. Choices are locked so a retry uses the same answers.
-              Retry Finish &amp; Submit or review your recorded answer history; no success is
-              assumed.
-            </p>
+              {translateUi("Final submission is unconfirmed. Choices are locked so a retry uses the same answers. Retry Finish & Submit or review your recorded answer history; no success is assumed.")}</p>
           )}
           {!run ? (
             <div className="nexus-builder">
               <section className="nexus-panel">
                 <div className="nexus-section-heading">
                   <div>
-                    <span className="nexus-eyebrow">SESSION BUILDER</span>
-                    <h2>Choose your challenge</h2>
+                    <span className="nexus-eyebrow">{translateUi("SESSION BUILDER")}</span>
+                    <h2>{translateUi("Choose your challenge")}</h2>
                   </div>
                 </div>
                 <div className="nexus-fields">
                   <label className="nexus-field">
-                    Domain
-                    <select
+                    {translateUi("Domain")}<select
                       value={domainId}
                       onChange={(e) =>
                         updateFilter(() => {
@@ -420,7 +419,7 @@ function NexusPracticeActor() {
                         })
                       }
                     >
-                      <option value="">All mapped and unmapped domains</option>
+                      <option value="">{translateUi("All mapped and unmapped domains")}</option>
                       {analytics.data?.domains.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.name}
@@ -429,12 +428,11 @@ function NexusPracticeActor() {
                     </select>
                   </label>
                   <label className="nexus-field">
-                    Topic
-                    <select
+                    {translateUi("Topic")}<select
                       value={topicId}
                       onChange={(e) => updateFilter(() => setTopic(e.target.value))}
                     >
-                      <option value="">All available topics</option>
+                      <option value="">{translateUi("All available topics")}</option>
                       {available.data?.topics.map((t) => (
                         <option key={t.id} value={t.id}>
                           {t.name} ({t.available})
@@ -443,20 +441,18 @@ function NexusPracticeActor() {
                     </select>
                   </label>
                   <label className="nexus-field">
-                    Difficulty
-                    <select
+                    {translateUi("Difficulty")}<select
                       value={difficulty}
                       onChange={(e) => updateFilter(() => setDifficulty(e.target.value))}
                     >
-                      <option value="">Mixed difficulty</option>
+                      <option value="">{translateUi("Mixed difficulty")}</option>
                       {["EASY", "MEDIUM", "HARD"].map((d) => (
-                        <option key={d}>{d}</option>
+                        <option key={d} value={d}><UiMessage text={String(d)}/></option>
                       ))}
                     </select>
                   </label>
                   <label className="nexus-field">
-                    Mode
-                    <select
+                    {translateUi("Mode")}<select
                       value={mode}
                       onChange={(e) =>
                         updateFilter(() => {
@@ -465,70 +461,58 @@ function NexusPracticeActor() {
                         })
                       }
                     >
-                      <option value="LEARN">Learn · immediate feedback</option>
-                      <option value="PRACTICE">Practice · grade at finish</option>
+                      <option value="LEARN">{translateUi("Learn · immediate feedback")}</option>
+                      <option value="PRACTICE">{translateUi("Practice · grade at finish")}</option>
                       <option value="REVIEW_MISTAKES">
-                        Review Mistakes · your latest incorrect answers
-                      </option>
+                        {translateUi("Review Mistakes · your latest incorrect answers")}</option>
                     </select>
                   </label>
                   <label className="nexus-field">
-                    Number of questions
-                    <input
+                    {translateUi("Number of questions")}<input
                       type="number"
                       min={1}
                       max={Math.min(100, available.data?.available || 1)}
                       value={count}
                       onChange={(e) => updateFilter(() => setCount(Number(e.target.value)))}
                     />
-                    <small>Maximum 100, limited to actual availability.</small>
+                    <small>{translateUi("Maximum 100, limited to actual availability.")}</small>
                   </label>
                   <div className="nexus-field">
-                    Question availability
-                    <strong aria-live="polite">
+                    {translateUi("Question availability")}<strong aria-live="polite">
                       {available.isPending
-                        ? "Checking…"
-                        : (available.data?.available ?? "Unavailable")}
+                        ? translateUi("Checking…")
+                        : (available.data?.available ?? translateUi("Unavailable"))}
                     </strong>
                     {available.isError && (
-                      <button onClick={() => void available.refetch()}>Retry availability</button>
+                      <button onClick={() => void available.refetch()}>{translateUi("Retry availability")}</button>
                     )}
                   </div>
                 </div>
                 <p className="nexus-muted">
-                  Practice keeps every answer editable until final submission. Learn and guided
-                  Review Mistakes are explicit immediate-feedback modes: checked answers become
-                  immutable.
-                </p>
+                  {translateUi("Practice keeps every answer editable until final submission. Learn and guided Review Mistakes are explicit immediate-feedback modes: checked answers become immutable.")}</p>
                 <p className="nexus-muted">
-                  Review Mistakes uses only your latest incorrect answer for each currently
-                  available question. No other learner's history is accessed.
-                </p>
+                  {translateUi("Review Mistakes uses only your latest incorrect answer for each currently available question. No other learner's history is accessed.")}</p>
                 {available.data && !available.data.persistence && (
                   <p className="nexus-muted">
-                    Session tracking upgrade pending approval. Answers are still stored
-                    individually; this run cannot resume after leaving. Finish submits all selected
-                    deliveries atomically. Session resume and grouped history require the tracking
-                    upgrade.
-                  </p>
+                    {translateUi("Session tracking upgrade pending approval. Answers are still stored individually; this run cannot resume after leaving. Finish submits all selected deliveries atomically. Session resume and grouped history require the tracking upgrade.")}</p>
                 )}
               </section>
               <aside className="nexus-preview">
-                <span className="nexus-eyebrow">CHALLENGE PREVIEW</span>
+                <span className="nexus-eyebrow">{translateUi("CHALLENGE PREVIEW")}</span>
                 <h2>{mode.replaceAll("_", " ")}</h2>
                 <p>
                   {analytics.data?.domains.find((d) => d.id === domainId)?.name ||
-                    "Across the available CCNA catalog"}
+                    translateUi("Across the available CCNA catalog")}
                   <br />
                   {available.data?.topics.find((t) => t.id === topicId)?.name ||
-                    "Mixed networking concepts"}
+                    translateUi("Mixed networking concepts")}
                   <br />
-                  {count} questions · {difficulty || "mixed difficulty"}
+                  {count} {translateUi("questions ·")}{" "}{difficulty || translateUi("mixed difficulty")}
                 </p>
                 <p>
                   {mode === "PRACTICE"
-                    ? "Navigate and flag questions, then finish for server grading."
-                    : "Submit each choice to receive its original revision explanation."}
+                    ? translateUi("Navigate and flag questions, then finish for server grading.")
+                    : translateUi("Submit each choice to receive its original revision explanation.")}
                 </p>
                 <button
                   className="nexus-button"
@@ -542,14 +526,14 @@ function NexusPracticeActor() {
                   }
                   onClick={() => void start()}
                 >
-                  {busy ? "Starting…" : "Start Practice"} <ArrowRight size={16} />
+                  {busy ? translateUi("Starting…") : translateUi("Start Practice")} <ArrowRight size={16} />
                 </button>
               </aside>
             </div>
-          ) : run.status === "CONTENT_DELETED" ? (<div role="alert">An Admin permanently deleted content from this session. Unrelated history remains. Start a new run.</div>) : run.status === "COMPLETED" ? (
+          ) : run.status === "CONTENT_DELETED" ? (<div role="alert">{translateUi("An Admin permanently deleted content from this session. Unrelated history remains. Start a new run.")}</div>) : run.status === "COMPLETED" ? (
             <section className="nexus-panel nexus-results">
-              <span className="nexus-eyebrow">SESSION RESULTS</span>
-              <h2>Challenge complete</h2>
+              <span className="nexus-eyebrow">{translateUi("SESSION RESULTS")}</span>
+              <h2>{translateUi("Challenge complete")}</h2>
               <div className="nexus-result-grid">
                 <div>
                   <strong>
@@ -559,64 +543,56 @@ function NexusPracticeActor() {
                     )}
                     %
                   </strong>
-                  Server-graded accuracy
-                </div>
+                  {translateUi("Server-graded accuracy")}</div>
                 <div>
                   <strong>
                     {run.questions.filter((q) => q.result?.isCorrect).length}/{run.questions.length}
                   </strong>
-                  Correct answers
-                </div>
+                  {translateUi("Correct answers")}</div>
                 <div>
-                  <strong>{run.questions.filter((q) => q.flagged).length}</strong>Flagged for review
-                </div>
+                  <strong>{run.questions.filter((q) => q.flagged).length}</strong>{translateUi("Flagged for review")}</div>
               </div>
               <p>
-                All {run.questions.filter((q) => q.result).length} graded answers were returned by
-                the server.{" "}
+                {translateUi("All")}{" "}{run.questions.filter((q) => q.result).length} {translateUi("graded answers were returned by the server.")}{" "}
                 {run.id
-                  ? "This session is stored for review."
-                  : "This run remains in individual-answer history."}
+                  ? translateUi("This session is stored for review.")
+                  : translateUi("This run remains in individual-answer history.")}
               </p>
-              <h3>Topic breakdown</h3>
+              <h3>{translateUi("Topic breakdown")}</h3>
               {Array.from(new Set(run.questions.map((q) => q.topic.id))).map((id) => {
                 const group = run.questions.filter((q) => q.topic.id === id);
                 return (
                   <p key={id}>
                     {group[0].topic.name}: {group.filter((q) => q.result?.isCorrect).length}/
-                    {group.length} correct
-                  </p>
+                    {group.length} {translateUi("correct")}</p>
                 );
               })}
-              <h3>Domain breakdown</h3>
+              <h3>{translateUi("Domain breakdown")}</h3>
               {Array.from(new Set(run.questions.flatMap((q) => q.domains.map((d) => d.id)))).map(
                 (id) => {
                   const group = run.questions.filter((q) => q.domains.some((d) => d.id === id));
                   return (
                     <p key={id}>
                       {group[0].domains.find((d) => d.id === id)?.name}:{" "}
-                      {group.filter((q) => q.result?.isCorrect).length}/{group.length} correct
-                    </p>
+                      {group.filter((q) => q.result?.isCorrect).length}/{group.length} {translateUi("correct")}</p>
                   );
                 },
               )}
               <p className="nexus-muted">
-                A question can belong to multiple domains; domain totals may overlap. Unmapped
-                questions are not assigned automatically.
-              </p>
+                {translateUi("A question can belong to multiple domains; domain totals may overlap. Unmapped questions are not assigned automatically.")}</p>
               {run.questions
                 .filter((q) => !q.result?.isCorrect || q.flagged)
                 .map((item, i) => (
                   <details key={item.deliveryId}>
                     <summary>
-                      {item.flagged ? "Flagged · " : ""}
-                      {item.result?.isCorrect ? "Correct" : "Incorrect"} · {item.questionCode} ·{" "}
+                      {item.flagged ? translateUi("Flagged ·") : ""}
+                      {item.result?.isCorrect ? translateUi("Correct") : translateUi("Incorrect")} · {item.questionCode} ·{" "}
                       {item.topic.name}
                     </summary>
                     <QuestionContent text={item.text} />
-                    <p>Your answer: {answerLabel(item.selected)}</p>
+                    <p>{translateUi("Your answer:")}{" "}{answerLabel(item.selected)}</p>
                     <p>
-                      Correct:{" "}
+                      {translateUi("Correct:")}{" "}
                       {(
                         item.result?.correctOptions ??
                         (item.result ? [item.result.correctOption] : [])
@@ -639,27 +615,24 @@ function NexusPracticeActor() {
                     setRequestId(crypto.randomUUID());
                   }}
                 >
-                  Retry Mistakes
-                </button>
+                  {translateUi("Retry Mistakes")}</button>
                 <Link href="/" className="nexus-button secondary">
-                  Return to Overview
-                </Link>
+                  {translateUi("Return to Overview")}</Link>
               </div>
             </section>
           ) : (
             q && (
               <>
-                <div className="practice-session-progress" role="group" aria-label="Practice session progress">
+                <div className="practice-session-progress" role="group" aria-label={translateUi("Practice session progress")}>
                   <div className="practice-progress-heading">
-                    <span>Session progress</span>
+                    <span>{translateUi("Session progress")}</span>
                     <strong>
-                      {answered} of {run.questions.length} answered
-                    </strong>
+                      {answered} {translateUi("of")}{" "}{run.questions.length} {translateUi("answered")}</strong>
                   </div>
                   <div
                     className="practice-progress-track"
                     role="progressbar"
-                    aria-label="Questions answered"
+                    aria-label={translateUi("Questions answered")}
                     aria-valuemin={0}
                     aria-valuemax={run.questions.length}
                     aria-valuenow={answered}
@@ -671,23 +644,22 @@ function NexusPracticeActor() {
                     />
                   </div>
                   <small>
-                    Question {index + 1} of {run.questions.length}
+                    {translateUi("Question")}{" "}{index + 1} {translateUi("of")}{" "}{run.questions.length}
                   </small>
                 </div>
                 <div className="nexus-section-heading practice-session-heading">
                   <div>
                     <h2>
-                      {run.mode.replaceAll("_", " ")} · Question {index + 1}/{run.questions.length}
+                      {run.mode.replaceAll("_", " ")} {translateUi("· Question")}{" "}{index + 1}/{run.questions.length}
                     </h2>
                     <p className="nexus-muted">
-                      {answered} selected · {run.questions.filter((q) => q.result).length} submitted
-                    </p>
+                      {answered} {translateUi("selected ·")}{" "}{run.questions.filter((q) => q.result).length} {translateUi("submitted")}</p>
                   </div>
                   <div className="flex gap-2">
                     <button
                       className="nexus-button secondary nexus-mobile-navigator"
                       onClick={() => setNav(true)}
-                      aria-label="Open question navigator"
+                      aria-label={translateUi("Open question navigator")}
                     >
                       <ListChecks size={18} />
                     </button>
@@ -696,33 +668,28 @@ function NexusPracticeActor() {
                       disabled={busy}
                       onClick={() => setConfirm("abandon")}
                     >
-                      Leave session
-                    </button>
+                      {translateUi("Leave session")}</button>
                     {index === run.questions.length - 1 && (
                       <button
                         className="nexus-button"
                         disabled={busy || answered !== run.questions.length}
                         onClick={() => setConfirm("finish")}
                       >
-                        Finish & Submit
-                      </button>
+                        {translateUi("Finish & Submit")}</button>
                     )}
                   </div>
                 </div>
                 {index === run.questions.length - 1 && answered !== run.questions.length && (
                   <div className="nexus-panel" role="status">
                     <p>
-                      {run.questions.length - answered} questions are unanswered. Review them before
-                      final submission.
-                    </p>
+                      {run.questions.length - answered} {translateUi("questions are unanswered. Review them before final submission.")}</p>
                     <button
                       className="nexus-button secondary"
                       onClick={() =>
                         setIndex(run.questions.findIndex((q) => !completeSelection(q)))
                       }
                     >
-                      Go to first unanswered question
-                    </button>
+                      {translateUi("Go to first unanswered question")}</button>
                   </div>
                 )}
                 <div className="nexus-workspace">
@@ -731,7 +698,7 @@ function NexusPracticeActor() {
                       <span>
                         {q.questionCode} · {q.topic.name}
                       </span>
-                      <span>{q.difficulty}</span>
+                      <span><UiMessage text={q.difficulty}/></span>
                     </div>
                     <div className="nexus-question-text">
                       <QuestionContent text={q.text} />
@@ -750,7 +717,7 @@ function NexusPracticeActor() {
                         }}
                       >
                         {copied ? <Check size={14} /> : <Copy size={14} />}{" "}
-                        {copied ? "Copied" : "Copy question / CLI text"}
+                        {copied ? translateUi("Copied") : translateUi("Copy question / CLI text")}
                       </button>
                     )}
                     <fieldset
@@ -764,8 +731,8 @@ function NexusPracticeActor() {
                     >
                       <legend>
                         {q.type === "MULTIPLE_CHOICE_MULTIPLE"
-                          ? `Choose ${q.requiredSelectionCount} answers`
-                          : "Choose one answer"}
+                          ? translateUi("Choose {value0} answers", {value0: String(q.requiredSelectionCount)})
+                          : translateUi("Choose one answer")}
                       </legend>
                       <div className="nexus-options">
                         {q.options.map((option) => (
@@ -799,9 +766,9 @@ function NexusPracticeActor() {
                         }
                         role="status"
                       >
-                        <h3>{q.result.isCorrect ? "Correct connection" : "Review this concept"}</h3>
+                        <h3>{q.result.isCorrect ? translateUi("Correct connection") : translateUi("Review this concept")}</h3>
                         <p>
-                          Correct answer:{" "}
+                          {translateUi("Correct answer:")}{" "}
                           {(q.result.correctOptions ?? [q.result.correctOption])
                             .map((o) => o.optionKey + ". " + o.text)
                             .join("; ")}{" "}
@@ -820,8 +787,7 @@ function NexusPracticeActor() {
                         }}
                       >
                         <ArrowLeft size={15} />
-                        Previous
-                      </button>
+                        {translateUi("Previous")}</button>
                       <button
                         className="nexus-text-link"
                         disabled={busy}
@@ -829,7 +795,7 @@ function NexusPracticeActor() {
                         onClick={() => void selection(q, q.selected, !q.flagged)}
                       >
                         <Flag size={15} />
-                        {q.flagged ? "Unflag" : "Flag for review"}
+                        {q.flagged ? translateUi("Unflag") : translateUi("Flag for review")}
                       </button>
                       {run.mode !== "PRACTICE" && !q.result && (
                         <button
@@ -838,8 +804,8 @@ function NexusPracticeActor() {
                           onClick={() => void grade(q)}
                         >
                           {run.mode === "LEARN"
-                            ? "Check answer (Learn mode)"
-                            : "Check answer (guided review)"}
+                            ? translateUi("Check answer (Learn mode)")
+                            : translateUi("Check answer (guided review)")}
                         </button>
                       )}
                       <button
@@ -850,8 +816,7 @@ function NexusPracticeActor() {
                           setCopied(false);
                         }}
                       >
-                        Next Question
-                        <ArrowRight size={15} />
+                        {translateUi("Next Question")}<ArrowRight size={15} />
                       </button>
                     </div>
                   </section>
@@ -859,10 +824,9 @@ function NexusPracticeActor() {
                 </div>
                 <Sheet open={nav} onOpenChange={setNav}>
                   <SheetContent className="practice-navigation-sheet">
-                    <SheetTitle>Question navigation</SheetTitle>
+                    <SheetTitle>{translateUi("Question navigation")}</SheetTitle>
                     <SheetDescription>
-                      Jump between questions; selected answers remain saved.
-                    </SheetDescription>
+                      {translateUi("Jump between questions; selected answers remain saved.")}</SheetDescription>
                     {navigator}
                   </SheetContent>
                 </Sheet>
@@ -883,18 +847,18 @@ function NexusPracticeActor() {
         <AlertDialogContent>
           <AlertDialogTitle>
             {confirm === "finish"
-              ? "Finish and grade this session?"
-              : "Leave this unfinished session?"}
+              ? translateUi("Finish and grade this session?")
+              : translateUi("Leave this unfinished session?")}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {confirm === "finish"
-              ? "The server grades selected answers using their delivered question revisions. Submitted answers cannot be changed."
-              : "Submitted answers remain in your history. Leaving marks a persisted session abandoned; an untracked run cannot resume."}
+              ? translateUi("The server grades selected answers using their delivered question revisions. Submitted answers cannot be changed.")
+              : translateUi("Submitted answers remain in your history. Leaving marks a persisted session abandoned; an untracked run cannot resume.")}
           </AlertDialogDescription>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep studying</AlertDialogCancel>
+            <AlertDialogCancel>{translateUi("Keep studying")}</AlertDialogCancel>
             <AlertDialogAction onClick={() => void (confirm === "finish" ? finish() : abandon())}>
-              {confirm === "finish" ? "Finish & Submit" : "Leave session"}
+              {confirm === "finish" ? translateUi("Finish & Submit") : translateUi("Leave session")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

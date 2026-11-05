@@ -6,6 +6,7 @@ import { it, expect, vi, beforeEach, afterEach } from "vitest";
 import { accuracy, recommendTopic } from "../lib/nexus";
 import { NetworkTopologyMap, LearningAnalytics } from "../components/nexus-visuals";
 import { NexusPractice } from "./nexus-practice";
+import {LocaleProvider,LanguageSelect,languagePreferenceKey} from '../i18n';
 import { SubmitPracticeAnswerBody } from "@workspace/api-zod";
 import { NexusOverview } from "./nexus-overview";
 import { NexusHistory } from "./nexus-history";
@@ -212,6 +213,7 @@ afterEach(async () => {
   await act(async () => root.unmount());
   host.remove();
   vi.unstubAllGlobals();
+  localStorage.removeItem(languagePreferenceKey);document.documentElement.dir='ltr';document.documentElement.lang='en';
 });
 async function render(node: React.ReactNode) {
   await act(async () => {
@@ -288,6 +290,20 @@ it("shows real availability and creates an authenticated revision-bound session"
   ).toBe("session-a");
   expect(host.textContent).toContain("Which prefix");
   expect(host.textContent).not.toContain("A /24 leaves");
+});
+it('keeps the actual Arena session, answer and flag when changing language without requests',async()=>{
+  localStorage.removeItem(languagePreferenceKey);
+  await render(<LocaleProvider><LanguageSelect/><NexusPractice/></LocaleProvider>);
+  await click('Start Practice');
+  await act(async()=>{host.querySelector<HTMLInputElement>('input[type=radio]')!.click();await new Promise(r=>setTimeout(r,30));});
+  await click('Flag for review');
+  const answer=host.querySelector<HTMLInputElement>('input[type=radio]')!, count=calls.length, url=location.href;
+  expect(answer.checked).toBe(true);expect(flagged).toBe(true);
+  await act(async()=>{const select=host.querySelector<HTMLSelectElement>('select[aria-label="Language"]')!;select.value='ar';select.dispatchEvent(new Event('change',{bubbles:true}));});
+  expect(document.documentElement.dir).toBe('rtl');expect(host.querySelector('input[type=radio]')).toBe(answer);expect(answer.checked).toBe(true);
+  expect(flagged).toBe(true);expect(selected).toBe('A');expect(calls).toHaveLength(count);expect(location.href).toBe(url);
+  expect(host.textContent).toContain('Which prefix is a /24?');expect(host.textContent).toContain('255.255.255.0');
+  expect(calls.some(c=>c.url.endsWith('/finish')||c.url.endsWith('/submissions'))).toBe(false);
 });
 it("persists selection before Learn grading and displays only server feedback", async () => {
   await render(<NexusPractice />);

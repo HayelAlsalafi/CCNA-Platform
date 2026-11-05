@@ -1,3 +1,5 @@
+import {UiMessage} from "../i18n";
+import { useI18n } from '../i18n';
 import { useEffect, useRef, useState } from "react";
 import { Mark } from "@tiptap/core";
 import {
@@ -77,6 +79,7 @@ export function LessonRichEditor({
   update?: (block: LessonBlock) => void;
   listControls?: ListControls;
 }) {
+  const { t: translateUi } = useI18n();
   const change = useRef(onChange);
   change.current = onChange;
   const shared = useFormatStore();
@@ -199,20 +202,16 @@ export function LessonRichEditor({
       },
     });
   }, [editor, direction, label, block?.alignment]);
-  if (!editor) return <p>Loading text editor…</p>;
+  if (!editor) return <p>{translateUi("Loading text editor…")}</p>;
   return (
     <div className="visual-rich-editor" data-transaction={version}>
       {!shared && <LessonFormattingToolbar store={local} />}
       <EditorContent editor={editor} />
       <small>
-        Select text to format. Ctrl/Cmd+B, I, U; Ctrl/Cmd+Z to undo. Paste keeps supported marks;
-        unsupported content is discarded.
-      </small>
+        {translateUi("Select text to format. Ctrl/Cmd+B, I, U; Ctrl/Cmd+Z to undo. Paste keeps supported marks; unsupported content is discarded.")}</small>
       {(runs.length > 100 || runs.reduce((n, r) => n + r.text.length, 0) > 20000) && (
         <p role="alert">
-          This text exceeds the lesson limit (100 segments / 20,000 characters). Shorten it before
-          saving.
-        </p>
+          {translateUi("This text exceeds the lesson limit (100 segments / 20,000 characters). Shorten it before saving.")}</p>
       )}
     </div>
   );
@@ -223,6 +222,7 @@ export function LessonFormattingToolbar({
 }: {
   store?: ReturnType<typeof createFormatStore>;
 }) {
+  const { t: translateUi, message } = useI18n();
   const shared = useFormatStore();
   const [fallback] = useState(createFormatStore);
   const store = explicit ?? shared ?? fallback;
@@ -233,13 +233,11 @@ export function LessonFormattingToolbar({
       <div
         className="visual-format-toolbar"
         role="toolbar"
-        aria-label="Selection formatting"
+        aria-label={translateUi("Selection formatting")}
         aria-disabled="true"
       >
         <span>
-          Select text in a content block to format it. Tables, images and CLI use contextual
-          controls.
-        </span>
+          {translateUi("Select text in a content block to format it. Tables, images and CLI use contextual controls.")}</span>
       </div>
     );
   const { editor } = target,
@@ -276,8 +274,8 @@ export function LessonFormattingToolbar({
   const button = (name: string, action: () => void, active?: boolean, disabled = false) => (
     <button
       type="button"
-      aria-label={name}
-      title={name}
+      aria-label={message(name)}
+      title={message(name)}
       aria-pressed={active}
       disabled={disabled}
       onMouseDown={(e) => e.preventDefault()}
@@ -285,7 +283,7 @@ export function LessonFormattingToolbar({
     >
       {(() => {
         const Icon = icons[name as keyof typeof icons];
-        return Icon ? <Icon size={16} aria-hidden="true" /> : name;
+        return Icon ? <Icon size={16} aria-hidden="true" /> : message(name);
       })()}
     </button>
   );
@@ -293,7 +291,7 @@ export function LessonFormattingToolbar({
     <div
       className="visual-format-toolbar"
       role="toolbar"
-      aria-label="Selection formatting"
+      aria-label={translateUi("Selection formatting")}
       onKeyDown={(event) => {
         if (
           (event.target as HTMLElement).tagName !== "BUTTON" ||
@@ -316,9 +314,8 @@ export function LessonFormattingToolbar({
     >
       {block && (
         <label>
-          Text structure
-          <select
-            aria-label="Text structure"
+          {translateUi("Text structure")}<select
+            aria-label={translateUi("Text structure")}
             value={block.type === "heading" ? String(block.level) : block.type}
             disabled={block.type === "callout"}
             onChange={(event) => {
@@ -370,36 +367,35 @@ export function LessonFormattingToolbar({
               }
             }}
           >
-            <option value="richText">Formatted text</option>
-            <option value="paragraph">Paragraph</option>
+            <option value="richText">{translateUi("Formatted text")}</option>
+            <option value="paragraph">{translateUi("Paragraph")}</option>
             {[1, 2, 3, 4, 5, 6].map((level) => (
               <option key={level} value={level}>
                 H{level}
               </option>
             ))}
-            <option value="quote">Blockquote</option>
+            <option value="quote">{translateUi("Blockquote")}</option>
             <option value="callout" disabled>
-              Callout
-            </option>
-            <option value="ordered">Ordered list</option>
-            <option value="unordered">Unordered list</option>
+              {translateUi("Callout")}</option>
+            <option value="ordered">{translateUi("Ordered list")}</option>
+            <option value="unordered">{translateUi("Unordered list")}</option>
           </select>
         </label>
       )}
       {list && (
-        <div role="group" aria-label="List structure" className="visual-toolbar-group">
+        <div role="group" aria-label={translateUi("List structure")} className="visual-toolbar-group">
           {button("Ordered list", () => list.setOrdered(true), list.ordered)}
           {button("Unordered list", () => list.setOrdered(false), !list.ordered)}
           {button("Indent list item", () => list.indent(1), undefined, !list.canIndent)}
           {button("Outdent list item", () => list.indent(-1), undefined, !list.canOutdent)}
         </div>
       )}
-      <div role="group" aria-label="Links" className="visual-toolbar-group">
+      <div role="group" aria-label={translateUi("Links")} className="visual-toolbar-group">
         {button(
           "Link",
           () => {
             const href = window.prompt(
-              "Link URL (HTTP/HTTPS or approved learning link)",
+              translateUi("Link URL (HTTP/HTTPS or approved learning link)"),
               editor.getAttributes("link").href ?? "",
             );
             if (href === null) return;
@@ -428,7 +424,7 @@ export function LessonFormattingToolbar({
           !editor.isActive("link"),
         )}
       </div>
-      <div role="group" aria-label="Text emphasis" className="visual-toolbar-group">
+      <div role="group" aria-label={translateUi("Text emphasis")} className="visual-toolbar-group">
         {button("Bold", () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"))}
         {button(
           "Italic",
@@ -461,11 +457,10 @@ export function LessonFormattingToolbar({
           editor.isActive("code"),
         )}
       </div>
-      <div role="group" aria-label="Text appearance" className="visual-toolbar-group">
+      <div role="group" aria-label={translateUi("Text appearance")} className="visual-toolbar-group">
         <label>
-          Text color
-          <select
-            aria-label="Selection text color"
+          {translateUi("Text color")}<select
+            aria-label={translateUi("Selection text color")}
             value={paletteValue("color", textColors)}
             onChange={(e) => {
               if (e.target.value)
@@ -477,16 +472,15 @@ export function LessonFormattingToolbar({
               else editor.chain().focus().unsetColor().run();
             }}
           >
-            <option value="">Inherit text color</option>
+            <option value="">{translateUi("Inherit text color")}</option>
             {Object.keys(textColors).map((c) => (
-              <option key={c}>{c}</option>
+              <option key={c} value={c}><UiMessage text={String(c)}/></option>
             ))}
           </select>
         </label>
         <label>
-          Highlight
-          <select
-            aria-label="Selection highlight color"
+          {translateUi("Highlight")}<select
+            aria-label={translateUi("Selection highlight color")}
             value={paletteValue("backgroundColor", highlightColors)}
             onChange={(e) => {
               if (e.target.value)
@@ -500,9 +494,9 @@ export function LessonFormattingToolbar({
               else editor.chain().focus().unsetBackgroundColor().run();
             }}
           >
-            <option value="">No highlight</option>
+            <option value="">{translateUi("No highlight")}</option>
             {Object.keys(highlightColors).map((c) => (
-              <option key={c}>{c}</option>
+              <option key={c} value={c}><UiMessage text={String(c)}/></option>
             ))}
           </select>
         </label>
@@ -510,9 +504,8 @@ export function LessonFormattingToolbar({
       </div>
       {block && (
         <label>
-          Alignment
-          <select
-            aria-label="Text alignment"
+          {translateUi("Alignment")}<select
+            aria-label={translateUi("Text alignment")}
             value={block.alignment ?? "left"}
             onChange={(e) =>
               target.update?.({
@@ -521,13 +514,13 @@ export function LessonFormattingToolbar({
               })
             }
           >
-            <option value="left">Left</option>
-            <option value="center">Center</option>
-            <option value="right">Right</option>
+            <option value="left">{translateUi("Left")}</option>
+            <option value="center">{translateUi("Center")}</option>
+            <option value="right">{translateUi("Right")}</option>
           </select>
         </label>
       )}
-      <div role="group" aria-label="Text history and direction" className="visual-toolbar-group">
+      <div role="group" aria-label={translateUi("Text history and direction")} className="visual-toolbar-group">
         {button(
           "Undo text",
           () => editor.chain().focus().undo().run(),
@@ -541,8 +534,7 @@ export function LessonFormattingToolbar({
           !editor.can().redo(),
         )}
         <label>
-          Direction
-          <select
+          {translateUi("Direction")}<select
             value={direction}
             disabled={!block}
             onChange={(e) =>
@@ -550,13 +542,13 @@ export function LessonFormattingToolbar({
               target.update?.({ ...block, direction: e.target.value as "auto" | "ltr" | "rtl" })
             }
           >
-            <option value="auto">Auto</option>
-            <option value="ltr">English / LTR</option>
-            <option value="rtl">Arabic / RTL</option>
+            <option value="auto">{translateUi("Auto")}</option>
+            <option value="ltr">{translateUi("English / LTR")}</option>
+            <option value="rtl">{translateUi("Arabic / RTL")}</option>
           </select>
         </label>
       </div>
-      {linkError && <span role="alert">{linkError}</span>}
+      {linkError && <span role="alert"><UiMessage text={linkError}/></span>}
     </div>
   );
 }

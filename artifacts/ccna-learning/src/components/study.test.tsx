@@ -9,6 +9,7 @@ import {
   type StudyAnnotation,
 } from "@workspace/api-client-react";
 import { LessonReader } from "../pages/lesson-reader";
+import { LocaleProvider, LanguageSelect, languagePreferenceKey } from '../i18n';
 import { LessonContent, safeLessonUrl } from "./lesson-content";
 import { LessonImageUpload } from "./lesson-image-upload";
 import { AdminSessionBoundary } from "./admin-session-boundary";
@@ -61,7 +62,7 @@ const json = (body: unknown, status = 200) =>
 const wait = async () => act(async () => new Promise((resolve) => setTimeout(resolve, 35)));
 async function render(component: React.ReactNode) {
   await act(async () =>
-    root.render(<QueryClientProvider client={client}>{component}</QueryClientProvider>),
+    root.render(<LocaleProvider><LanguageSelect/><QueryClientProvider client={client}>{component}</QueryClientProvider></LocaleProvider>),
   );
   await wait();
   await wait();
@@ -75,6 +76,7 @@ async function click(text: string) {
   await wait();
 }
 beforeEach(() => {
+  localStorage.removeItem(languagePreferenceKey);
   (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
   notifyManager.setScheduler(queueMicrotask);
   auth.userId = "learner-a";
@@ -202,6 +204,7 @@ beforeEach(() => {
   );
 });
 afterEach(async () => {
+  localStorage.removeItem(languagePreferenceKey);document.documentElement.dir='ltr';document.documentElement.lang='en';
   await act(async () => root.unmount());
   client.clear();
   host.remove();
@@ -402,6 +405,22 @@ it("focus transitions keep the note draft and do not send study writes", async (
   expect(
     calls.some((call) => ["POST", "PUT", "PATCH", "DELETE"].includes(call.options.method ?? "")),
   ).toBe(false);
+});
+it('keeps lesson content, unsaved notes, focus settings and saved progress during locale changes',async()=>{
+  storedProgress={state:'IN_PROGRESS',version:3,blockId};
+  await render(<LessonReader chapterId={chapterId} lessonId={lessonId}/>);
+  const note=host.querySelector<HTMLTextAreaElement>('#private-study-note')!;
+  await act(async()=>{
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')!.set!.call(note,'ملاحظتي عن TCP');
+    note.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  await click('Focus reading');const workspace=host.querySelector('.lesson-workspace'), count=calls.length;
+  await act(async()=>{const select=host.querySelector('select')!;select.value='ar';select.dispatchEvent(new Event('change',{bubbles:true}));});
+  expect(host.querySelector('.lesson-workspace')).toBe(workspace);expect(workspace?.classList.contains('lesson-focus-mode')).toBe(true);
+  expect(host.querySelector('#private-study-note')).toBe(note);expect(note.value).toBe('ملاحظتي عن TCP');
+  expect(host.textContent).toContain('TCP provides reliable transport.');expect(host.textContent).toContain('موضع القراءة');
+  expect(storedProgress).toEqual({state:'IN_PROGRESS',version:3,blockId});expect(calls).toHaveLength(count);
+  expect(calls.some(c=>['POST','PUT','PATCH','DELETE'].includes(c.options.method??''))).toBe(false);
 });
 it("keeps unactivated persistence honest while reading comfort controls work", async () => {
   blocked = true;

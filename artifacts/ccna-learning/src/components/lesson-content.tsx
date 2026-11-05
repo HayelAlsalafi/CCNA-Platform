@@ -1,3 +1,5 @@
+import {UiMessage} from "../i18n";
+import { useI18n } from '../i18n';
 ﻿import { createElement, useRef, useState } from "react";
 import type { LessonBlock } from "@workspace/api-client-react";
 import { useEffect } from "react";
@@ -38,6 +40,7 @@ export function safeLessonImageUrl(value: string, allowLegacyHttp = false): stri
 }
 
 function LessonImage({ url, alt, width, height }: { url: string; alt: string; width?:number;height?:number }) {
+  const { t: translateUi } = useI18n();
   const identity = useNexusIdentity(),
     [loaded, setLoaded] = useState<{ source: string; owner: string; url: string } | null>(null),
     [failed, setFailed] = useState(false);
@@ -78,9 +81,7 @@ function LessonImage({ url, alt, width, height }: { url: string; alt: string; wi
     : safeLessonImageUrl(url, true);
   const body = failed ? (
     <p role="note">
-      Image could not load. Check the resource URL, access permissions and browser Network/CSP
-      diagnostics. Upload storage may not be activated for private media.
-    </p>
+      {translateUi("Image could not load. Check the resource URL, access permissions and browser Network/CSP diagnostics. Upload storage may not be activated for private media.")}</p>
   ) : source ? (
     <img
       src={source}
@@ -93,7 +94,7 @@ function LessonImage({ url, alt, width, height }: { url: string; alt: string; wi
       onError={() => setFailed(true)}
     />
   ) : (
-    <p role="note">{failed ? "Image unavailable." : "Loading authenticated image…"}</p>
+    <p role="note">{failed ? translateUi("Image unavailable.") : translateUi("Loading authenticated image…")}</p>
   );
   return <span ref={container} style={{display:"block",...(width&&height?{aspectRatio:`${width}/${height}`}:{minHeight:near?undefined:160})}}>{body}</span>;
 }
@@ -203,6 +204,7 @@ function CodeExample({
   lineNumbers?: boolean;
   explanation?: string;
 }) {
+  const { t: translateUi } = useI18n();
   const [message, setMessage] = useState("");
   return (
     <div className="lesson-code">
@@ -219,8 +221,7 @@ function CodeExample({
             }
           }}
         >
-          Copy code
-        </button>
+          {translateUi("Copy code")}</button>
       </div>
       <pre tabIndex={0} dir="ltr">
         <code>
@@ -234,12 +235,13 @@ function CodeExample({
             : text}
         </code>
       </pre>
-      <span role="status">{message}</span>
+      <span role="status"><UiMessage text={message}/></span>
       {explanation && <p className="lesson-text">{explanation}</p>}
     </div>
   );
 }
 function KnowledgeCheck({ block }: { block: Extract<LessonBlock, { type: "knowledgeCheck" }> }) {
+  const { t: translateUi } = useI18n();
   const [choice, setChoice] = useState<number | null>(null),
     [checked, setChecked] = useState(false);
   return (
@@ -260,15 +262,14 @@ function KnowledgeCheck({ block }: { block: Extract<LessonBlock, { type: "knowle
         </label>
       ))}
       <button type="button" disabled={choice === null} onClick={() => setChecked(true)}>
-        Check understanding
-      </button>
+        {translateUi("Check understanding")}</button>
       {checked && (
         <p role="status">
-          <strong>{choice === block.correctIndex ? "Correct. " : "Review this concept. "}</strong>
+          <strong>{choice === block.correctIndex ? translateUi("Correct.") : translateUi("Review this concept.")}</strong>
           {block.explanation}
         </p>
       )}
-      <small>Self-check only. This does not create a practice attempt.</small>
+      <small>{translateUi("Self-check only. This does not create a practice attempt.")}</small>
     </fieldset>
   );
 }
@@ -306,6 +307,9 @@ export function LessonContent({
   highlights?: StudyAnnotation[];
   onBookmarkSection?: (id: string) => void;
 }) {
+  const {message:localizeUiLabel}=useI18n();
+
+  const { t: translateUi } = useI18n();
   return (
     <>
       {blocks.map((block) => {
@@ -328,10 +332,9 @@ export function LessonContent({
                 type="button"
                 className="study-section-bookmark"
                 onClick={() => onBookmarkSection(block.id)}
-                aria-label={`Bookmark section ${blocks.indexOf(block) + 1}`}
+                aria-label={translateUi("Bookmark section {value0}", {value0: String(blocks.indexOf(block) + 1)})}
               >
-                Bookmark section
-              </button>
+                {translateUi("Bookmark section")}</button>
             )}
             {block.type === "heading" &&
               createElement(
@@ -400,16 +403,16 @@ export function LessonContent({
                   )}
                   {block.title ||
                     (block.tone === "warning"
-                      ? "Take care"
+                      ? translateUi("Take care")
                       : block.tone === "tip"
-                        ? "Study tip"
+                        ? translateUi("Study tip")
                         : block.tone === "important"
-                          ? "Important"
+                          ? translateUi("Important")
                           : block.tone === "example"
-                            ? "Example"
+                            ? translateUi("Example")
                             : block.tone === "note"
-                              ? "Note"
-                              : "Information")}
+                              ? translateUi("Note")
+                              : translateUi("Information"))}
                 </strong>
                 <p className="lesson-text" data-study-text={block.id}>
                   {block.runs ? (
@@ -435,7 +438,7 @@ export function LessonContent({
                 {safeLessonImageUrl(block.url, true) ? (
                   <LessonImage url={block.url} alt={block.decorative ? "" : block.alt} width={block.pixelWidth} height={block.pixelHeight} />
                 ) : (
-                  <p role="note">Image unavailable: unsafe or invalid URL.</p>
+                  <p role="note">{translateUi("Image unavailable: unsafe or invalid URL.")}</p>
                 )}
                 {block.caption && <figcaption>{block.caption}</figcaption>}
               </figure>
@@ -444,7 +447,7 @@ export function LessonContent({
               <div
                 className="lesson-table"
                 role="region"
-                aria-label="Lesson reference table"
+                aria-label={translateUi("Lesson reference table")}
                 tabIndex={0}
               >
                 <table className={`visual-columns-${block.columnWidth ?? "auto"}`}>
@@ -531,7 +534,7 @@ export function LessonContent({
                 <p>{block.description}</p>
                 {!!block.objectives?.length && (
                   <>
-                    <h3>Learning objectives</h3>
+                    <h3>{translateUi("Learning objectives")}</h3>
                     <ul>
                       {block.objectives.map((v, i) => (
                         <li key={i}>{v}</li>
@@ -541,7 +544,7 @@ export function LessonContent({
                 )}
                 {!!block.requirements?.length && (
                   <>
-                    <h3>Requirements</h3>
+                    <h3>{translateUi("Requirements")}</h3>
                     <ul>
                       {block.requirements.map((v, i) => (
                         <li key={i}>{v}</li>
@@ -551,7 +554,7 @@ export function LessonContent({
                 )}
                 {!!block.steps?.length && (
                   <>
-                    <h3>Steps</h3>
+                    <h3>{translateUi("Steps")}</h3>
                     <ol>
                       {block.steps.map((v, i) => (
                         <li key={i}>{v}</li>
@@ -561,20 +564,18 @@ export function LessonContent({
                 )}
                 {block.expectedResults && (
                   <>
-                    <h3>Expected results</h3>
+                    <h3>{translateUi("Expected results")}</h3>
                     <p>{block.expectedResults}</p>
                   </>
                 )}
                 {block.url && safeLessonUrl(block.url) ? (
                   <a href={safeLessonUrl(block.url)!} target="_blank" rel="noopener noreferrer">
-                    Open lab reference ↗
-                  </a>
+                    {translateUi("Open lab reference ↗")}</a>
                 ) : block.url ? (
-                  <p>Lab link unavailable.</p>
+                  <p>{translateUi("Lab link unavailable.")}</p>
                 ) : null}
                 <small>
-                  External reference only; no simulator or command execution is provided.
-                </small>
+                  {translateUi("External reference only; no simulator or command execution is provided.")}</small>
               </aside>
             )}
           </section>
