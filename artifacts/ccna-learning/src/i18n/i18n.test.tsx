@@ -104,3 +104,33 @@ it('never translates stored content even when it exactly matches a UI key',async
   expect(host.querySelector('code')!.textContent).toBe('show ip route 192.0.2.1\n');
   expect(host.querySelector('.lesson-block')!.getAttribute('dir')).toBe('auto');
 });
+it('keeps localized controls out of authored direction detection and preserves content and self-check state',async()=>{
+  const bookmark=vi.fn();
+  await act(async()=>root.render(<LocaleProvider><LanguageSelect/><LessonContent onBookmarkSection={bookmark} blocks={[
+    {id:'heading-en',type:'heading',level:2,text:'Routing (IPv4): 192.0.2.1/24'},
+    {id:'paragraph-ar',type:'paragraph',text:'شرح الشبكات مع IPv4.',direction:'rtl'},
+    {id:'paragraph-explicit',type:'paragraph',text:'English with authored direction.',direction:'ltr'},
+    {id:'list-en',type:'list',ordered:true,items:['First hop (R1).','Second hop (R2).']},
+    {id:'callout-en',type:'callout',tone:'tip',text:'Use show ip route.'},
+    {id:'table-en',type:'table',headers:['Network','Next hop'],rows:[['192.0.2.0/24','R1']]},
+    {id:'check-en',type:'knowledgeCheck',prompt:'Select the route.',choices:['R1','R2'],correctIndex:0,explanation:'R1 is correct.'},
+  ]}/><QuestionContent text={'أي مسار؟ `show ip route`\n```ios\nshow ip route\n```'}/></LocaleProvider>));
+  const source=()=>[...host.querySelectorAll('h2,.lesson-text,li,th,td,legend')].map(el=>el.textContent);
+  const before=source(),heading=host.querySelector('#section-heading-en');
+  const radio=host.querySelector<HTMLInputElement>('input[type=radio]')!;
+  await act(async()=>radio.click());
+  await change('ar');
+  expect(host.querySelector('#section-heading-en')).toBe(heading);
+  expect(heading?.getAttribute('dir')).toBe('auto');
+  expect(host.querySelector('#section-paragraph-ar')?.getAttribute('dir')).toBe('rtl');
+  expect(host.querySelector('#section-paragraph-explicit')?.getAttribute('dir')).toBe('ltr');
+  expect(source()).toEqual(before);
+  expect(radio.checked).toBe(true);
+  for(const button of host.querySelectorAll('.study-section-bookmark'))expect(button.getAttribute('dir')).toBe('rtl');
+  expect(host.querySelector('.lesson-callout > strong')?.getAttribute('dir')).toBe('rtl');
+  for(const code of host.querySelectorAll('.question-content code'))expect(code.getAttribute('dir')).toBe('ltr');
+  expect(host.querySelector('.question-content')?.textContent).toContain('أي مسار؟ show ip route');
+  await act(async()=>host.querySelector<HTMLButtonElement>('.study-section-bookmark')!.click());
+  expect(bookmark).toHaveBeenCalledExactlyOnceWith('heading-en');
+  await change('en');expect(source()).toEqual(before);expect(radio.checked).toBe(true);
+});

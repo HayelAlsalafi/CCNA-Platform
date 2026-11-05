@@ -26,3 +26,14 @@ it('moves the persistent sidebar offset to the right and preserves focus expansi
  document.querySelector('.lesson-workspace')!.classList.add('lesson-focus-mode');expect(getComputedStyle(main).marginInline).toBe('0');
  expect(getComputedStyle(document.querySelector('code')!).direction).toBe('ltr');expect(document.querySelector('code')!.textContent).toBe('show ip route 192.0.2.0/24');
 });
+it('uses content-relative alignment, logical list indents and bounded question containers in both directions',()=>{
+ styles();document.body.innerHTML='<article class="lesson-prose"><section class="lesson-block" dir="auto"><ol><li>Route (R1): 192.0.2.1.</li></ol></section></article><span class="question-content" dir="auto">Which route?</span>';
+ for(const dir of ['ltr','rtl']){
+  document.documentElement.dir=dir;
+  expect(getComputedStyle(document.querySelector('.lesson-block')!).textAlign).toBe('start');
+  const list=getComputedStyle(document.querySelector('ol')!);
+  expect(list.paddingInlineStart).toBe('1.5em');expect(list.paddingLeft).toBe('0px');expect(list.paddingRight).toBe('0px');
+  const question=getComputedStyle(document.querySelector('.question-content')!);
+  expect(question.textAlign).toBe('start');expect(question.maxInlineSize).toBe('100%');expect(question.minInlineSize).toBe('0');
+ }
+});

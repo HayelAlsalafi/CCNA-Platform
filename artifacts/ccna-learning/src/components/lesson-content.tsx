@@ -204,11 +204,11 @@ function CodeExample({
   lineNumbers?: boolean;
   explanation?: string;
 }) {
-  const { t: translateUi } = useI18n();
+  const { t: translateUi, dir } = useI18n();
   const [message, setMessage] = useState("");
   return (
     <div className="lesson-code">
-      <div>
+      <div dir={dir}>
         <span>{language || "Cisco CLI"}</span>
         <button
           type="button"
@@ -235,13 +235,13 @@ function CodeExample({
             : text}
         </code>
       </pre>
-      <span role="status"><UiMessage text={message}/></span>
-      {explanation && <p className="lesson-text">{explanation}</p>}
+      <span role="status" dir={dir}><UiMessage text={message}/></span>
+      {explanation && <p className="lesson-text" dir="auto">{explanation}</p>}
     </div>
   );
 }
 function KnowledgeCheck({ block }: { block: Extract<LessonBlock, { type: "knowledgeCheck" }> }) {
-  const { t: translateUi } = useI18n();
+  const { t: translateUi, dir } = useI18n();
   const [choice, setChoice] = useState<number | null>(null),
     [checked, setChecked] = useState(false);
   return (
@@ -261,15 +261,15 @@ function KnowledgeCheck({ block }: { block: Extract<LessonBlock, { type: "knowle
           {text}
         </label>
       ))}
-      <button type="button" disabled={choice === null} onClick={() => setChecked(true)}>
+      <button dir={dir} type="button" disabled={choice === null} onClick={() => setChecked(true)}>
         {translateUi("Check understanding")}</button>
       {checked && (
         <p role="status">
-          <strong>{choice === block.correctIndex ? translateUi("Correct.") : translateUi("Review this concept.")}</strong>
+          <strong dir={dir}>{choice === block.correctIndex ? translateUi("Correct.") : translateUi("Review this concept.")}</strong>
           {block.explanation}
         </p>
       )}
-      <small>{translateUi("Self-check only. This does not create a practice attempt.")}</small>
+      <small dir={dir}>{translateUi("Self-check only. This does not create a practice attempt.")}</small>
     </fieldset>
   );
 }
@@ -309,7 +309,7 @@ export function LessonContent({
 }) {
   const {message:localizeUiLabel}=useI18n();
 
-  const { t: translateUi } = useI18n();
+  const { t: translateUi, dir } = useI18n();
   return (
     <>
       {blocks.map((block) => {
@@ -329,6 +329,7 @@ export function LessonContent({
           >
             {onBookmarkSection && (
               <button
+                dir={dir}
                 type="button"
                 className="study-section-bookmark"
                 onClick={() => onBookmarkSection(block.id)}
@@ -389,7 +390,7 @@ export function LessonContent({
                 className={`lesson-callout lesson-callout-${block.tone}`}
                 style={{ textAlign: block.alignment }}
               >
-                <strong>
+                <strong dir={block.title ? undefined : dir}>
                   {block.showIcon !== false && (
                     <span aria-hidden="true">
                       {block.tone === "warning"
@@ -534,7 +535,7 @@ export function LessonContent({
                 <p>{block.description}</p>
                 {!!block.objectives?.length && (
                   <>
-                    <h3>{translateUi("Learning objectives")}</h3>
+                    <h3 dir={dir}>{translateUi("Learning objectives")}</h3>
                     <ul>
                       {block.objectives.map((v, i) => (
                         <li key={i}>{v}</li>
@@ -544,7 +545,7 @@ export function LessonContent({
                 )}
                 {!!block.requirements?.length && (
                   <>
-                    <h3>{translateUi("Requirements")}</h3>
+                    <h3 dir={dir}>{translateUi("Requirements")}</h3>
                     <ul>
                       {block.requirements.map((v, i) => (
                         <li key={i}>{v}</li>
@@ -554,7 +555,7 @@ export function LessonContent({
                 )}
                 {!!block.steps?.length && (
                   <>
-                    <h3>{translateUi("Steps")}</h3>
+                    <h3 dir={dir}>{translateUi("Steps")}</h3>
                     <ol>
                       {block.steps.map((v, i) => (
                         <li key={i}>{v}</li>
@@ -564,17 +565,17 @@ export function LessonContent({
                 )}
                 {block.expectedResults && (
                   <>
-                    <h3>{translateUi("Expected results")}</h3>
+                    <h3 dir={dir}>{translateUi("Expected results")}</h3>
                     <p>{block.expectedResults}</p>
                   </>
                 )}
                 {block.url && safeLessonUrl(block.url) ? (
-                  <a href={safeLessonUrl(block.url)!} target="_blank" rel="noopener noreferrer">
+                  <a dir={dir} href={safeLessonUrl(block.url)!} target="_blank" rel="noopener noreferrer">
                     {translateUi("Open lab reference ↗")}</a>
                 ) : block.url ? (
                   <p>{translateUi("Lab link unavailable.")}</p>
                 ) : null}
-                <small>
+                <small dir={dir}>
                   {translateUi("External reference only; no simulator or command execution is provided.")}</small>
               </aside>
             )}

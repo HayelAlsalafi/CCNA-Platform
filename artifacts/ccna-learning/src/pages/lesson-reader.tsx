@@ -357,7 +357,7 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
                                 paddingInlineStart: `${Math.max(0, (block.type === "heading" ? block.level : 2) - 2) * 10 + 8}px`,
                               }}
                             >
-                              {"text" in block ? block.text : translateUi("Section")}
+                              <bdi>{"text" in block ? block.text : translateUi("Section")}</bdi>
                             </a>
                           ))}
                       </nav>
@@ -381,11 +381,11 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
                   >
                     <header className="lesson-heading">
                       <p className="eyebrow">
-                        {lesson.chapter.domainName} ·{" "}
-                        {lesson.chapter.bookReference || translateUi("Book chapter")}
+                        <bdi>{lesson.chapter.domainName}</bdi> ·{" "}
+                        <bdi>{lesson.chapter.bookReference || translateUi("Book chapter")}</bdi>
                       </p>
-                      <h1>{lesson.title}</h1>
-                      <p>{lesson.description}</p>
+                      <h1 dir="auto">{lesson.title}</h1>
+                      <p dir="auto">{lesson.description}</p>
                       <small>
                         {lesson.estimatedMinutes} {translateUi("min read · Published revision")}{" "}
                         {lesson.revisionNumber}
@@ -395,7 +395,7 @@ export function LessonReader({ chapterId, lessonId }: { chapterId: string; lesso
                           <h2>{translateUi("What you will learn")}</h2>
                           <ul>
                             {lesson.objectives.map((objective, index) => (
-                              <li key={index}>{objective}</li>
+                              <li key={index} dir="auto">{objective}</li>
                             ))}
                           </ul>
                         </section>

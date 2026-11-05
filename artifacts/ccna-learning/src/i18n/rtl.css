@@ -36,3 +36,8 @@ html[dir=rtl] .nexus-page :is(input[type=url],input[type=email]) { direction:ltr
   .language-select span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
 }
 html[dir=rtl] .nexus-app:has(.lesson-focus-mode) > .nexus-body { margin-inline:0; }
+/* Content direction comes from authored text, independently of the interface. */
+.lesson-block, .lesson-heading :is(h1, p), .question-content { text-align:start; }
+.lesson-prose :is(ul, ol) { padding-left:0; padding-right:0; padding-inline-start:1.5em; }
+.lesson-prose :is(h1, h2, h3, h4, h5, h6, li, td, th, figcaption) { overflow-wrap:anywhere; }
+.question-content { display:block; min-inline-size:0; max-inline-size:100%; }

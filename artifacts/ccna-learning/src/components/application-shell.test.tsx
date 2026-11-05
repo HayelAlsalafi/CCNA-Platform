@@ -148,6 +148,21 @@ it('mobile Escape closes the dialog and restores keyboard focus to its trigger',
  expect(document.querySelector('[role=dialog]')).toBeNull();
  expect(document.activeElement).toBe(trigger);
 });
+it('keeps mobile navigation open through locale changes and closes after Arabic navigation',async()=>{
+ await render();const main=host.querySelector('main');
+ await click(host.querySelector('[aria-label="Open learning navigation"]'));
+ const dialog=document.querySelector('[role=dialog]');expect(dialog).not.toBeNull();
+ await act(async()=>{const select=host.querySelector('select')!;select.value='ar';select.dispatchEvent(new Event('change',{bubbles:true}));});
+ expect(document.querySelector('[role=dialog]')).toBe(dialog);
+ expect(dialog?.classList.contains('right-0')).toBe(true);
+ expect(dialog?.querySelector('[aria-label="تنقل المتعلم"]')).not.toBeNull();
+ expect(dialog?.querySelector('a[href="/admin"]')).toBeNull();
+ expect(host.querySelector('main')).toBe(main);
+ await click(dialog!.querySelector('a[href="/topics"]'));
+ expect(document.querySelector('[role=dialog]')).toBeNull();
+ expect(location.pathname).toBe('/topics');expect(host.textContent).toContain('Curriculum content');
+ expect(host.querySelector('[aria-label="فتح قائمة التعلم"]')?.getAttribute('aria-expanded')).toBe('false');
+});
 it('collapsed links remain named and skip navigation targets the only main landmark',async()=>{
  await render();await click(host.querySelector('[aria-label="Collapse sidebar"]'));
  expect(host.querySelectorAll('[aria-label="Learner navigation"] a[aria-label]')).toHaveLength(6);

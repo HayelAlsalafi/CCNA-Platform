@@ -8,14 +8,14 @@ export function QuestionContent({ text }: { text: string }) {
     <span className="question-content" dir="auto">
       {parts.map((part, index) =>
         part.startsWith("```") ? (
-          <code className="question-content-block" key={index}>
+          <code className="question-content-block" dir="ltr" key={index}>
             {part.replace(/^```[^\n`]*\n/, "").replace(/```$/, "")}
           </code>
         ) : (
           <span key={index}>
             {part.split(/(`[^`\n]+`)/g).map((fragment, i) =>
               fragment.startsWith("`") && fragment.endsWith("`") ? (
-                <code className="question-content-inline" key={i}>
+                <code className="question-content-inline" dir="ltr" key={i}>
                   {fragment.slice(1, -1)}
                 </code>
               ) : (
