@@ -35,3 +35,7 @@ export * from "./exam-sessions";
 export * from "./lessons";
 export * from "./lesson-study";
 export * from "./global-rbac";
+export * from "./course-catalog";
+export { legacyCcnaCatalog } from "../catalog-identity";
+export * from "./content-access";
+export * from "./course-enrollments";

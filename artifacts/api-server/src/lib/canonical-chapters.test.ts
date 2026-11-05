@@ -24,6 +24,19 @@ const record = {
   explanation: "TCP provides sequencing and acknowledgements.",
 };
 const catalog = { topics: ccnaBookChapters.map((c) => ({ id: c.topicId })), objectives: [] };
+it("creates canonical chapters using only installed legacy columns before catalog activation", async () => {
+  const execute = vi.fn().mockResolvedValue({ rows: [] });
+  const insert = vi.fn(() => ({ values: () => ({ returning: async () => [{ id: c.topicId }] }) }));
+  const tx = { execute, insert, select: () => ({ from: () => ({ innerJoin: () => ({ where: () => ({ limit: async () => [{id:c.topicId,blueprintId:c.topicId}] }) }) }) }) };
+  const database: any = { execute: async () => ({ rows: [{ ready: true }] }), transaction: (fn: any) => fn(tx) };
+  expect(await saveChapter({code:c.code,description:"",status:"ACTIVE",displayOrder:0}, undefined, database)).toEqual({id:c.topicId});
+  expect(insert).toHaveBeenCalledTimes(1);
+  expect(execute).toHaveBeenCalledTimes(1);
+  const q = dialect.sqlToQuery(execute.mock.calls[0][0]);
+  expect(q.sql).toContain("INSERT INTO public.curriculum_chapters");
+  expect(q.sql).not.toContain("course_version_id");
+  expect(q.params).toEqual([c.topicId,c.code,c.volume,c.chapterNumber,c.primaryDomain,c.topicId,c.topicId]);
+});
 it("every question requires a persisted chapter through an additional RESTRICT FK", () => {
   const fk = getTableConfig(questionsTable).foreignKeys.find(
     (f) => f.getName() === "questions_chapter_fk",

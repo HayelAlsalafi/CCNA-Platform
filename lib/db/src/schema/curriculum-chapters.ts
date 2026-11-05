@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { topicsTable } from "./topics";
 import { examDomainsTable } from "./exam-blueprints";
+import { courseVersionsTable } from "./course-catalog";
 
 /** A chapter owns one topic UUID. Questions, history and future lessons use this ID. */
 export const curriculumChaptersTable = pgTable(
@@ -21,6 +22,7 @@ export const curriculumChaptersTable = pgTable(
       .primaryKey()
       .references(() => topicsTable.id, { onDelete: "restrict" }),
     blueprintId: uuid("blueprint_id").notNull(),
+    courseVersionId: uuid("course_version_id"),
     domainId: uuid("domain_id").notNull(),
     domainCode: varchar("domain_code", { length: 20 }).notNull(),
     code: varchar("code", { length: 20 }).notNull(),
@@ -29,6 +31,12 @@ export const curriculumChaptersTable = pgTable(
   },
   (t) => [
     unique("curriculum_chapters_code_uq").on(t.blueprintId, t.code),
+    foreignKey({
+      name: "curriculum_chapters_course_version_fk",
+      columns: [t.courseVersionId, t.blueprintId],
+      foreignColumns: [courseVersionsTable.id, courseVersionsTable.blueprintId],
+    }).onDelete("restrict"),
+    index("curriculum_chapters_course_version_idx").on(t.courseVersionId, t.id),
     unique("curriculum_chapters_number_uq").on(t.blueprintId, t.volume, t.chapterNumber),
     foreignKey({
       name: "curriculum_chapters_domain_fk",

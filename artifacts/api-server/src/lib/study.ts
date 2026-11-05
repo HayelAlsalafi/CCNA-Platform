@@ -8,6 +8,8 @@ import {
   workspaceQuery,
 } from "./study-validation";
 import { validAnchor } from "../../../../lib/lesson-study";
+import { contentAccessRequested, createContentAccess } from "./content-access";
+import { privateStudyWorkspace, privateStudyProgress, privateLessonStudy, projectPrivateStudy } from "./private-study-access";
 type Db = typeof defaultDb;
 type Tx = Pick<Db, "execute">;
 export async function studyReady(db: Tx) {
@@ -74,6 +76,11 @@ export async function lessonStudy(actor: string, id: string, db: Db = defaultDb)
     actor,
     db,
     async (tx) => {
+      if (contentAccessRequested()) {
+        const ownStudy = await privateLessonStudy(actor, id, tx);
+        if (!ownStudy) throw new LessonError(404,"STUDY_ITEM_NOT_FOUND","No saved personal study data.");
+        return ownStudy;
+      }
       const lesson = await current(tx, id);
       const annotations = await tx.execute(
         sql`SELECT ${fields} FROM public.lesson_annotations a WHERE a.user_id=${actor}::uuid AND a.lesson_id=${id}::uuid ORDER BY a.created_at,a.id LIMIT 501`,
@@ -102,6 +109,9 @@ export async function lessonStudy(actor: string, id: string, db: Db = defaultDb)
 export async function createAnnotation(actor: string, input: unknown, db: Db = defaultDb) {
   const value = annotationInput.parse(input);
   return owned(actor, db, async (tx) => {
+    if(contentAccessRequested() && !(await createContentAccess(q=>tx.execute(q),()=>true)(
+      {id:actor,status:"ACTIVE"},{kind:"LESSON",id:value.lessonId},"lesson.read",value.revisionId)))
+      throw new LessonError(403,"CONTENT_ACCESS_DENIED","Lesson access is required for new study anchors.");
     const lesson = await current(tx, value.lessonId, value.revisionId, true);
     if (value.anchor && !validAnchor(value.anchor, lesson.snapshot.blocks))
       throw new LessonError(
@@ -174,12 +184,15 @@ export async function changeAnnotation(
         sql`UPDATE public.lesson_annotations AS a SET body=${value.body},color=${value.color},category=${value.category},version=version+1,updated_at=clock_timestamp() WHERE a.id=${id}::uuid AND a.user_id=${actor}::uuid RETURNING ${fields}`,
       )
     ).rows[0];
-    return { annotation: annotationDto(next) };
+    return { annotation: contentAccessRequested() ? (await projectPrivateStudy(actor,[next],tx))[0] : annotationDto(next) };
   });
 }
 export async function saveProgress(actor: string, input: unknown, db: Db = defaultDb) {
   const value = progressInput.parse(input);
   return owned(actor, db, async (tx) => {
+    if(contentAccessRequested() && !(await createContentAccess(q=>tx.execute(q),()=>true)(
+      {id:actor,status:"ACTIVE"},{kind:"LESSON",id:value.lessonId},"lesson.read",value.revisionId)))
+      throw new LessonError(403,"CONTENT_ACCESS_DENIED","Lesson access is required to update a reading position.");
     const lesson = await current(tx, value.lessonId, value.revisionId, true);
     if (value.blockId && !lesson.snapshot.blocks.some((b) => b.id === value.blockId))
       throw new LessonError(
@@ -231,6 +244,7 @@ export async function studyWorkspace(actor: string, input: unknown, db: Db = def
     actor,
     db,
     async (tx) => {
+      if(contentAccessRequested()) return privateStudyWorkspace(actor,value,tx);
       const conditions = [sql`a.user_id=${actor}::uuid`, visible];
       if (value.kind) conditions.push(sql`a.kind=${value.kind}`);
       if (value.color) conditions.push(sql`a.color=${value.color}`);
@@ -261,6 +275,7 @@ export async function studyProgress(actor: string, input: unknown, db: Db = defa
     actor,
     db,
     async (tx) => {
+      if(contentAccessRequested()) return privateStudyProgress(actor,value,tx);
       const conditions = [visible];
       if (value.chapterId) conditions.push(sql`c.id=${value.chapterId}::uuid`);
       if (value.lessonId) conditions.push(sql`l.id=${value.lessonId}::uuid`);

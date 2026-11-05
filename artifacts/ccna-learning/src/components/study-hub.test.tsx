@@ -261,6 +261,14 @@ it("uses a focused export dialog and retains all three existing generators plus 
  for(const value of ["xlsx","docx","pdf"]){await choose(format,value);await click("Download my export");expect(exportMocks.build.mock.calls.at(-1)?.[1]).toBe(value);expect(exportMocks.download.mock.calls.at(-1)?.[1]).toBe(value);}
  exportMocks.collect.mockResolvedValue([]);await click("Download my export");expect(dialog.textContent).toContain("No saved study items match this scope.");expect(exportMocks.download).toHaveBeenCalledTimes(3);
 });
+it("discards a formatted export when a fresh server projection removes a paid excerpt",async()=>{
+ await render(<LessonReader chapterId={chapterId} lessonId={lessonId}/>);await tab("My Study");await click("Export study materials");await wait();
+ exportMocks.collect.mockResolvedValueOnce([{id:"private-item",body:"My note",anchor:{quote:"Paid excerpt"}}]);
+ exportMocks.collect.mockResolvedValueOnce([{id:"private-item",body:"My note",anchor:null}]);
+ await click("Download my export");
+ expect(exportMocks.build).toHaveBeenCalled();expect(exportMocks.download).not.toHaveBeenCalled();
+ expect(document.querySelector('[role="dialog"]')?.textContent).toContain("Study items changed during export. Retry for a consistent download.");
+});
 it("uses a full-width mobile hub drawer and retains unsaved text after close and reopen",async()=>{
  vi.stubGlobal("matchMedia",vi.fn(()=>({matches:true,addEventListener:vi.fn(),removeEventListener:vi.fn()})));
  await render(<LessonReader chapterId={chapterId} lessonId={lessonId}/>);await click("Open Study Hub");

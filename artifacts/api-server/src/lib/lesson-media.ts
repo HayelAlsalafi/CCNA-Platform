@@ -5,6 +5,8 @@ import { db as defaultDb } from "@workspace/db";
 import { sql } from "drizzle-orm";
 import { LessonError } from "./lessons";
 import { configuredMediaStore, assertMediaKey } from "./lesson-media-storage";
+import { contentAccessRequested, createContentAccess } from "./content-access";
+import type { AccessActor } from "./content-access-policy";
 export const mediaLimit = 5 * 1024 * 1024;
 export function inspectImage(bytes: Buffer, mime: string) {
   if (!bytes.length || bytes.length > mediaLimit)
@@ -169,8 +171,26 @@ export async function uploadLessonMedia(
   );
   return { id, url: "/api/lesson-media/" + id, mime, bytes: bytes.length };
 }
-export async function readLessonMedia(id: string, admin: boolean, db = defaultDb, variant: "display"|"thumbnail" = "display", store?:LessonMediaStore) {
+export async function readLessonMedia(id: string, admin: boolean, db = defaultDb, variant: "display"|"thumbnail" = "display", store?:LessonMediaStore, actor?:AccessActor) {
   await mediaReady(db);
+  if(contentAccessRequested()) {
+    // Same check for display, thumbnails and eventual HTTP 304. No Admin bypass.
+    if(!actor || actor.status!=="ACTIVE") throw new LessonError(403,"CONTENT_ACCESS_DENIED","Media access is required.");
+    const refs=(await db.execute(sql`SELECT l.id,r.id AS "revisionId" FROM public.lessons l
+      JOIN public.lesson_revisions r ON r.id=l.published_revision_id AND r.lesson_id=l.id
+      JOIN public.curriculum_chapters c ON c.id=l.chapter_id JOIN public.topics t ON t.id=c.id
+      JOIN public.exam_blueprints b ON b.id=c.blueprint_id
+      WHERE t.status='ACTIVE' AND b.status='ACTIVE' AND r.snapshot->>'chapterId'=c.id::text
+      AND jsonb_path_exists(r.snapshot,'$.blocks[*] ? (@.url == $url)',jsonb_build_object('url','/api/lesson-media/' || ${id}::text))
+      ORDER BY l.id LIMIT 1001`)).rows;
+    const canRead=createContentAccess(q=>db.execute(q),()=>true);
+    let allowed=false;
+    if(refs.length<=1000) for(const ref of refs) {
+      if(await canRead(actor,{kind:"LESSON",id:String(ref.id)},"media.read",String(ref.revisionId))) {allowed=true;break;}
+    }
+    if(!allowed) throw new LessonError(403,"CONTENT_ACCESS_DENIED","Media access is required.");
+    admin=false;
+  }
   const row = (
     await db.execute(
       sql`SELECT m.storage_key AS key,m.mime,m.sha256 FROM public.lesson_media m WHERE m.id=${id}::uuid AND (${admin} OR EXISTS(SELECT 1 FROM public.lessons l JOIN public.lesson_revisions r ON r.id=l.published_revision_id AND r.lesson_id=l.id JOIN public.curriculum_chapters c ON c.id=l.chapter_id JOIN public.topics t ON t.id=c.id JOIN public.exam_blueprints b ON b.id=c.blueprint_id WHERE t.status='ACTIVE' AND b.status='ACTIVE' AND r.snapshot->>'chapterId'=c.id::text AND jsonb_path_exists(r.snapshot,'$.blocks[*] ? (@.url == $url)',jsonb_build_object('url','/api/lesson-media/' || ${id}::text))))`,

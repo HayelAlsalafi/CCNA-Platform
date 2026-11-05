@@ -16,7 +16,13 @@ export function StudyExportPanel({chapterId,lessonId,identityKey}:{chapterId?:st
     <button type="button" disabled={busy||!kinds.length||!identityKey||(scope==="chapter"&&!chapterId)||(scope==="lesson"&&!lessonId)} onClick={async()=>{
       if(controller.current)return;const capture=identityKey,abort=new AbortController();controller.current=abort;setBusy(true);setMessage("Preparing your private export...");
       try{const items=await collectStudyExport({chapterId:scope==="chapter"?chapterId:undefined,lessonId:scope==="lesson"?lessonId:undefined,kinds},abort.signal);if(!items.length)throw Error("No saved study items match this scope.");
-        const blob=await buildStudyExport(items,format);if(!abort.signal.aborted&&owner.current===capture){downloadStudyExport(blob,format);setMessage(`Downloaded ${items.length} study items.`);}
+        const blob=await buildStudyExport(items,format);
+        if(abort.signal.aborted||owner.current!==capture)return;
+        // Formatting can take time. Re-read the no-store, owner-scoped projection
+        // before releasing a file; never fall back to an earlier quoted snapshot.
+        const fresh=await collectStudyExport({chapterId:scope==="chapter"?chapterId:undefined,lessonId:scope==="lesson"?lessonId:undefined,kinds},abort.signal);
+        if(JSON.stringify(fresh)!==JSON.stringify(items))throw Error("Study items changed during export. Retry for a consistent download.");
+        if(!abort.signal.aborted&&owner.current===capture){downloadStudyExport(blob,format);setMessage(`Downloaded ${items.length} study items.`);}
       }catch(error){if(!abort.signal.aborted&&owner.current===capture)setMessage(error instanceof Error?error.message:"Export failed. Nothing was downloaded.");}
       finally{if(controller.current===abort)controller.current=null;if(owner.current===capture)setBusy(false);}
     }}>{busy?translateUi("Exporting..."):translateUi("Download my export")}</button>

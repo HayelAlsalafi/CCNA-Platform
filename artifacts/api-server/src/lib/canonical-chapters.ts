@@ -3,7 +3,6 @@ import { z } from "zod/v4";
 import {
   db,
   topicsTable,
-  curriculumChaptersTable,
   examDomainsTable,
   examBlueprintsTable,
 } from "@workspace/db";
@@ -96,17 +95,12 @@ export async function saveChapter(input: unknown, id?: string, database: Db = db
         displayOrder: data.displayOrder,
       })
       .returning();
-    await tx
-      .insert(curriculumChaptersTable)
-      .values({
-        id: chapter.topicId,
-        code: chapter.code,
-        volume: chapter.volume,
-        chapterNumber: chapter.chapterNumber,
-        domainCode: chapter.primaryDomain,
-        domainId: domain.id,
-        blueprintId: domain.blueprintId,
-      });
+    // Explicit legacy columns keep creation compatible before catalog activation.
+    // Drizzle's implicit DEFAULT columns would include the proposed nullable binding.
+    await tx.execute(sql`INSERT INTO public.curriculum_chapters
+      (id, code, volume, chapter_number, domain_code, domain_id, blueprint_id)
+      VALUES (${chapter.topicId}, ${chapter.code}, ${chapter.volume}, ${chapter.chapterNumber},
+        ${chapter.primaryDomain}, ${domain.id}, ${domain.blueprintId})`);
     return topic;
   });
 }

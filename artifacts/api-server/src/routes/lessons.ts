@@ -133,11 +133,11 @@ function handle(
 }
 router.get(
   "/chapters/:chapterId/lessons",
-  handle((req) => chapterLessonList(uuid.parse(req.params.chapterId)), GetChapterLessonsResponse),
+  handle((req) => chapterLessonList(uuid.parse(req.params.chapterId),undefined,req.dbUser), GetChapterLessonsResponse),
 );
 router.get(
   "/lessons/:id",
-  handle((req) => publishedLesson(uuid.parse(req.params.id)), GetPublishedLessonResponse),
+  handle((req) => publishedLesson(uuid.parse(req.params.id),undefined,req.dbUser), GetPublishedLessonResponse),
 );
 router.get(
   "/admin/lessons",

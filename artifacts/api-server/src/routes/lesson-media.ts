@@ -54,6 +54,8 @@ router.get("/lesson-media/:id", (req, res) => {
         req.dbUser!.role === "ADMIN",
         undefined,
         req.query.variant === "thumbnail" ? "thumbnail" : "display",
+        undefined,
+        req.dbUser,
       );
       // Authorization is evaluated before every conditional cache response.
       res.setHeader("Cache-Control","private, no-cache");

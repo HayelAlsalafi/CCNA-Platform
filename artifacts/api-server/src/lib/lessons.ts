@@ -1,6 +1,8 @@
 import { db as defaultDb } from "@workspace/db";
 import { sql, type SQL } from "drizzle-orm";
 import { z } from "zod/v4";
+import { contentAccessRequested, createContentAccess } from "./content-access";
+import type { AccessActor } from "./content-access-policy";
 import {
   assertPublishable,
   lessonInputSchema,
@@ -309,7 +311,7 @@ function publishedDto(row: Record<string, unknown>) {
     chapter: row.chapter,
   };
 }
-export async function chapterLessonList(chapterId: string, database: Database = defaultDb) {
+export async function chapterLessonList(chapterId: string, database: Database = defaultDb, actor?: AccessActor) {
   await lessonsReady(database);
   const result = await database.execute(
     sql`SELECT l.id,l.version,l.display_order AS "displayOrder",r.id AS "revisionId",r.revision_number AS "revisionNumber",r.snapshot-'blocks'-'objectives' AS snapshot,r.created_at AS "createdAt",r.created_at AS "updatedAt" ${publishedJoin} WHERE c.id=${chapterId}::uuid AND ${visible} ORDER BY l.display_order,l.id LIMIT 201`,
@@ -321,8 +323,12 @@ export async function chapterLessonList(chapterId: string, database: Database = 
       "This chapter exceeds the lesson list limit.",
     );
   // Never serialize working-copy fields or drafts, even when a published lesson is being edited.
+  const canRead = createContentAccess(q=>database.execute(q),contentAccessRequested);
+  const allowedRows = contentAccessRequested()
+    ? (await Promise.all(result.rows.map(async row => await canRead(actor??null,{kind:"LESSON",id:String(row.id)},"metadata.read") ? row : null))).filter((row): row is NonNullable<typeof row>=>row!==null)
+    : result.rows;
   return {
-    items: result.rows.map((row) => ({
+    items: allowedRows.map((row) => ({
       ...publishedSnapshot(row.snapshot, summaryInputSchema),
       id: row.id,
       version: row.version,
@@ -336,10 +342,13 @@ export async function chapterLessonList(chapterId: string, database: Database = 
     })),
   };
 }
-export async function publishedLesson(id: string, database: Database = defaultDb) {
+export async function publishedLesson(id: string, database: Database = defaultDb, actor?: AccessActor) {
   await lessonsReady(database);
   return database.transaction(
     async (tx) => {
+      const canRead=createContentAccess(q=>tx.execute(q),contentAccessRequested);
+      if(contentAccessRequested() && !(await canRead(actor??null,{kind:"LESSON",id},"lesson.read")))
+        throw new LessonError(403,"CONTENT_ACCESS_DENIED","Lesson access is required.");
       const row = await runOne(
         tx,
         sql`SELECT l.id,l.version,l.display_order AS "displayOrder",r.id AS "revisionId",r.revision_number AS "revisionNumber",r.snapshot,r.created_at AS "createdAt",r.created_at AS "updatedAt",jsonb_build_object('id',c.id,'title',t.name,'bookReference',c.volume || ' / Chapter ' || c.chapter_number,'domainId',d.id,'domainName',d.name) AS chapter ${publishedJoin} WHERE l.id=${id}::uuid AND ${visible}`,
@@ -351,12 +360,12 @@ export async function publishedLesson(id: string, database: Database = defaultDb
       const next = await tx.execute(
         sql`SELECT l.id,r.snapshot->>'title' AS title ${publishedJoin} WHERE c.id=${chapterId}::uuid AND ${visible} AND (l.display_order,l.id)>(${row.displayOrder},${id}::uuid) ORDER BY l.display_order,l.id LIMIT 1`,
       );
-      const nav = (item: Record<string, unknown> | undefined) =>
-        item ? { id: item.id, title: item.title } : null;
+      const nav = async (item: Record<string, unknown> | undefined) =>
+        item && (!contentAccessRequested() || await canRead(actor??null,{kind:"LESSON",id:String(item.id)},"metadata.read")) ? { id: item.id, title: item.title } : null;
       return {
         lesson: publishedDto(row),
-        previous: nav(previous.rows[0]),
-        next: nav(next.rows[0]),
+        previous: await nav(previous.rows[0]),
+        next: await nav(next.rows[0]),
       };
     },
     { isolationLevel: "repeatable read", accessMode: "read only" },
