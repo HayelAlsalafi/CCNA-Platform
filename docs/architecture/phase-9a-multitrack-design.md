@@ -1,6 +1,6 @@
 # Phase 9A — multi-track architecture recommendation
 
-Baseline: `7e3e6c16cbfd2a87682d1e28da0e0939f29d5005`, `main`. **Design only; nothing here is implemented or activated.** Source facts and exact locations are in [coupling inventory](phase-9a-coupling-inventory.md). Database changes, grants, role bootstrapping and product policy require the separate decisions in [owner decisions](phase-9a-owner-decisions.md).
+Baseline: `7e3e6c16cbfd2a87682d1e28da0e0939f29d5005`, `main`. **Design only; nothing here is implemented or activated.** Source facts and exact locations are in [coupling inventory](phase-9a-coupling-inventory.md). The owner has approved the 18 architectural decisions in [owner decisions](phase-9a-owner-decisions.md); see the [approval and owner-provided data-classification record](phase-9a-owner-approval-record.md). This does not authorize implementation, database changes, grants, role bootstrap or data cleanup. Recovery verification and execution approvals remain pending.
 
 ## Fact, recommendation, assumption and approval boundaries
 

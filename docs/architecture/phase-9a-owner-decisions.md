@@ -1,6 +1,6 @@
 # Phase 9A — owner decisions and approval gates
 
-Baseline: `7e3e6c16cbfd2a87682d1e28da0e0939f29d5005`, branch main. **No approval is inferred from this document.** All recommendations below are proposed architecture. “DB approval: Yes” means implementing that choice requires a separately reviewed migration/grant/data-change authorization; approval of documentation or source preparation is insufficient.
+Baseline: `7e3e6c16cbfd2a87682d1e28da0e0939f29d5005`, branch main. The owner has explicitly approved all **18/18 architectural decisions**, recorded against documentation checkpoint `442af6727271ba69a59a23cfb0d673425345561a` in the [approval and data-classification record](phase-9a-owner-approval-record.md). These are approved architectural recommendations, not implemented capabilities. “DB approval: Yes” means implementing that choice still requires a separately reviewed migration/grant/data-change authorization; architectural approval is insufficient.
 
 Source facts are classified in the [inventory](phase-9a-coupling-inventory.md); implementation sequence is only a [Markdown migration plan](phase-9a-migration-plan.md).
 
@@ -148,8 +148,10 @@ Source facts are classified in the [inventory](phase-9a-coupling-inventory.md); 
 - **DB approval:** No for documentation/branding presentation alone; Yes for the foundational model and authority/access phases.
 - **Evidence / class:** EXISTING AND VERIFIED IN SOURCE — `artifacts/ccna-learning/src/components/nexus-shell.tsx:75,155`; `artifacts/ccna-learning/src/lib/study-export.ts:22,68`; `docs/development/phase-8-final-acceptance.md:Decisions`.
 
-## Requested next decision
+## Recorded approval and next prerequisite
 
-Approve or amend **the architecture choices first** (especially 1–5, 8–13 and 15–17). Then explicitly commission a **source-only** additive schema/guard/executor proposal against the verified-at-that-time 0017 baseline. No live check, backup, restore, migration, seed, role bootstrap, service change or publication is authorized by this document.
+Architectural decisions **1–18 are approved**; their security and preservation boundaries remain unchanged. The owner-provided classification of the 16 real questions and experimental exam results/published lessons is recorded separately and has not been database-verified. Experimental does not mean disposable. Preserve all 16 questions, their related records and all other existing data unless a separate explicit approval specifies otherwise.
 
-**Current state:** PREPARED documentation; implementation MISSING; current database/security/data assumptions REQUIRES LIVE VERIFICATION. **GO for design review, NO-GO for activation or Public Beta claims.**
+The next prerequisite is a compatible **post-0017 backup verification and isolated restore rehearsal**, with separately authorized read-only preflight and execution as detailed in the [approval record](phase-9a-owner-approval-record.md). Source-only workflow preparation must also be separately commissioned. No live check, backup, restore, migration, seed, role bootstrap, service change, cleanup or publication is authorized here.
+
+**Current state:** 18/18 architectural approvals RECORDED; implementation MISSING; current database/security/data assumptions REQUIRES LIVE VERIFICATION. **DATABASE CHANGES NOT AUTHORIZED. Phase 9B NOT STARTED. Public Beta NO-GO.**

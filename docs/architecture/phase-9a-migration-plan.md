@@ -4,6 +4,8 @@
 
 Companion documents: [inventory](phase-9a-coupling-inventory.md), [model/security design](phase-9a-multitrack-design.md), [approval decisions](phase-9a-owner-decisions.md).
 
+**Approval update:** the owner has approved all 18 architectural decisions; the [approval and data-classification record](phase-9a-owner-approval-record.md) distinguishes this from execution authorization. Preserve all 16 owner-designated real questions and their related records. Existing exam results and currently published lessons are owner-classified as experimental, not disposable or approved final lesson content; all other data remains preserved by default. Exact records/counts are not independently verified. No deletion, reset, rewrite or final publication is authorized. The next prerequisite is post-0017 backup verification and an isolated restore rehearsal under separate authorization, not Phase 9B implementation.
+
 ## Baseline facts and assumptions
 
 - **EXISTING AND VERIFIED IN SOURCE:** official journal ends at 0017 and the reviewed snapshot describes 24 tables (`lib/db/drizzle/meta/_journal.json`; `lib/db/drizzle/meta/0017_snapshot.json`; `tools/exam-activation/proposal.mjs:30`). No 0012 exam entry should be inserted into historical order.
@@ -162,7 +164,7 @@ Only after all old consumers, saved links, previews, integrations and new sessio
 
 ## Mandatory approval and verification gates for eventual activation
 
-1. Owner accepts model, canonical policy, scopes, identity/backfill mapping, access semantics and explicit affected grants/RLS decisions.
+1. Architectural direction is accepted (18/18; see approval record). Exact implementation SQL, identity/backfill mappings, affected grants/RLS changes and execution still require separate review and approval.
 2. Exact forward SQL/source/snapshots/journal hashes independently reviewed; historical chain untouched.
 3. Approved main read-only preflight, one fresh verified backup, matching isolated restore, mandatory functional/security/preservation/rollback tests.
 4. Maintenance authorization and independent checks for competing clients/services/locks. No automatic service stop/start.
@@ -171,4 +173,4 @@ Only after all old consumers, saved links, previews, integrations and new sessio
 7. Authorized application startup and browser acceptance in both languages, with separately authorized disposable data. Main user/learner records are not test fixtures.
 8. Recovery authorization is separate: before commit rollback; after commit diagnose and forward repair. No automatic destructive restore, column drop, sequence reset or removal of new records.
 
-**Current conclusion:** GO for reviewing this design and commissioning a source-only post-0017 preparation package after owner decisions; **NO-GO for any database activation**. No live assumptions have been certified.
+**Current conclusion:** architectural direction APPROVED; post-0017 backup verification and isolated restoration remain prerequisites. Source preparation and live execution must be separately commissioned/authorized. **NO-GO for any database activation; DATABASE CHANGES NOT AUTHORIZED.** No live assumptions have been certified. Phase 9B has not started; Public Beta remains NO-GO.
