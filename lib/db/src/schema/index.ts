@@ -34,3 +34,4 @@ export * from "./question-deletion-audits";
 export * from "./exam-sessions";
 export * from "./lessons";
 export * from "./lesson-study";
+export * from "./global-rbac";

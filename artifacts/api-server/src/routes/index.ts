@@ -1,4 +1,5 @@
 import adminLearnersRouter from "./admin-learners";
+import globalRbacRouter from "./global-rbac";
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import learningRouter from "./learning";
@@ -21,6 +22,7 @@ router.use(healthRouter);
 router.use(learningRouter);
 router.use(authRouter);
 router.use(adminLearnersRouter);
+router.use(globalRbacRouter);
 router.use(questionsRouter);
 router.use(practiceRouter);
 router.use(adminTopicsRouter);

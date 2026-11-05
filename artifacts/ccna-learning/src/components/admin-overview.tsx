@@ -98,6 +98,7 @@ export function AdminOverview() {
         />
       )}
       <AdminLearners />
+      <Link href="/admin/users">{translateUi("GLOBAL user and role administration")}</Link>
       <AdminPanel title={translateUi("A deliberate content workflow")}>
         <ol className="admin-workflow">
           <li>
