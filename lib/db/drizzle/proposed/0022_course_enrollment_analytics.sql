@@ -86,7 +86,7 @@ END $$;
 CREATE FUNCTION public.course_enrollment_change(actor uuid,selected_course uuid,selected_version uuid,next_status text,expected_version integer,request uuid) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog SET statement_timeout='10s' SET lock_timeout='3s' AS $$
 DECLARE before_row public.course_enrollments%ROWTYPE;after_row public.course_enrollments%ROWTYPE;
- prior public.course_enrollment_events%ROWTYPE;digest text;answer jsonb;
+ prior public.course_enrollment_events%ROWTYPE;digest text;answer jsonb;has_enrollment boolean;
 BEGIN
  IF actor IS NULL OR selected_course IS NULL OR selected_version IS NULL OR request IS NULL OR
     expected_version IS NULL OR expected_version NOT BETWEEN 0 AND 2147483646 OR
@@ -104,6 +104,10 @@ BEGIN
   IF prior.request_hash<>digest THEN RAISE EXCEPTION 'Enrollment request conflict' USING ERRCODE='40001'; END IF;
   RETURN prior.result;
  END IF;
+ SELECT * INTO before_row FROM public.course_enrollments WHERE user_id=actor AND course_version_id=selected_version FOR UPDATE;
+ has_enrollment:=FOUND;
+ IF NOT has_enrollment AND next_status<>'ACTIVE' THEN
+  RAISE EXCEPTION 'Owned enrollment required' USING ERRCODE='42501'; END IF;
  -- Exact belonging context even for pause/withdraw; never rebind an enrollment.
  IF NOT EXISTS(SELECT 1 FROM public.course_versions WHERE id=selected_version AND course_id=selected_course) THEN
   RAISE EXCEPTION 'Course/version mismatch' USING ERRCODE='22023'; END IF;
@@ -113,8 +117,7 @@ BEGIN
   JOIN public.tracks t ON t.id=c.track_id JOIN public.exam_blueprints b ON b.id=v.blueprint_id
   WHERE v.id=selected_version AND c.id=selected_course AND v.status='ACTIVE' AND c.status='ACTIVE' AND t.status='ACTIVE' AND b.status='ACTIVE') THEN
   RAISE EXCEPTION 'Catalog version unavailable' USING ERRCODE='23514'; END IF;
- SELECT * INTO before_row FROM public.course_enrollments WHERE user_id=actor AND course_version_id=selected_version FOR UPDATE;
- IF NOT FOUND THEN
+ IF NOT has_enrollment THEN
   IF expected_version<>0 OR next_status<>'ACTIVE' THEN RAISE EXCEPTION 'Initial enrollment must be ACTIVE' USING ERRCODE='40001'; END IF;
   INSERT INTO public.course_enrollments(user_id,course_version_id) VALUES(actor,selected_version) RETURNING * INTO after_row;
  ELSE
@@ -132,5 +135,6 @@ REVOKE ALL ON FUNCTION public.course_enrollment_guard(),public.course_epoch_capt
 GRANT EXECUTE ON FUNCTION public.course_enrollment_read(uuid,integer),public.course_enrollment_change(uuid,uuid,uuid,text,integer,uuid) TO ccna_phase6a_app;
 -- Ordinary API analytics stay non-definer under app.study_user RLS. They need
 -- only owner-filtered enrollment existence plus public proof metadata, not events.
-GRANT SELECT ON TABLE public.course_enrollments,public.course_attribution_epochs TO ccna_phase6a_app;
+GRANT SELECT ON TABLE public.course_enrollments TO ccna_phase6a_app;
+GRANT SELECT(course_version_id,valid_from,binding_hash) ON TABLE public.course_attribution_epochs TO ccna_phase6a_app;
 -- No existing table grants/RLS changed. No epoch is inserted or history relabeled.

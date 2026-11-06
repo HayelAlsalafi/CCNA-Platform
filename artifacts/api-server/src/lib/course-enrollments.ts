@@ -16,6 +16,9 @@ export const enrollmentChangeInput=z.strictObject({
 });
 const pageInput=z.strictObject({page:z.coerce.number().int().min(1).max(10000).default(1)});
 const scopeInput=z.strictObject({courseId:z.string().uuid(),versionId:z.string().uuid()});
+const resultInput=scopeInput.extend({id:z.string().uuid(),status:z.enum(enrollmentStates),version:z.number().int().positive()});
+const listResult=z.strictObject({items:z.array(resultInput.extend({createdAt:z.string().datetime({offset:true}),updatedAt:z.string().datetime({offset:true})})).max(20),
+  total:z.number().int().nonnegative().safe(),page:z.number().int().min(1).max(10000),pageSize:z.literal(20)});
 export class EnrollmentError extends Error {
   constructor(public status:number,public code:string,message:string){super(message);}
 }
@@ -30,7 +33,9 @@ export function createEnrollmentService(query:Query,discover:(actor:string,versi
     async list(actor:string,input:unknown){
       ready(actor);const p=pageInput.safeParse(input);
       if(!p.success)throw new EnrollmentError(400,"VALIDATION_ERROR","Use bounded enrollment pagination.");
-      return (await query("SELECT public.course_enrollment_read($1::uuid,$2::integer) AS value",[actor,p.data.page])).rows[0]?.value;
+      const result=listResult.safeParse((await query("SELECT public.course_enrollment_read($1::uuid,$2::integer) AS value",[actor,p.data.page])).rows[0]?.value);
+      if(!result.success || result.data.page!==p.data.page)throw new EnrollmentError(503,"ENROLLMENT_RESULT_UNVERIFIED","Enrollment evidence could not be verified.");
+      return result.data;
     },
     async change(actor:string,input:unknown){
       ready(actor);const p=enrollmentChangeInput.safeParse(input);
@@ -38,8 +43,11 @@ export function createEnrollmentService(query:Query,discover:(actor:string,versi
       if(p.data.status==="ACTIVE" && !(await discover(actor,p.data.versionId)))
         throw new EnrollmentError(403,"ENROLLMENT_FORBIDDEN","Catalog discovery permission is required; enrollment does not grant access.");
       const v=p.data;
-      return (await query("SELECT public.course_enrollment_change($1::uuid,$2::uuid,$3::uuid,$4::text,$5::integer,$6::uuid) AS value",
-        [actor,v.courseId,v.versionId,v.status,v.expectedVersion,v.requestId])).rows[0]?.value;
+      const result=resultInput.safeParse((await query("SELECT public.course_enrollment_change($1::uuid,$2::uuid,$3::uuid,$4::text,$5::integer,$6::uuid) AS value",
+        [actor,v.courseId,v.versionId,v.status,v.expectedVersion,v.requestId])).rows[0]?.value);
+      if(!result.success || result.data.courseId!==v.courseId || result.data.versionId!==v.versionId || result.data.status!==v.status || result.data.version!==v.expectedVersion+1)
+        throw new EnrollmentError(503,"ENROLLMENT_RESULT_UNVERIFIED","Enrollment outcome is unverified. Do not automatically retry.");
+      return result.data;
     },
     async analytics(actor:string,input:unknown){
       ready(actor);const p=scopeInput.safeParse(input);
