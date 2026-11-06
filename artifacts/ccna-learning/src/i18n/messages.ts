@@ -1,8 +1,10 @@
 import {dynamicArabic} from './dynamic-messages';
+import {catalogAdminArabic} from './catalog-admin-messages';
 import {validationArabic} from './validation-messages';
 // English source messages are stable, type-checked keys. User-authored content
 // and API payload values are never looked up automatically.
 export const arabic = {
+  ...catalogAdminArabic,
   ...dynamicArabic,
   ...validationArabic,
   "DRAFT": "مسودة",

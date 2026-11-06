@@ -18,6 +18,7 @@ import { AdminLessonManager } from '@/components/admin-lessons';
 import { LessonReader } from '@/pages/lesson-reader';
 import { AdminOverview } from '@/components/admin-overview';
 import { GlobalUserAdmin } from '@/components/global-user-admin';
+import { CourseCatalogAdmin } from '@/components/course-catalog-admin';
 import { AdminPageHeader } from '@/components/admin-ui';
 import { ClerkRequestAuth } from '@/components/clerk-request-auth';
 import { AdminCacheGuard, AdminSessionBoundary } from '@/components/admin-session-boundary';
@@ -296,6 +297,7 @@ export function ApplicationRoutes() {
               <Route path="/practice"><NexusPractice /></Route>
               <Route path="/admin/topics"><AdminPage /></Route>
               <Route path="/admin/users"><GlobalUserAdmin /></Route>
+              <Route path="/admin/catalog"><CourseCatalogAdmin /></Route>
               <Route path="/admin/questions"><AdminPage /></Route>
               <Route path="/admin/taxonomy"><AdminPage /></Route>
               <Route path="/admin/import"><AdminPage /></Route>

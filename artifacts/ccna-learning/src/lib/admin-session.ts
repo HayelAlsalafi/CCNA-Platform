@@ -28,7 +28,7 @@ function owner(key: QueryKey | undefined): string | undefined {
     ? (last as { adminSession: string }).adminSession : undefined;
 }
 
-const queryFamilies = new Set(['/api/admin/rbac','/api/admin/learners','/api/admin/questions', '/api/admin/topics', '/api/admin/taxonomy', '/api/admin/question-import', '/api/admin/lessons']);
+const queryFamilies = new Set(['/api/catalog','/api/admin/rbac','/api/admin/learners','/api/admin/questions', '/api/admin/topics', '/api/admin/taxonomy', '/api/admin/question-import', '/api/admin/lessons']);
 const legacyMutationNames = new Set([
   'adminCreateQuestion', 'adminUpdateQuestion', 'adminDisableQuestion',
   'adminCreateTopic', 'adminUpdateTopic', 'adminDisableTopic',
