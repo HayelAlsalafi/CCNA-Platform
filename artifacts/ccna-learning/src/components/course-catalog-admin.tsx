@@ -7,6 +7,7 @@ import {adminQueryKey} from '../lib/admin-session';
 import {useI18n} from '../i18n';
 import {AdminSessionBoundary,useAdminSession} from './admin-session-boundary';
 import {AdminButton,AdminPanel} from './admin-ui';
+import {CatalogDraftManager} from './catalog-draft-manager';
 
 type Entry={id:string;title:string;slug?:string;versionKey?:string};
 type Page={items:Entry[];page:number;pageSize:20};
@@ -39,6 +40,7 @@ function CatalogGate(){
 }
 function CatalogWorkspace(){
   const {t}=useI18n(),[track,setTrack]=useState<string|null>(null),[course,setCourse]=useState<string|null>(null),[version,setVersion]=useState<string|null>(null);
+  const [draftsOpen,setDraftsOpen]=useState(false);
   return <>
     <AdminPanel title={t('Read-only catalog workspace')}>
       <p>{t('Only active catalog entries are returned. Draft and retired entries are unavailable.')}</p>
@@ -52,9 +54,12 @@ function CatalogWorkspace(){
       </div>
     </AdminPanel>
     <AdminPanel title={t('Draft management')}>
-      <p id="catalog-write-dependency">{t('Draft writes and publication require reviewed backend capabilities. No edits can be saved here.')}</p>
-      <div className="flex flex-wrap gap-2">{(['Create track draft','Create course draft','Create version draft'] as const).map(label=>
-        <AdminButton key={label} disabled aria-describedby="catalog-write-dependency">{t(label)}</AdminButton>)}</div>
+      <p id="catalog-write-dependency">{t('Draft backend readiness is checked separately. No feature is activated here.')}</p>
+      {!draftsOpen?<>
+        <AdminButton onClick={()=>setDraftsOpen(true)}>{t('Open draft management')}</AdminButton>
+        <div className="flex flex-wrap gap-2">{(['Create track draft','Create course draft','Create version draft'] as const).map(label=>
+          <AdminButton key={label} disabled aria-describedby="catalog-write-dependency">{t(label)}</AdminButton>)}</div>
+      </>:<CatalogDraftManager activeTrackId={track} activeCourseId={course}/>}
     </AdminPanel>
     <AdminPanel title={t('Enrollment summaries and learning analytics')}>
       <p role="status">{t('UNKNOWN — not supplied')}</p>
