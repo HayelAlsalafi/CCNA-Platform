@@ -72,3 +72,9 @@ export function createGlobalRbacService(read: Query, change: Query, enabled: () 
 }
 export const globalRbac = createGlobalRbacService((text, values) => pool.query(text, values), managementQuery,
   () => process.env.RBAC_ENABLED === 'true');
+
+// Fixed-operation adapter reuses the reviewed dedicated manager transport.
+// It does not export arbitrary SQL or fall back to app/migrator credentials.
+export function catalogDraftManagement(values: unknown[]) {
+  return managementQuery('SELECT public.catalog_draft_change($1::uuid,$2::text,$3::uuid,$4::text,$5::uuid,$6::jsonb) AS value', values);
+}

@@ -39,3 +39,4 @@ export * from "./course-catalog";
 export { legacyCcnaCatalog } from "../catalog-identity";
 export * from "./content-access";
 export * from "./course-enrollments";
+export * from "./catalog-draft-events";
